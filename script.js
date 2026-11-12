@@ -7,8 +7,6 @@ const state = {
 };
 
 function chargerDonnees() {
-  
-function chargerDonnees() {
   const save = localStorage.getItem("omni_app_full_save");
 
   if (save) {
