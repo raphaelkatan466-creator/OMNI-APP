@@ -13,12 +13,28 @@ function chargerDonnees() {
 function sauvegarderDonnees() {
   localStorage.setItem("omni_app_full_save", JSON.stringify(state));
 }
+
 function reinitialiserTout() {
-  if (confirm("⚠️ Es-tu sûr de vouloir supprimer toute ta progression ?")) {
-    localStorage.clear();
-    window.location.reload(true);
+  const confirmation = confirm(
+    "Attention ! Tu vas supprimer toute ta progression OMNI-APP. Cette action est définitive. Continuer ?"
+  );
+
+  if (!confirmation) {
+    return;
+  }
+
+  try {
+    // Supprime uniquement la sauvegarde d'OMNI-APP
+    localStorage.removeItem("omni_app_full_save");
+
+    // Recharge l'application avec les valeurs de départ
+    window.location.reload();
+  } catch (erreur) {
+    console.error("Erreur lors de la réinitialisation :", erreur);
+    alert("Impossible de réinitialiser OMNI-APP. Réessaie.");
   }
 }
+
 
 // AUDIO DEVERROUILLE AUTOMATIQUEMENT
 let audioCtx = null;
