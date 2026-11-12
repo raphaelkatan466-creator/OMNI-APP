@@ -547,25 +547,47 @@ function equiperSkin(id) {
   sauvegarderDonnees();
 }
 
-// ROUE XL
+
+// ROUE OMNI
 let wheelCanvas, wheelCtx;
-const rewards = ["+100 ⭐", "Rien... 😢", "+500 🍕", "+10 ⭐", "✨ LÉGENDAIRE", "Rien !"];
+let isSpinning = false;
+let wheelRotation = 0;
+
+// Chaque segment possède sa propre récompense
+const rewards = [
+  { label: "+100 ⭐", type: "omni", amount: 100 },
+  { label: "Rien... 😢", type: "nothing", amount: 0 },
+  { label: "+500 🍕", type: "pizza", amount: 500 },
+  { label: "+10 ⭐", type: "omni", amount: 10 },
+  { label: "LÉGENDAIRE +50 ⭐", type: "omni", amount: 50 },
+  { label: "Rien !", type: "nothing", amount: 0 }
+];
+
 function ouvrirGrandeRoue() {
   document.getElementById("wheel-modal").style.display = "flex";
   dessinerRoue();
 }
+
 function fermerGrandeRoue() {
   document.getElementById("wheel-modal").style.display = "none";
 }
+
 function dessinerRoue() {
   wheelCanvas = document.getElementById("wheel-canvas");
-  if(!wheelCanvas) return;
+  if (!wheelCanvas) return;
+
   wheelCtx = wheelCanvas.getContext("2d");
+
   const numOptions = rewards.length;
   const arcSize = (2 * Math.PI) / numOptions;
-  const colors = ["#ef4444", "#38bdf8", "#a855f7", "#eab308", "#22c55e", "#ec4899"];
 
-  wheelCtx.clearRect(0,0,320,320);
+  const colors = [
+    "#ef4444", "#38bdf8", "#a855f7",
+    "#eab308", "#22c55e", "#ec4899"
+  ];
+
+  wheelCtx.clearRect(0, 0, 320, 320);
+
   for (let i = 0; i < numOptions; i++) {
     wheelCtx.beginPath();
     wheelCtx.fillStyle = colors[i];
@@ -577,27 +599,59 @@ function dessinerRoue() {
     wheelCtx.translate(160, 160);
     wheelCtx.rotate(i * arcSize + arcSize / 2);
     wheelCtx.fillStyle = "white";
-    wheelCtx.font = "bold 13px sans-serif";
-    wheelCtx.fillText(rewards[i], 50, 5);
+    wheelCtx.font = "bold 12px sans-serif";
+    wheelCtx.fillText(rewards[i].label, 50, 5);
     wheelCtx.restore();
   }
 }
-let isSpinning = false;
+
 function tournerLaGrandeRoue() {
   if (isSpinning || !wheelCanvas) return;
+
   isSpinning = true;
-  const degrees = Math.floor(3600 + Math.random() * 360);
-  wheelCanvas.style.transform = `rotate(${degrees}deg)`;
+
+  // Choisir le segment gagnant
+  const rewardIndex = Math.floor(Math.random() * rewards.length);
+  const reward = rewards[rewardIndex];
+
+  // Calculer l'angle pour placer le segment choisi sous
+  // le pointeur situé en haut de la roue
+  const segmentAngle = 360 / rewards.length;
+  const centerAngle = rewardIndex * segmentAngle + segmentAngle / 2;
+  const targetAngle = (270 - centerAngle + 360) % 360;
+
+  const currentAngle = wheelRotation % 360;
+  const extraAngle = (targetAngle - currentAngle + 360) % 360;
+
+  wheelRotation += 360 * 8 + extraAngle;
+
+  wheelCanvas.style.transform = `rotate(${wheelRotation}deg)`;
 
   setTimeout(() => {
-    isSpinning = false;
-    state.omniPoints += 50;
+    // Attribuer exactement la récompense sélectionnée
+    if (reward.type === "omni") {
+      state.omniPoints += reward.amount;
+    } else if (reward.type === "pizza") {
+      state.pizzas += reward.amount;
+    }
+
     rafraichirAffichagePizza();
     sauvegarderDonnees();
-    alert("🎉 Bravo ! Tu a remporté +50 Points OMNI ⭐ !");
+
+    isSpinning = false;
+
+    if (reward.type === "omni") {
+      alert(`🎉 Bravo ! Tu remportes ${reward.amount} Points OMNI ⭐ !`);
+    } else if (reward.type === "pizza") {
+      alert(`🍕 Super ! Tu remportes ${reward.amount} pizzas !`);
+    } else {
+      alert("😢 Pas de récompense cette fois-ci !");
+    }
+
     fermerGrandeRoue();
-  }, 4000);
+  }, 4200);
 }
+
 
 function switchTab(tabId) {
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
