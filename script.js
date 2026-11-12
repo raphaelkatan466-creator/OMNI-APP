@@ -7,12 +7,51 @@ const state = {
 };
 
 function chargerDonnees() {
+  
+function chargerDonnees() {
   const save = localStorage.getItem("omni_app_full_save");
-  if (save) try { Object.assign(state, JSON.parse(save)); } catch(e){}
+
+  if (save) {
+    try {
+      const donnees = JSON.parse(save);
+      const { offresBoutique, ...donneesEtat } = donnees;
+
+      Object.assign(state, donneesEtat);
+
+      // Récupère les prix sauvegardés de la boutique
+      if (Array.isArray(offresBoutique)) {
+        offresBoutique.forEach(offreSauvee => {
+          const offre = OFFRES_BOUTIQUE.find(
+            item => item.id === offreSauvee.id
+          );
+
+          if (offre && Number.isFinite(offreSauvee.cost) && offreSauvee.cost > 0) {
+            offre.cost = offreSauvee.cost;
+          }
+        });
+      }
+    } catch (erreur) {
+      console.error("Erreur de chargement :", erreur);
+    }
+  }
 }
+
+
 function sauvegarderDonnees() {
-  localStorage.setItem("omni_app_full_save", JSON.stringify(state));
+  const donnees = {
+    ...state,
+    offresBoutique: OFFRES_BOUTIQUE.map(item => ({
+      id: item.id,
+      cost: item.cost
+    }))
+  };
+
+  localStorage.setItem(
+    "omni_app_full_save",
+    JSON.stringify(donnees)
+  );
 }
+
 
 function reinitialiserTout() {
   const confirmation = confirm(
