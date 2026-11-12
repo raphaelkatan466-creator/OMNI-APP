@@ -1,6 +1,6 @@
 const state = {
   username: "Joueur Cyber", userAvatar: "🤖",
-  pizzas: 0, clickPower: 1, pizzasPerSec: 0, omniPoints: 100,
+  pizzas: 0, clickPower: 1, pizzasPerSec: 0, omniPoints: 0,
   activeSkin: '🍕', unlockedSkins: ['🍕'],
   activeEffect: 'cyan', unlockedEffects: ['cyan'],
   secrets: [], capsules: [], titleClicks: 0, matrixMode: false, raveMode: false, crtMode: false
