@@ -24,21 +24,60 @@
       <p id="user-title-tag" style="color:var(--neon-blue); font-weight:bold;">🌌 Cyberpunk Ultimate Mega Edition — 👑 Débutant Cyber</p>
     </header>
 
-    <nav class="main-menu">
-      <button id="btn-home" class="menu-btn active" onclick="switchTab('home')">🏠 Profil</button>
-      <button id="btn-clicker" class="menu-btn" onclick="switchTab('clicker')">🎮 Clicker</button>
-      <button id="btn-cards" class="menu-btn" onclick="switchTab('cards')">🎴 Cartes Rares</button>
-      <button id="btn-arcade" class="menu-btn" onclick="switchTab('arcade')">🕹️ Arcade Hub</button>
-      <button id="btn-pets" class="menu-btn" onclick="switchTab('pets')">🤖 Robot IA</button>
-      <button id="btn-sandbox" class="menu-btn" onclick="switchTab('sandbox')">🎨 Créatif & Chill</button>
-      <button id="btn-community" class="menu-btn" onclick="switchTab('community')">🌐 Communauté</button>
-      <button id="btn-dilemme" class="menu-btn" onclick="switchTab('dilemme')">⚖️ Dilemmes XL</button>
-      <button id="btn-capsule" class="menu-btn" onclick="switchTab('capsule')">⏳ Capsule XL</button>
-      <button id="btn-secrets" class="menu-btn" onclick="switchTab('secrets')">🏝️ Secrets XL</button>
-      <button id="btn-vent" class="menu-btn" onclick="switchTab('vent')">🔥 Anti-Stress</button>
-      <button id="btn-shop" class="menu-btn" onclick="switchTab('shop')">🛍️ Boutique Néon</button>
-      <button id="btn-wheel" class="menu-btn" onclick="switchTab('wheel')">🎡 Roue XL</button>
-    </nav>
+    
+<nav class="bottom-nav" aria-label="Navigation principale">
+
+  <button id="btn-home" class="menu-btn nav-item active" onclick="switchTab('home')">
+    <span class="nav-icon">🏠</span>
+    <span>Accueil</span>
+  </button>
+
+  <button id="btn-clicker" class="menu-btn nav-item" onclick="switchTab('clicker')">
+    <span class="nav-icon">🍕</span>
+    <span>Jouer</span>
+  </button>
+
+  <button id="btn-arcade" class="menu-btn nav-item" onclick="switchTab('arcade')">
+    <span class="nav-icon">🎮</span>
+    <span>Arcade</span>
+  </button>
+
+  <button id="btn-community" class="menu-btn nav-item" onclick="switchTab('community')">
+    <span class="nav-icon">🌐</span>
+    <span>Communauté</span>
+  </button>
+
+  <details class="more-nav">
+    <summary class="nav-item more-toggle">
+      <span class="nav-icon">☰</span>
+      <span>Plus</span>
+    </summary>
+
+    <div class="more-menu">
+
+      <button id="btn-cards" class="menu-btn more-menu-item" onclick="switchTab('cards'); this.closest('details').open=false;">🎴 Cartes rares</button>
+
+      <button id="btn-pets" class="menu-btn more-menu-item" onclick="switchTab('pets'); this.closest('details').open=false;">🤖 Robot IA</button>
+
+      <button id="btn-sandbox" class="menu-btn more-menu-item" onclick="switchTab('sandbox'); this.closest('details').open=false;">🎨 Créatif & Chill</button>
+
+      <button id="btn-dilemme" class="menu-btn more-menu-item" onclick="switchTab('dilemme'); this.closest('details').open=false;">⚖️ Dilemmes</button>
+
+      <button id="btn-capsule" class="menu-btn more-menu-item" onclick="switchTab('capsule'); this.closest('details').open=false;">⏳ Capsule</button>
+
+      <button id="btn-secrets" class="menu-btn more-menu-item" onclick="switchTab('secrets'); this.closest('details').open=false;">🏝️ Secrets</button>
+
+      <button id="btn-vent" class="menu-btn more-menu-item" onclick="switchTab('vent'); this.closest('details').open=false;">🔥 Anti-Stress</button>
+
+      <button id="btn-shop" class="menu-btn more-menu-item" onclick="switchTab('shop'); this.closest('details').open=false;">🛍️ Boutique</button>
+
+      <button id="btn-wheel" class="menu-btn more-menu-item" onclick="switchTab('wheel'); this.closest('details').open=false;">🎡 Roue OMNI</button>
+
+    </div>
+  </details>
+
+</nav>
+
 
    <main class="content">
       <!-- 1. PROFIL -->
