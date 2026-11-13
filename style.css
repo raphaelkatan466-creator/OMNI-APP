@@ -1947,3 +1947,374 @@ textarea, input[type="text"] {
     grid-template-columns: 1fr;
   }
 }
+
+/* ================================================
+   PIZZA CLICKER — EFFETS SPÉCIAUX NEXOR
+================================================ */
+
+/* EFFET GLOBAL AU POINT DU CLIC */
+
+.omni-click-effect {
+  position: fixed;
+  z-index: 5000;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+/* CERCLE D'EXPLOSION */
+
+.omni-click-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+
+  width: 20px;
+  height: 20px;
+
+  border: 3px solid #fbbf24;
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 12px #fb923c,
+    0 0 25px #f97316;
+
+  animation: pizzaClickRing .55s ease-out forwards;
+}
+
+@keyframes pizzaClickRing {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(.2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(4);
+  }
+}
+
+/* COMPTEUR DE PIZZAS FLOTTANT */
+
+.omni-click-number {
+  position: absolute;
+  left: 0;
+  top: -12px;
+
+  white-space: nowrap;
+
+  color: #fff7ad;
+  font-size: 21px;
+  font-weight: 1000;
+  letter-spacing: .5px;
+
+  text-shadow:
+    0 0 5px #ffffff,
+    0 0 12px #fbbf24,
+    0 0 25px #f97316;
+
+  animation: pizzaClickNumber .9s cubic-bezier(.15,.7,.25,1) forwards;
+}
+
+@keyframes pizzaClickNumber {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(.4);
+  }
+
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(1.3);
+  }
+
+  65% {
+    opacity: 1;
+    transform: translate(-50%, -190%) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -260%) scale(.85);
+  }
+}
+
+/* PARTICULES QUI EXPLOSENT */
+
+.omni-click-particle {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+  background: #fbbf24;
+
+  box-shadow:
+    0 0 8px #fb923c,
+    0 0 16px #f97316;
+
+  animation: pizzaParticleExplosion .65s ease-out forwards;
+}
+
+.omni-click-particle:nth-of-type(3n) {
+  background: #ffffff;
+  box-shadow: 0 0 12px #ffffff;
+}
+
+.omni-click-particle:nth-of-type(3n + 1) {
+  background: #fb923c;
+}
+
+@keyframes pizzaParticleExplosion {
+  0% {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--particle-angle))
+      translateY(-8px)
+      scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%)
+      rotate(var(--particle-angle))
+      translateY(-55px)
+      scale(.1);
+  }
+}
+
+/* ANIMATION DE LA PIZZA AU CLIC */
+
+#page-clicker #pizza-gigante.clicked {
+  animation: pizzaHit .16s ease-out;
+}
+
+@keyframes pizzaHit {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+
+  35% {
+    transform: scale(.78) rotate(-9deg);
+  }
+
+  70% {
+    transform: scale(1.15) rotate(7deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* ================================================
+   BOUTIQUE — CARTES D'AMÉLIORATIONS
+================================================ */
+
+/* STRUCTURE D'UNE OFFRE */
+
+#page-clicker #shop-container .shop-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 13px;
+
+  min-width: 0;
+  padding: 17px;
+
+  border: 1px solid rgba(251, 146, 60, .20);
+  border-radius: 17px;
+
+  background:
+    radial-gradient(
+      circle at 0% 50%,
+      rgba(251, 146, 60, .12),
+      transparent 55%
+    ),
+    linear-gradient(145deg, #20263c, #12192c);
+
+  box-shadow: 0 8px 20px rgba(0,0,0,.2);
+
+  transition:
+    transform .3s ease,
+    border-color .3s ease,
+    box-shadow .3s ease;
+}
+
+#page-clicker #shop-container .shop-item:hover {
+  transform: translateY(-5px);
+
+  border-color: #fb923c;
+
+  box-shadow:
+    0 12px 25px rgba(0,0,0,.3),
+    0 0 18px rgba(251,146,60,.18);
+}
+
+/* CONTENU DE L'OFFRE */
+
+.shop-item-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  flex: 1;
+  min-width: 0;
+}
+
+.shop-item-icon {
+  display: grid;
+  place-items: center;
+
+  flex-shrink: 0;
+
+  width: 53px;
+  height: 53px;
+
+  border-radius: 14px;
+  background: rgba(251,146,60,.13);
+  border: 1px solid rgba(251,146,60,.3);
+
+  font-size: 27px;
+
+  box-shadow: 0 0 15px rgba(251,146,60,.1);
+  transition: transform .3s ease;
+}
+
+.shop-item:hover .shop-item-icon {
+  transform: rotate(-8deg) scale(1.12);
+}
+
+.shop-item-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  min-width: 0;
+}
+
+.shop-item-type {
+  color: #fdba74;
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: 1.1px;
+}
+
+.shop-item-copy strong {
+  color: white;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.shop-item-copy small {
+  color: #9eacc7;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.shop-item-cost {
+  color: #fbbf24;
+  font-size: 12px;
+  font-weight: 950;
+  margin-top: 3px;
+}
+
+/* BOUTON D'ACHAT */
+
+.shop-buy-btn {
+  flex-shrink: 0;
+
+  padding: 10px 12px;
+
+  border: 1px solid rgba(251,146,60,.6);
+  border-radius: 10px;
+
+  background: linear-gradient(110deg,#ea580c,#f97316);
+  color: white;
+
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .7px;
+
+  cursor: pointer;
+
+  box-shadow: 0 0 13px rgba(249,115,22,.2);
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    filter .2s ease;
+}
+
+.shop-buy-btn:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.04);
+  filter: brightness(1.15);
+
+  box-shadow:
+    0 0 15px rgba(249,115,22,.6),
+    0 0 25px rgba(251,146,60,.25);
+}
+
+.shop-buy-btn:active:not(:disabled) {
+  transform: scale(.94);
+}
+
+.shop-buy-btn:disabled {
+  background: #273047;
+  color: #7b89a4;
+  border-color: #3a455e;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* OFFRES ACCESSIBLES */
+
+#page-clicker #shop-container .shop-item.available {
+  border-color: rgba(251,146,60,.65);
+}
+
+/* PETITS ÉCRANS */
+
+@media (max-width: 520px) {
+  .omni-click-number {
+    font-size: 18px;
+  }
+
+  .shop-item-details {
+    gap: 9px;
+  }
+
+  .shop-item-icon {
+    width: 43px;
+    height: 43px;
+    font-size: 23px;
+  }
+
+  .shop-item-copy strong {
+    font-size: 12px;
+  }
+
+  .shop-buy-btn {
+    padding: 9px;
+    font-size: 8px;
+  }
+}
+
+/* ANIMATIONS RÉDUITES */
+
+@media (prefers-reduced-motion: reduce) {
+  .omni-click-ring,
+  .omni-click-number,
+  .omni-click-particle {
+    animation: none !important;
+    display: none;
+  }
+}
+
+/* FIN DES EFFETS PIZZA CLICKER */
