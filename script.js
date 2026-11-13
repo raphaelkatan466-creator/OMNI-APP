@@ -163,55 +163,405 @@ function sauvegarderProfil() {
   sauvegarderDonnees();
 }
 
-// CLICKER & BOUTIQUE
+
+// ============================================
+// PIZZA CLICKER — NEXOR ULTIMATE EDITION
+// ============================================
+
+// EFFET VISUEL AU POINT EXACT DU CLIC
+
+function afficherEffetClicPizza(e) {
+  const pizzaEl = document.getElementById("pizza-gigante");
+  if (!pizzaEl) return;
+
+  const rect = pizzaEl.getBoundingClientRect();
+
+  const x = Number.isFinite(e?.clientX)
+    ? e.clientX
+    : rect.left + rect.width / 2;
+
+  const y = Number.isFinite(e?.clientY)
+    ? e.clientY
+    : rect.top + rect.height / 2;
+
+  const effect = document.createElement("div");
+  effect.className = "omni-click-effect";
+  effect.style.left = `${x}px`;
+  effect.style.top = `${y}px`;
+  effect.setAttribute("aria-hidden", "true");
+
+  // Cercle lumineux
+  const ring = document.createElement("span");
+  ring.className = "omni-click-ring";
+  effect.appendChild(ring);
+
+  // Nombre exact de pizzas gagnées
+  const number = document.createElement("span");
+  number.className = "omni-click-number";
+  number.textContent =
+    `+${state.clickPower.toLocaleString("fr-FR")} 🍕`;
+  effect.appendChild(number);
+
+  // Six particules lumineuses
+  for (let i = 0; i < 6; i++) {
+    const particle = document.createElement("span");
+    particle.className = "omni-click-particle";
+
+    particle.style.setProperty(
+      "--particle-angle",
+      `${i * 60}deg`
+    );
+
+    effect.appendChild(particle);
+  }
+
+  document.body.appendChild(effect);
+
+  // Nettoyage automatique de l'effet
+  setTimeout(() => effect.remove(), 950);
+}
+
+
+// CLIQUER SUR LA PIZZA
+
 function cliquerPizza(e) {
+
+  // Ajouter les pizzas gagnées
   state.pizzas += state.clickPower;
+
+  // Afficher l'effet au niveau du curseur
+  afficherEffetClicPizza(e);
+
+  // Actualiser les statistiques
   rafraichirAffichagePizza();
+
+  // Sauvegarder la progression
   sauvegarderDonnees();
+
+  // Son du clic
   jouerNote(400, 0.05, 0.05);
 
+  // Animation de la pizza
   const pizzaEl = document.getElementById("pizza-gigante");
+
   if (pizzaEl) {
     pizzaEl.classList.add("clicked");
-    setTimeout(() => pizzaEl.classList.remove("clicked"), 80);
+
+    setTimeout(() => {
+      pizzaEl.classList.remove("clicked");
+    }, 100);
   }
 }
+
+
+// ACTUALISATION DES STATISTIQUES
+
 function rafraichirAffichagePizza() {
-  if (document.getElementById("score-pieces")) document.getElementById("score-pieces").innerText = Math.floor(state.pizzas);
-  if (document.getElementById("pieces-par-seconde")) document.getElementById("pieces-par-seconde").innerText = state.pizzasPerSec;
-  if (document.getElementById("click-power-display")) document.getElementById("click-power-display").innerText = state.clickPower;
-  if (document.getElementById("omni-points-display")) document.getElementById("omni-points-display").innerText = state.omniPoints;
+
+  const score = document.getElementById("score-pieces");
+  const production = document.getElementById("pieces-par-seconde");
+  const puissance = document.getElementById("click-power-display");
+  const points = document.getElementById("omni-points-display");
+
+  if (score) {
+    score.innerText = Math.floor(state.pizzas).toLocaleString("fr-FR");
+  }
+
+  if (production) {
+    production.innerText = state.pizzasPerSec.toLocaleString("fr-FR");
+  }
+
+  if (puissance) {
+    puissance.innerText = state.clickPower.toLocaleString("fr-FR");
+  }
+
+  if (points) {
+    points.innerText = state.omniPoints.toLocaleString("fr-FR");
+  }
+
   genererInterfaceBoutique();
 }
 
+
+// ============================================
+// 16 TYPES D'AMÉLIORATIONS
+// ============================================
+
 const OFFRES_BOUTIQUE = [
-  { id: 1, name: "Super Clic", cost: 15, power: 1, cps: 0, desc: "+1 par clic" },
-  { id: 2, name: "Livreur à Vélo", cost: 50, power: 0, cps: 1, desc: "+1 pizza/sec" },
-  { id: 3, name: "Sauce Tomate Premium", cost: 150, power: 2, cps: 0, desc: "+2 par clic" },
-  { id: 4, name: "Four à Bois Turbo", cost: 500, power: 0, cps: 5, desc: "+5 pizza/sec" }
+
+  // DÉBUTANT
+
+  {
+    id: 1,
+    icon: "👆",
+    type: "PUISSANCE DE CLIC",
+    name: "Super Clic",
+    cost: 15,
+    power: 1,
+    cps: 0,
+    desc: "+1 pizza par clic"
+  },
+
+  {
+    id: 2,
+    icon: "🚴",
+    type: "PRODUCTION AUTOMATIQUE",
+    name: "Livreur à Vélo",
+    cost: 50,
+    power: 0,
+    cps: 1,
+    desc: "+1 pizza par seconde"
+  },
+
+  {
+    id: 3,
+    icon: "🧀",
+    type: "PUISSANCE DE CLIC",
+    name: "Sauce Premium",
+    cost: 150,
+    power: 2,
+    cps: 0,
+    desc: "+2 pizzas par clic"
+  },
+
+  {
+    id: 4,
+    icon: "🔥",
+    type: "PRODUCTION AUTOMATIQUE",
+    name: "Four à Bois Turbo",
+    cost: 500,
+    power: 0,
+    cps: 5,
+    desc: "+5 pizzas par seconde"
+  },
+
+  // INTERMÉDIAIRE
+
+  {
+    id: 5,
+    icon: "🍕",
+    type: "PUISSANCE DE CLIC",
+    name: "Double Mozzarella",
+    cost: 1200,
+    power: 6,
+    cps: 0,
+    desc: "+6 pizzas par clic"
+  },
+
+  {
+    id: 6,
+    icon: "🛵",
+    type: "PRODUCTION AUTOMATIQUE",
+    name: "Scooter Turbo",
+    cost: 3200,
+    power: 0,
+    cps: 15,
+    desc: "+15 pizzas par seconde"
+  },
+
+  {
+    id: 7,
+    icon: "⚙️",
+    type: "PUISSANCE DE CLIC",
+    name: "Presse Quantique",
+    cost: 8000,
+    power: 25,
+    cps: 0,
+    desc: "+25 pizzas par clic"
+  },
+
+  {
+    id: 8,
+    icon: "🌋",
+    type: "PRODUCTION AUTOMATIQUE",
+    name: "Four Plasma",
+    cost: 22000,
+    power: 0,
+    cps: 70,
+    desc: "+70 pizzas par seconde"
+  },
+
+  // AVANCÉ
+
+  {
+    id: 9,
+    icon: "👨‍🍳",
+    type: "PUISSANCE DE CLIC",
+    name: "Chef Cyber",
+    cost: 60000,
+    power: 150,
+    cps: 0,
+    desc: "+150 pizzas par clic"
+  },
+
+  {
+    id: 10,
+    icon: "🏭",
+    type: "PRODUCTION AUTOMATIQUE",
+    name: "Usine à Pizzas",
+    cost: 180000,
+    power: 0,
+    cps: 450,
+    desc: "+450 pizzas par seconde"
+  },
+
+  {
+    id: 11,
+    icon: "🤖",
+    type: "PUISSANCE DE CLIC",
+    name: "Clone Cuisinier",
+    cost: 500000,
+    power: 900,
+    cps: 0,
+    desc: "+900 pizzas par clic"
+  },
+
+  {
+    id: 12,
+    icon: "🌀",
+    type: "PRODUCTION AUTOMATIQUE",
+    name: "Portail Interdimensionnel",
+    cost: 1500000,
+    power: 0,
+    cps: 3500,
+    desc: "+3 500 pizzas par seconde"
+  },
+
+  // LÉGENDAIRE
+
+  {
+    id: 13,
+    icon: "🛰️",
+    type: "PUISSANCE DE CLIC",
+    name: "Satellite Gastronomique",
+    cost: 5000000,
+    power: 8000,
+    cps: 0,
+    desc: "+8 000 pizzas par clic"
+  },
+
+  {
+    id: 14,
+    icon: "🌌",
+    type: "PRODUCTION AUTOMATIQUE",
+    name: "Dimension Fromagère",
+    cost: 18000000,
+    power: 0,
+    cps: 45000,
+    desc: "+45 000 pizzas par seconde"
+  },
+
+  {
+    id: 15,
+    icon: "👑",
+    type: "PUISSANCE DE CLIC",
+    name: "Empire Galactique",
+    cost: 65000000,
+    power: 100000,
+    cps: 0,
+    desc: "+100 000 pizzas par clic"
+  },
+
+  {
+    id: 16,
+    icon: "⚛️",
+    type: "PRODUCTION AUTOMATIQUE",
+    name: "Réacteur Quantique",
+    cost: 250000000,
+    power: 0,
+    cps: 700000,
+    desc: "+700 000 pizzas par seconde"
+  }
+
 ];
+
+
+// ============================================
+// AFFICHAGE DE LA BOUTIQUE
+// ============================================
+
 function genererInterfaceBoutique() {
+
   const grid = document.getElementById("shop-container");
   if (!grid) return;
+
   grid.innerHTML = OFFRES_BOUTIQUE.map(item => {
+
     const canAfford = state.pizzas >= item.cost;
-    return `<div class="shop-item ${canAfford ? 'available' : ''}">
-      <div><strong>${item.name}</strong><br><small style="color:#94a3b8;">${item.desc}</small><br><span style="color:var(--neon-gold); font-weight:bold;">${item.cost} 🍕</span></div>
-      <button class="music-btn" ${canAfford ? '' : 'disabled'} onclick="acheterObjet(${item.id})">Acheter</button>
-    </div>`;
+
+    return `
+      <article class="shop-item ${canAfford ? "available" : ""}">
+
+        <div class="shop-item-details">
+
+          <div class="shop-item-icon">
+            ${item.icon}
+          </div>
+
+          <div class="shop-item-copy">
+
+            <span class="shop-item-type">
+              ${item.type}
+            </span>
+
+            <strong>${item.name}</strong>
+
+            <small>${item.desc}</small>
+
+            <span class="shop-item-cost">
+              ${item.cost.toLocaleString("fr-FR")} 🍕
+            </span>
+
+          </div>
+
+        </div>
+
+        <button
+          class="shop-buy-btn"
+          ${canAfford ? "" : "disabled"}
+          onclick="acheterObjet(${item.id})">
+
+          ${canAfford ? "ACHETER" : "VERROUILLÉ"}
+
+        </button>
+
+      </article>
+    `;
+
   }).join("");
+
 }
+
+
+// ============================================
+// ACHETER UNE AMÉLIORATION
+// ============================================
+
 function acheterObjet(id) {
+
   const item = OFFRES_BOUTIQUE.find(i => i.id === id);
-  if (item && state.pizzas >= item.cost) {
-    state.pizzas -= item.cost;
-    state.clickPower += item.power;
-    state.pizzasPerSec += item.cps;
-    item.cost = Math.floor(item.cost * 1.25);
-    rafraichirAffichagePizza();
-    sauvegarderDonnees();
-  }
+
+  if (!item || state.pizzas < item.cost) return;
+
+  // Payer le prix
+  state.pizzas -= item.cost;
+
+  // Ajouter les bonus
+  state.clickPower += item.power;
+  state.pizzasPerSec += item.cps;
+
+  // Augmenter le prix du prochain achat
+  item.cost = Math.floor(item.cost * 1.25);
+
+  // Actualiser et sauvegarder
+  rafraichirAffichagePizza();
+  sauvegarderDonnees();
+
+  // Son de réussite
+  jouerNote(700, 0.12, 0.08);
+
 }
+
 
 // CARTES RARES (BOOSTER)
 function ouvrirBooster() {
