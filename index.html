@@ -487,166 +487,292 @@
       </section>
 
       
-<!-- 4. ARCADE HUB -->
+
+<!-- 4. ARCADE HUB — 9 MINI-JEUX -->
 <section id="page-arcade" class="page omni-arcade-page">
 
   <div class="omni-arcade-heading">
     <div class="omni-arcade-eyebrow">
       <span class="omni-arcade-online-dot"></span>
-      ARCADE SYSTEM ONLINE
-      <span class="omni-arcade-version">OMNI MINI-GAMES</span>
+      OMNI ARCADE SYSTEM ONLINE
     </div>
-
-    <h2 class="omni-arcade-title">
-      ARCADE <span>HUB</span>
-    </h2>
-
+    <h2 class="omni-arcade-title">ARCADE <span>HUB</span></h2>
     <p class="omni-arcade-subtitle">
-      Entre dans l'univers des mini-jeux OMNI et teste tes capacités !
+      9 mini-jeux. Des défis. Des records. À toi de jouer !
     </p>
   </div>
 
-  <div class="omni-arcade-feature">
+  <!-- MENU PRINCIPAL -->
+  <div id="omni-arcade-menu" class="omni-arcade-menu">
 
-    <div class="omni-arcade-feature-top">
-      <div class="omni-arcade-icon">🧠</div>
-
-      <div class="omni-arcade-feature-heading">
-        <span class="omni-arcade-category">MINI-JEU • MÉMOIRE</span>
-        <h3>SIMON SAYS</h3>
-        <p>
-          Observe attentivement la séquence lumineuse,
-          puis reproduis-la dans le bon ordre !
-        </p>
-      </div>
-
-      <div class="omni-arcade-level">
-        <span>MODE</span>
-        <strong>ÉVOLUTIF</strong>
-      </div>
+    <div class="omni-arcade-menu-heading">
+      <h3>🎮 CHOISIS TON MINI-JEU</h3>
+      <span>9 JEUX DISPONIBLES</span>
     </div>
 
-    <div class="omni-arcade-game-layout">
+    <div class="omni-game-grid">
+
+      <button class="omni-game-card" onclick="ouvrirMiniJeu('simon')">
+        <span class="omni-game-icon">🧠</span>
+        <strong>SIMON SAYS</strong>
+        <span>Mémorise les séquences lumineuses.</span>
+        <small>JEU DE MÉMOIRE</small>
+      </button>
+
+      <button class="omni-game-card" onclick="ouvrirMiniJeu('snake')">
+        <span class="omni-game-icon">🐍</span>
+        <strong>SNAKE CYBER</strong>
+        <span>Mange les bonus et grandis sans te mordre.</span>
+        <small>ARCADE CLASSIQUE</small>
+      </button>
+
+      <button class="omni-game-card" onclick="ouvrirMiniJeu('memory')">
+        <span class="omni-game-icon">🧩</span>
+        <strong>MEMORY MATRIX</strong>
+        <span>Retrouve toutes les paires cachées.</span>
+        <small>JEU DE MÉMOIRE</small>
+      </button>
+
+      <button class="omni-game-card" onclick="ouvrirMiniJeu('reflex')">
+        <span class="omni-game-icon">⚡</span>
+        <strong>RÉFLEXE NÉON</strong>
+        <span>Teste ta vitesse de réaction.</span>
+        <small>TEST DE RÉFLEXES</small>
+      </button>
+
+      <button class="omni-game-card" onclick="ouvrirMiniJeu('pong')">
+        <span class="omni-game-icon">🏓</span>
+        <strong>PONG NEON</strong>
+        <span>Affronte une intelligence artificielle.</span>
+        <small>DUEL ARCADE</small>
+      </button>
+
+      <button class="omni-game-card" onclick="ouvrirMiniJeu('2048')">
+        <span class="omni-game-icon">🔢</span>
+        <strong>2048 CYBER</strong>
+        <span>Combine les nombres jusqu'à 2048.</span>
+        <small>PUZZLE</small>
+      </button>
+
+      <button class="omni-game-card" onclick="ouvrirMiniJeu('morpion')">
+        <span class="omni-game-icon">⭕</span>
+        <strong>MORPION CYBER</strong>
+        <span>Aligne trois symboles pour gagner.</span>
+        <small>JEU DE STRATÉGIE</small>
+      </button>
+
+      <button class="omni-game-card" onclick="ouvrirMiniJeu('space')">
+        <span class="omni-game-icon">🚀</span>
+        <strong>SPACE DODGER</strong>
+        <span>Évite les obstacles dans l'espace.</span>
+        <small>ESQUIVE SPATIALE</small>
+      </button>
+
+      <button class="omni-game-card" onclick="ouvrirMiniJeu('quiz')">
+        <span class="omni-game-icon">💡</span>
+        <strong>QUIZ CYBER</strong>
+        <span>Réponds aux questions et cumule des points.</span>
+        <small>QUIZ</small>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ZONE DES MINI-JEUX -->
+  <div id="omni-game-stage" class="omni-game-stage" hidden>
+
+    <button class="omni-back-button" onclick="retourMenuArcade()">
+      ← RETOUR À L'ARCADE
+    </button>
+
+    <!-- 1. SIMON SAYS -->
+    <div id="omni-game-simon" class="omni-game-panel" hidden>
+      <h3>🧠 SIMON SAYS</h3>
+      <p>Mémorise et reproduis la séquence lumineuse !</p>
 
       <div class="omni-simon-console">
-
-        <div class="omni-simon-console-bar">
-          <span>
-            <span class="omni-arcade-online-dot"></span>
-            CONSOLE ACTIVE
-          </span>
-          <span>4 TOUCHES</span>
-        </div>
-
         <div class="omni-simon-status-panel">
           <span class="omni-simon-status-label">ÉTAT DU SYSTÈME</span>
           <h3 id="simon-status" aria-live="polite">
             🔴 Simon Says - Appuie sur Jouer
           </h3>
         </div>
-<div class="omni-simon-scoreboard">
 
-  <div class="omni-simon-score-card">
-    <span>🎯 MANCHES</span>
-    <strong id="simon-round-score">0</strong>
-  </div>
+        <div class="omni-simon-scoreboard">
+          <div class="omni-simon-score-card">
+            <span>🎯 MANCHES</span>
+            <strong id="simon-round-score">0</strong>
+          </div>
+          <div class="omni-simon-score-card">
+            <span>🏆 RECORD PERSONNEL</span>
+            <strong id="simon-best-score">0</strong>
+          </div>
+        </div>
 
-  <div class="omni-simon-score-card">
-    <span>🏆 RECORD PERSONNEL</span>
-    <strong id="simon-best-score">0</strong>
-  </div>
-
-</div>
         <div id="simon-grid" class="omni-simon-grid">
-
-          <button
-            id="simon-0"
-            type="button"
+          <button id="simon-0" type="button"
             class="music-btn omni-simon-pad simon-pad-red"
-            aria-label="Bouton rouge"
-            onclick="cliquerSimon(0)">
-            <span>01</span>
-          </button>
+            onclick="cliquerSimon(0)">01</button>
 
-          <button
-            id="simon-1"
-            type="button"
+          <button id="simon-1" type="button"
             class="music-btn omni-simon-pad simon-pad-blue"
-            aria-label="Bouton bleu"
-            onclick="cliquerSimon(1)">
-            <span>02</span>
-          </button>
+            onclick="cliquerSimon(1)">02</button>
 
-          <button
-            id="simon-2"
-            type="button"
+          <button id="simon-2" type="button"
             class="music-btn omni-simon-pad simon-pad-green"
-            aria-label="Bouton vert"
-            onclick="cliquerSimon(2)">
-            <span>03</span>
-          </button>
+            onclick="cliquerSimon(2)">03</button>
 
-          <button
-            id="simon-3"
-            type="button"
+          <button id="simon-3" type="button"
             class="music-btn omni-simon-pad simon-pad-yellow"
-            aria-label="Bouton jaune"
-            onclick="cliquerSimon(3)">
-            <span>04</span>
-          </button>
-
+            onclick="cliquerSimon(3)">04</button>
         </div>
 
-        <div class="omni-simon-controls">
-          <button
-            class="btn omni-simon-start"
-            type="button"
-            onclick="demarrerSimonGame()">
-            <span>▶</span> LANCER UNE PARTIE
-          </button>
-
-          <p>Concentre-toi. Mémorise. Reproduis.</p>
-        </div>
-
+        <button class="btn omni-simon-start"
+          onclick="demarrerSimonGame()">
+          ▶ LANCER UNE PARTIE
+        </button>
       </div>
-
-      <aside class="omni-arcade-info">
-
-        <div class="omni-arcade-info-card">
-          <span class="omni-arcade-info-icon">🎯</span>
-          <h4>OBJECTIF</h4>
-          <p>
-            Répète correctement chaque séquence pour
-            continuer à progresser.
-          </p>
-        </div>
-
-        <div class="omni-arcade-info-card">
-          <span class="omni-arcade-info-icon">⚡</span>
-          <h4>COMMENT JOUER ?</h4>
-          <p>
-            1. Lance une partie.<br>
-            2. Observe les lumières.<br>
-            3. Reproduis la séquence.<br>
-            4. Recommence avec une séquence plus longue !
-          </p>
-        </div>
-
-        <div class="omni-arcade-tip">
-          💡 <strong>ASTUCE OMNI</strong>
-          <p>Reste concentré : chaque nouvelle manche ajoute une touche à mémoriser.</p>
-        </div>
-
-      </aside>
-
     </div>
+
+    <!-- 2. SNAKE CYBER -->
+    <div id="omni-game-snake" class="omni-game-panel" hidden>
+      <h3>🐍 SNAKE CYBER</h3>
+      <p>Mange les bonus et évite les collisions.</p>
+      <div class="omni-game-stats">
+        SCORE : <strong id="snake-score">0</strong>
+        RECORD : <strong id="snake-best">0</strong>
+      </div>
+      <canvas id="snake-canvas" width="360" height="360"></canvas>
+      <button class="btn" onclick="demarrerSnake()">▶ JOUER</button>
+      <div class="omni-direction-pad">
+        <button onclick="changerDirectionSnake('up')">⬆️</button>
+        <div>
+          <button onclick="changerDirectionSnake('left')">⬅️</button>
+          <button onclick="changerDirectionSnake('down')">⬇️</button>
+          <button onclick="changerDirectionSnake('right')">➡️</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. MEMORY MATRIX -->
+    <div id="omni-game-memory" class="omni-game-panel" hidden>
+      <h3>🧩 MEMORY MATRIX</h3>
+      <p>Retrouve toutes les paires de symboles.</p>
+      <div class="omni-game-stats">
+        COUPS : <strong id="memory-moves">0</strong>
+        PAIRES : <strong id="memory-pairs">0</strong>
+      </div>
+      <div id="memory-grid" class="omni-memory-grid"></div>
+      <button class="btn" onclick="demarrerMemory()">🔄 NOUVELLE PARTIE</button>
+    </div>
+
+    <!-- 4. RÉFLEXE NÉON -->
+    <div id="omni-game-reflex" class="omni-game-panel" hidden>
+      <h3>⚡ RÉFLEXE NÉON</h3>
+      <p>Attends le signal vert, puis clique le plus vite possible.</p>
+      <div class="omni-game-stats">
+        TEMPS : <strong id="reflex-time">--</strong>
+        RECORD : <strong id="reflex-best">--</strong>
+      </div>
+      <div id="reflex-target" class="omni-reflex-target"
+        onclick="cliquerReflexe()">
+        <span id="reflex-status">APPUIE SUR DÉMARRER</span>
+      </div>
+      <button id="reflex-start" class="btn" onclick="demarrerReflexe()">
+        ▶ DÉMARRER
+      </button>
+    </div>
+
+    <!-- 5. PONG NEON -->
+    <div id="omni-game-pong" class="omni-game-panel" hidden>
+      <h3>🏓 PONG NEON</h3>
+      <p>Renvoie la balle et bats l'ordinateur !</p>
+      <div class="omni-game-stats">
+        TOI : <strong id="pong-player-score">0</strong>
+        ADVERSAIRE : <strong id="pong-cpu-score">0</strong>
+      </div>
+      <canvas id="pong-canvas" width="480" height="320"></canvas>
+      <button class="btn" onclick="demarrerPong()">▶ JOUER</button>
+      <div class="omni-pong-controls">
+        <button onclick="deplacerRaquettePong('left')">⬅️</button>
+        <button onclick="deplacerRaquettePong('right')">➡️</button>
+      </div>
+    </div>
+
+    <!-- 6. 2048 CYBER -->
+    <div id="omni-game-2048" class="omni-game-panel" hidden>
+      <h3>🔢 2048 CYBER</h3>
+      <p>Fusionne les nombres pour atteindre 2048.</p>
+      <div class="omni-game-stats">
+        SCORE : <strong id="2048-score">0</strong>
+      </div>
+      <div id="2048-grid" class="omni-2048-grid"></div>
+      <div class="omni-direction-pad">
+        <button onclick="deplacer2048('up')">⬆️</button>
+        <div>
+          <button onclick="deplacer2048('left')">⬅️</button>
+          <button onclick="deplacer2048('down')">⬇️</button>
+          <button onclick="deplacer2048('right')">➡️</button>
+        </div>
+      </div>
+      <button class="btn" onclick="demarrer2048()">🔄 RECOMMENCER</button>
+    </div>
+
+    <!-- 7. MORPION CYBER -->
+    <div id="omni-game-morpion" class="omni-game-panel" hidden>
+      <h3>⭕ MORPION CYBER</h3>
+      <p>Affronte un ami sur le même écran.</p>
+      <div id="morpion-status" aria-live="polite">Au joueur X de commencer !</div>
+      <div id="morpion-grid" class="omni-morpion-grid">
+        <button onclick="jouerMorpion(0)"></button>
+        <button onclick="jouerMorpion(1)"></button>
+        <button onclick="jouerMorpion(2)"></button>
+        <button onclick="jouerMorpion(3)"></button>
+        <button onclick="jouerMorpion(4)"></button>
+        <button onclick="jouerMorpion(5)"></button>
+        <button onclick="jouerMorpion(6)"></button>
+        <button onclick="jouerMorpion(7)"></button>
+        <button onclick="jouerMorpion(8)"></button>
+      </div>
+      <button class="btn" onclick="recommencerMorpion()">🔄 REJOUER</button>
+    </div>
+
+    <!-- 8. SPACE DODGER -->
+    <div id="omni-game-space" class="omni-game-panel" hidden>
+      <h3>🚀 SPACE DODGER</h3>
+      <p>Pilote ton vaisseau et évite les obstacles.</p>
+      <div class="omni-game-stats">
+        SCORE : <strong id="space-score">0</strong>
+        RECORD : <strong id="space-best">0</strong>
+      </div>
+      <canvas id="space-canvas" width="420" height="420"></canvas>
+      <button class="btn" onclick="demarrerSpaceDodger()">▶ DÉCOLLER</button>
+      <div class="omni-pong-controls">
+        <button onclick="deplacerVaisseau(-1)">⬅️</button>
+        <button onclick="deplacerVaisseau(1)">➡️</button>
+      </div>
+    </div>
+
+    <!-- 9. QUIZ CYBER -->
+    <div id="omni-game-quiz" class="omni-game-panel" hidden>
+      <h3>💡 QUIZ CYBER</h3>
+      <p>Teste tes connaissances et cumule des points.</p>
+      <div class="omni-game-stats">
+        SCORE : <strong id="quiz-score">0</strong>
+      </div>
+      <h4 id="quiz-question">Prêt à relever le défi ?</h4>
+      <div id="quiz-answers" class="omni-quiz-answers"></div>
+      <button class="btn" onclick="demarrerQuiz()">▶ COMMENCER LE QUIZ</button>
+    </div>
+
   </div>
 
   <div class="omni-arcade-footer">
-    <span>✦</span> OMNI-APP ARCADE DIVISION <span>✦</span>
+    ✦ OMNI-APP ARCADE DIVISION ✦
   </div>
 
 </section>
+
 
 
       <!-- 5. ROBOT IA -->
