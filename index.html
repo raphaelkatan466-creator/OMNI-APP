@@ -486,20 +486,156 @@
         </div>
       </section>
 
-      <!-- 4. ARCADE HUB -->
-      <section id="page-arcade" class="page">
-        <h2>🕹️ Arcade Hub & Simon Says</h2>
-        <div class="card" style="text-align: center;">
-          <h3 id="simon-status" style="color:var(--neon-gold);">🔴 Simon Says - Appuie sur Jouer</h3>
-          <div id="simon-grid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; max-width:220px; margin:20px auto;">
-            <button id="simon-0" class="music-btn" style="height:80px; background:#ef4444;" onclick="cliquerSimon(0)"></button>
-            <button id="simon-1" class="music-btn" style="height:80px; background:#38bdf8;" onclick="cliquerSimon(1)"></button>
-            <button id="simon-2" class="music-btn" style="height:80px; background:#22c55e;" onclick="cliquerSimon(2)"></button>
-            <button id="simon-3" class="music-btn" style="height:80px; background:#eab308;" onclick="cliquerSimon(3)"></button>
-          </div>
-          <button class="btn" style="width:auto; background:var(--neon-purple); color:white;" onclick="demarrerSimonGame()">▶️ Jouer à Simon Says</button>
+      
+<!-- 4. ARCADE HUB -->
+<section id="page-arcade" class="page omni-arcade-page">
+
+  <div class="omni-arcade-heading">
+    <div class="omni-arcade-eyebrow">
+      <span class="omni-arcade-online-dot"></span>
+      ARCADE SYSTEM ONLINE
+      <span class="omni-arcade-version">OMNI MINI-GAMES</span>
+    </div>
+
+    <h2 class="omni-arcade-title">
+      ARCADE <span>HUB</span>
+    </h2>
+
+    <p class="omni-arcade-subtitle">
+      Entre dans l'univers des mini-jeux OMNI et teste tes capacités !
+    </p>
+  </div>
+
+  <div class="omni-arcade-feature">
+
+    <div class="omni-arcade-feature-top">
+      <div class="omni-arcade-icon">🧠</div>
+
+      <div class="omni-arcade-feature-heading">
+        <span class="omni-arcade-category">MINI-JEU • MÉMOIRE</span>
+        <h3>SIMON SAYS</h3>
+        <p>
+          Observe attentivement la séquence lumineuse,
+          puis reproduis-la dans le bon ordre !
+        </p>
+      </div>
+
+      <div class="omni-arcade-level">
+        <span>MODE</span>
+        <strong>ÉVOLUTIF</strong>
+      </div>
+    </div>
+
+    <div class="omni-arcade-game-layout">
+
+      <div class="omni-simon-console">
+
+        <div class="omni-simon-console-bar">
+          <span>
+            <span class="omni-arcade-online-dot"></span>
+            CONSOLE ACTIVE
+          </span>
+          <span>4 TOUCHES</span>
         </div>
-      </section>
+
+        <div class="omni-simon-status-panel">
+          <span class="omni-simon-status-label">ÉTAT DU SYSTÈME</span>
+          <h3 id="simon-status" aria-live="polite">
+            🔴 Simon Says - Appuie sur Jouer
+          </h3>
+        </div>
+
+        <div id="simon-grid" class="omni-simon-grid">
+
+          <button
+            id="simon-0"
+            type="button"
+            class="music-btn omni-simon-pad simon-pad-red"
+            aria-label="Bouton rouge"
+            onclick="cliquerSimon(0)">
+            <span>01</span>
+          </button>
+
+          <button
+            id="simon-1"
+            type="button"
+            class="music-btn omni-simon-pad simon-pad-blue"
+            aria-label="Bouton bleu"
+            onclick="cliquerSimon(1)">
+            <span>02</span>
+          </button>
+
+          <button
+            id="simon-2"
+            type="button"
+            class="music-btn omni-simon-pad simon-pad-green"
+            aria-label="Bouton vert"
+            onclick="cliquerSimon(2)">
+            <span>03</span>
+          </button>
+
+          <button
+            id="simon-3"
+            type="button"
+            class="music-btn omni-simon-pad simon-pad-yellow"
+            aria-label="Bouton jaune"
+            onclick="cliquerSimon(3)">
+            <span>04</span>
+          </button>
+
+        </div>
+
+        <div class="omni-simon-controls">
+          <button
+            class="btn omni-simon-start"
+            type="button"
+            onclick="demarrerSimonGame()">
+            <span>▶</span> LANCER UNE PARTIE
+          </button>
+
+          <p>Concentre-toi. Mémorise. Reproduis.</p>
+        </div>
+
+      </div>
+
+      <aside class="omni-arcade-info">
+
+        <div class="omni-arcade-info-card">
+          <span class="omni-arcade-info-icon">🎯</span>
+          <h4>OBJECTIF</h4>
+          <p>
+            Répète correctement chaque séquence pour
+            continuer à progresser.
+          </p>
+        </div>
+
+        <div class="omni-arcade-info-card">
+          <span class="omni-arcade-info-icon">⚡</span>
+          <h4>COMMENT JOUER ?</h4>
+          <p>
+            1. Lance une partie.<br>
+            2. Observe les lumières.<br>
+            3. Reproduis la séquence.<br>
+            4. Recommence avec une séquence plus longue !
+          </p>
+        </div>
+
+        <div class="omni-arcade-tip">
+          💡 <strong>ASTUCE OMNI</strong>
+          <p>Reste concentré : chaque nouvelle manche ajoute une touche à mémoriser.</p>
+        </div>
+
+      </aside>
+
+    </div>
+  </div>
+
+  <div class="omni-arcade-footer">
+    <span>✦</span> OMNI-APP ARCADE DIVISION <span>✦</span>
+  </div>
+
+</section>
+
 
       <!-- 5. ROBOT IA -->
       <section id="page-pets" class="page">
