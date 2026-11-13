@@ -588,48 +588,190 @@ function reinitialiserBooster() {
   document.getElementById("card-result").style.display = "none";
 }
 
-// SIMON SAYS
-let simonSeq = [], simonUserStep = 0, simonPlaying = false;
+
+// SIMON SAYS — COMPTEUR ET RECORD PERSONNEL
+
+let simonSeq = [];
+let simonUserStep = 0;
+let simonPlaying = false;
+
+let simonCurrentScore = 0;
+let simonBestScore = 0;
+
+let simonInterval = null;
+let simonSequenceTimeout = null;
+
+// Charger le record sauvegardé
+function initialiserScoresSimon() {
+  try {
+    const sauvegarde = Number.parseInt(
+      localStorage.getItem("omni_simon_best_score") || "0",
+      10
+    );
+
+    simonBestScore = Number.isFinite(sauvegarde)
+      ? Math.max(0, sauvegarde)
+      : 0;
+  } catch (error) {
+    simonBestScore = 0;
+  }
+
+  actualiserAffichageScoresSimon();
+}
+
+// Actualiser les deux compteurs
+function actualiserAffichageScoresSimon() {
+  const scoreElement = document.getElementById("simon-round-score");
+  const recordElement = document.getElementById("simon-best-score");
+
+  if (scoreElement) {
+    scoreElement.textContent = simonCurrentScore;
+  }
+
+  if (recordElement) {
+    recordElement.textContent = simonBestScore;
+  }
+}
+
+// Enregistrer un nouveau record
+function enregistrerRecordSimon() {
+  if (simonCurrentScore > simonBestScore) {
+    simonBestScore = simonCurrentScore;
+
+    try {
+      localStorage.setItem(
+        "omni_simon_best_score",
+        String(simonBestScore)
+      );
+    } catch (error) {
+      // Le record reste disponible pendant cette session.
+    }
+  }
+
+  actualiserAffichageScoresSimon();
+}
+
+// Démarrer une nouvelle partie
 function demarrerSimonGame() {
+  if (simonInterval) clearInterval(simonInterval);
+  if (simonSequenceTimeout) clearTimeout(simonSequenceTimeout);
+
   simonSeq = [Math.floor(Math.random() * 4)];
   simonUserStep = 0;
+  simonCurrentScore = 0;
+
+  actualiserAffichageScoresSimon();
   jouerSequenceSimon();
 }
+
+// Montrer la séquence
 function jouerSequenceSimon() {
   simonPlaying = false;
-  document.getElementById("simon-status").innerText = "👀 OBSERVE LA SÉQUENCE...";
+
+  if (simonInterval) clearInterval(simonInterval);
+
+  const status = document.getElementById("simon-status");
+
+  if (status) {
+    status.innerText = "👀 OBSERVE LA SÉQUENCE...";
+  }
+
   let i = 0;
-  const interval = setInterval(() => {
+
+  simonInterval = setInterval(() => {
     flasherBoutonSimon(simonSeq[i]);
     i++;
+
     if (i >= simonSeq.length) {
-      clearInterval(interval);
-      setTimeout(() => { simonPlaying = true; document.getElementById("simon-status").innerText = "👉 À TON TOUR !"; }, 500);
+      clearInterval(simonInterval);
+      simonInterval = null;
+
+      simonSequenceTimeout = setTimeout(() => {
+        simonPlaying = true;
+        simonSequenceTimeout = null;
+
+        if (status) {
+          status.innerText = "👉 À TON TOUR !";
+        }
+      }, 500);
     }
   }, 700);
 }
+
+// Faire clignoter un bouton
 function flasherBoutonSimon(id) {
   const btn = document.getElementById("simon-" + id);
-  if(!btn) return;
+
+  if (!btn) return;
+
   btn.style.opacity = "0.3";
-  setTimeout(() => { btn.style.opacity = "1"; }, 300);
+
+  setTimeout(() => {
+    btn.style.opacity = "1";
+  }, 300);
 }
+
+// Vérifier les réponses du joueur
 function cliquerSimon(id) {
   if (!simonPlaying) return;
+
   flasherBoutonSimon(id);
+
   if (id === simonSeq[simonUserStep]) {
     simonUserStep++;
+
+    // Séquence entièrement réussie !
     if (simonUserStep >= simonSeq.length) {
+
+      simonCurrentScore++;
+
+      // Vérifier et sauvegarder le record
+      enregistrerRecordSimon();
+
       simonUserStep = 0;
+
+      // Ajouter une nouvelle couleur
       simonSeq.push(Math.floor(Math.random() * 4));
-      setTimeout(jouerSequenceSimon, 800);
+
+      simonPlaying = false;
+
+      simonSequenceTimeout = setTimeout(() => {
+        simonSequenceTimeout = null;
+        jouerSequenceSimon();
+      }, 800);
     }
+
   } else {
-    alert("💥 Erreur Simon ! Score : " + (simonSeq.length - 1));
+    // Mauvaise réponse : fin de partie
     simonPlaying = false;
-    document.getElementById("simon-status").innerText = "🔴 Appuie sur Jouer";
+
+    if (simonInterval) {
+      clearInterval(simonInterval);
+      simonInterval = null;
+    }
+
+    if (simonSequenceTimeout) {
+      clearTimeout(simonSequenceTimeout);
+      simonSequenceTimeout = null;
+    }
+
+    const status = document.getElementById("simon-status");
+
+    if (status) {
+      status.innerText = "💥 PARTIE TERMINÉE !";
+    }
+
+    alert(
+      "💥 Partie terminée !\n" +
+      "🎯 Ton score : " + simonCurrentScore + "\n" +
+      "🏆 Ton record : " + simonBestScore
+    );
   }
 }
+
+// Afficher le record dès le chargement
+initialiserScoresSimon();
+
 
 // ROBOT IA
 function envoyerMessageIA() {
