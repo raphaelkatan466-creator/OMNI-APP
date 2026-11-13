@@ -1504,3 +1504,446 @@ textarea, input[type="text"] {
 }
 
 /* FIN DU DESIGN GLOBAL NEXOR */
+
+/* =============================================
+   PIZZA CLICKER — STRUCTURE NEXOR
+============================================= */
+
+#page-clicker {
+  --omni-accent: #fb923c;
+  --omni-accent-rgb: 251, 146, 60;
+}
+
+/* BANDEAU */
+
+.omni-page-banner {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  align-items: center;
+
+  min-height: 235px;
+  padding: 30px;
+  margin-bottom: 24px;
+
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.12);
+
+  background:
+    radial-gradient(circle at 80% 50%, rgba(251,146,60,0.27), transparent 38%),
+    linear-gradient(120deg, #351b25, #191529 70%, #111528);
+
+  box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+}
+
+.omni-banner-content {
+  position: relative;
+  z-index: 2;
+}
+
+.omni-eyebrow {
+  color: var(--omni-accent, #38bdf8);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 2px;
+}
+
+.omni-banner-content h2 {
+  color: white;
+  font-size: clamp(30px, 5vw, 46px);
+  font-weight: 950;
+  margin: 14px 0;
+}
+
+.omni-banner-content h2 span {
+  display: block;
+  color: #fb923c;
+  text-shadow: 0 0 20px rgba(251,146,60,0.6);
+}
+
+.omni-banner-content p {
+  max-width: 400px;
+  color: #d3c5c7;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.omni-banner-tag {
+  display: inline-block;
+  padding: 9px 13px;
+  margin-top: 8px;
+  border-radius: 30px;
+  color: white;
+  background: rgba(251,146,60,0.15);
+  border: 1px solid rgba(251,146,60,0.4);
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.omni-banner-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+}
+
+.omni-banner-emoji {
+  font-size: 105px;
+  filter: drop-shadow(0 0 25px #fb923c);
+  animation: omniFloat 3s ease-in-out infinite;
+}
+
+.omni-banner-orbit {
+  position: absolute;
+  width: 175px;
+  height: 175px;
+  border: 2px solid rgba(251,146,60,0.4);
+  border-radius: 50%;
+  animation: omniOrbit 15s linear infinite;
+}
+
+.omni-banner-spark {
+  position: absolute;
+  right: 10px;
+  top: 15px;
+  color: #fcd34d;
+  font-size: 35px;
+  animation: omniSparkle 2s infinite;
+}
+
+/* STATISTIQUES */
+
+.omni-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.omni-stat-card {
+  min-width: 0;
+  padding: 17px;
+  border-radius: 17px;
+  border: 1px solid rgba(251,146,60,0.25);
+  background: linear-gradient(145deg,#1b2033,#111629);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.omni-stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 20px rgba(251,146,60,0.17);
+}
+
+.omni-stat-icon {
+  display: block;
+  font-size: 25px;
+  margin-bottom: 10px;
+}
+
+.omni-stat-label {
+  display: block;
+  color: #9eacc7;
+  font-size: 9px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+}
+
+.omni-stat-card strong {
+  display: block;
+  margin-top: 8px;
+  color: white;
+  font-size: clamp(19px, 3vw, 27px);
+  overflow-wrap: anywhere;
+}
+
+.omni-stat-card small {
+  color: #fb923c;
+  font-size: 10px;
+}
+
+/* STRUCTURE PRINCIPALE */
+
+.omni-clicker-layout {
+  display: grid;
+  grid-template-columns: minmax(0,1.5fr) minmax(230px,.8fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.omni-panel {
+  padding: 22px;
+  border-radius: 20px;
+  border: 1px solid rgba(251,146,60,0.24);
+  background: linear-gradient(145deg,#172036,#101526);
+  box-shadow: 0 10px 28px rgba(0,0,0,.25);
+}
+
+.omni-panel-heading,
+.omni-upgrades-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.omni-panel-heading h3,
+.omni-upgrades-heading h3 {
+  margin: 8px 0;
+  color: white;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.omni-live-pill {
+  padding: 8px 11px;
+  border-radius: 20px;
+  color: #86efac;
+  background: rgba(34,197,94,.1);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.omni-live-pill span {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 10px #22c55e;
+}
+
+/* ARÈNE DE LA PIZZA */
+
+.omni-pizza-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 330px;
+  margin-top: 15px;
+  overflow: hidden;
+  border-radius: 17px;
+
+  background:
+    radial-gradient(circle,rgba(251,146,60,.17),transparent 60%),
+    #0c1325;
+}
+
+.omni-pizza-halo {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  border: 1px dashed rgba(251,146,60,.4);
+  box-shadow: 0 0 45px rgba(251,146,60,.12);
+  animation: omniOrbit 20s linear infinite;
+}
+
+#pizza-gigante {
+  position: relative;
+  z-index: 2;
+  font-size: 120px;
+  filter: drop-shadow(0 0 25px rgba(251,146,60,.6));
+  cursor: pointer;
+  animation: omniFloat 3s ease-in-out infinite;
+}
+
+#pizza-gigante:active {
+  transform: scale(.85);
+}
+
+.omni-click-instruction {
+  position: absolute;
+  bottom: 15px;
+  color: #cbd5e1;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.4px;
+  text-align: center;
+}
+
+.omni-pizza-decoration {
+  position: absolute;
+  color: #fbbf24;
+  font-size: 25px;
+  animation: omniSparkle 2s infinite;
+}
+
+.decoration-one {
+  top: 35px;
+  left: 35px;
+}
+
+.decoration-two {
+  right: 35px;
+  bottom: 60px;
+}
+
+/* PANNEAU CONSEILS */
+
+.omni-clicker-tips h3 {
+  color: white;
+  font-size: 22px;
+  margin: 10px 0 23px;
+}
+
+.omni-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.omni-tip:last-child {
+  border-bottom: none;
+}
+
+.omni-tip > span {
+  font-size: 26px;
+}
+
+.omni-tip strong {
+  color: white;
+  font-size: 13px;
+}
+
+.omni-tip p {
+  color: #9eacc7;
+  font-size: 11px;
+  line-height: 1.6;
+  margin: 5px 0 0;
+}
+
+/* BOUTIQUE */
+
+.omni-upgrades-section {
+  margin-top: 28px;
+  padding: 23px;
+  border-radius: 21px;
+  border: 1px solid rgba(251,146,60,.22);
+  background: linear-gradient(145deg,#151d32,#0e1426);
+}
+
+.omni-upgrades-heading {
+  margin-bottom: 20px;
+}
+
+.omni-upgrades-heading h3 {
+  margin: 7px 0;
+  color: white;
+  font-size: 25px;
+}
+
+.omni-upgrades-heading p {
+  margin: 0;
+  color: #9eacc7;
+  font-size: 12px;
+}
+
+.omni-shop-icon {
+  font-size: 35px;
+  filter: drop-shadow(0 0 13px #c084fc);
+}
+
+#page-clicker #shop-container {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 13px;
+}
+
+#page-clicker #shop-container .shop-item {
+  min-width: 0;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgba(251,146,60,.22);
+  border-radius: 15px;
+  background: #1a2238;
+  transition: transform .25s ease, border-color .25s ease;
+}
+
+#page-clicker #shop-container .shop-item:hover {
+  transform: translateY(-4px);
+  border-color: #fb923c;
+}
+
+#page-clicker #shop-container .shop-item.available {
+  border-color: rgba(251,146,60,.7);
+  box-shadow: 0 0 14px rgba(251,146,60,.1);
+}
+
+#page-clicker #shop-container .shop-item button {
+  border-radius: 9px;
+}
+
+#page-clicker #shop-container .shop-item button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+/* VERSION MOBILE */
+
+@media(max-width:650px) {
+  .omni-page-banner {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    padding: 23px;
+  }
+
+  .omni-banner-art {
+    position: absolute;
+    right: -35px;
+    top: 15px;
+    width: 150px;
+    opacity: .4;
+    pointer-events: none;
+  }
+
+  .omni-banner-emoji {
+    font-size: 75px;
+  }
+
+  .omni-banner-orbit {
+    width: 130px;
+    height: 130px;
+  }
+
+  .omni-clicker-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .omni-stat-grid {
+    gap: 8px;
+  }
+
+  .omni-stat-card {
+    padding: 12px 9px;
+  }
+
+  .omni-stat-label {
+    font-size: 8px;
+    letter-spacing: .5px;
+  }
+
+  .omni-stat-card strong {
+    font-size: 17px;
+  }
+
+  #page-clicker #shop-container {
+    grid-template-columns: 1fr;
+  }
+
+  .omni-pizza-stage {
+    min-height: 290px;
+  }
+}
+
+/* PETITS ÉCRANS */
+
+@media(max-width:360px) {
+  .omni-stat-grid {
+    grid-template-columns: 1fr;
+  }
+}
