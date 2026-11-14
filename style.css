@@ -3838,3 +3838,83 @@ textarea, input[type="text"] {
     transition: none;
   }
 }
+
+/* ==========================================
+   MEMORY MATRIX — CORRECTION PRIORITÉ 3D
+========================================== */
+
+/* Structure des cartes */
+#page-arcade .omni-memory-grid button.omni-memory-card {
+  display: block;
+  position: relative;
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  overflow: visible;
+
+  border: 0;
+  background: transparent;
+
+  perspective: 1000px;
+  transform-style: preserve-3d;
+
+  transition:
+    transform 650ms cubic-bezier(.2, .8, .2, 1),
+    filter 250ms ease;
+}
+
+/* Les deux faces restent superposées */
+#page-arcade .omni-memory-grid button.omni-memory-card .memory-card-back,
+#page-arcade .omni-memory-grid button.omni-memory-card .memory-card-symbol {
+  position: absolute;
+  inset: 0;
+
+  display: grid;
+  place-items: center;
+
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+
+  box-sizing: border-box;
+  border-radius: inherit;
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Face avant */
+#page-arcade .omni-memory-grid button.omni-memory-card .memory-card-back {
+  transform: rotateY(0deg);
+}
+
+/* Face arrière */
+#page-arcade .omni-memory-grid button.omni-memory-card .memory-card-symbol {
+  display: grid;
+  transform: rotateY(180deg);
+}
+
+/* Véritable retournement 3D */
+#page-arcade .omni-memory-grid button.omni-memory-card.is-flipped {
+  transform: rotateY(180deg);
+}
+
+/* Survol sans casser le retournement */
+#page-arcade .omni-memory-grid button.omni-memory-card:hover:not(.is-flipped):not(.is-matched) {
+  translate: 0 -5px;
+  filter: drop-shadow(0 0 12px #38bdf8aa);
+}
+
+/* Cartes trouvées */
+#page-arcade .omni-memory-grid button.omni-memory-card.is-matched {
+  cursor: default;
+  filter: drop-shadow(0 0 12px #22ff99);
+}
+
+@media (max-width: 480px) {
+  #page-arcade .omni-memory-grid button.omni-memory-card {
+    min-height: 0;
+  }
+}
