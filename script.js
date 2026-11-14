@@ -1156,6 +1156,17 @@ function switchTab(tabId) {
 
 window.onload = () => {
   chargerDonnees();
+    // Restaurer le profil sauvegardé
+  const usernameInput = document.getElementById("username-input");
+  const profileAvatar = document.getElementById("profile-avatar");
+
+  if (usernameInput) {
+    usernameInput.value = state.username;
+  }
+
+  if (profileAvatar) {
+    profileAvatar.textContent = state.userAvatar;
+  }
   initMatrixEngine();
   initPapierBulle();
   initPixelArtPro();
