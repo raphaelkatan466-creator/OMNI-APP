@@ -644,15 +644,41 @@
       </div>
       <canvas id="snake-canvas" width="360" height="360"></canvas>
       <button class="btn" onclick="demarrerSnake()">▶ JOUER</button>
-      <div class="omni-direction-pad">
-        <button onclick="changerDirectionSnake('up')">⬆️</button>
-        <div>
-          <button onclick="changerDirectionSnake('left')">⬅️</button>
-          <button onclick="changerDirectionSnake('down')">⬇️</button>
-          <button onclick="changerDirectionSnake('right')">➡️</button>
-        </div>
-      </div>
-    </div>
+      
+<div class="omni-direction-pad omni-snake-controls">
+
+  <button type="button"
+    class="omni-arrow-btn arrow-up"
+    aria-label="Aller en haut"
+    onclick="changerDirectionSnake('up')">
+    <span>↑</span>
+  </button>
+
+  <div>
+    <button type="button"
+      class="omni-arrow-btn"
+      aria-label="Aller à gauche"
+      onclick="changerDirectionSnake('left')">
+      <span>←</span>
+    </button>
+
+    <button type="button"
+      class="omni-arrow-btn"
+      aria-label="Aller en bas"
+      onclick="changerDirectionSnake('down')">
+      <span>↓</span>
+    </button>
+
+    <button type="button"
+      class="omni-arrow-btn"
+      aria-label="Aller à droite"
+      onclick="changerDirectionSnake('right')">
+      <span>→</span>
+    </button>
+  </div>
+
+</div>
+
 
     <!-- 3. MEMORY MATRIX -->
     <div id="omni-game-memory" class="omni-game-panel" hidden>
