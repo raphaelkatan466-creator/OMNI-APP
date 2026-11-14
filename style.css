@@ -3480,3 +3480,74 @@ textarea, input[type="text"] {
     transition: none !important;
   }
 }
+
+/* ======================================
+   SNAKE CYBER — COMMANDES NEON
+====================================== */
+
+#page-arcade .omni-snake-controls {
+  gap: 9px;
+  margin: 24px auto;
+}
+
+#page-arcade .omni-snake-controls > div {
+  display: flex;
+  gap: 9px;
+}
+
+#page-arcade .omni-arrow-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 57px;
+  height: 53px;
+  padding: 0;
+  border: 1px solid #38e8ff88;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #193b60, #10172e);
+  color: #b8f7ff;
+  font-size: 31px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow:
+    inset 0 0 12px #38e8ff13,
+    0 0 12px #38e8ff22;
+  transition: transform .16s ease, background .16s ease,
+    box-shadow .16s ease, border-color .16s ease;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+#page-arcade .omni-arrow-btn:hover {
+  transform: translateY(-3px);
+  border-color: #8ff5ff;
+  background: linear-gradient(145deg, #087cbd, #35216c);
+  color: white;
+  box-shadow: 0 0 22px #38e8ff77;
+}
+
+#page-arcade .omni-arrow-btn:active {
+  transform: scale(.90);
+  background: #087cbd;
+  box-shadow: 0 0 28px #38e8ffaa;
+}
+
+#page-arcade .omni-arrow-btn span {
+  display: block;
+  text-shadow: 0 0 12px #38e8ff;
+  pointer-events: none;
+}
+
+#page-arcade .omni-arrow-btn:focus-visible {
+  outline: 3px solid white;
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  #page-arcade .omni-arrow-btn {
+    width: 62px;
+    height: 57px;
+    font-size: 34px;
+  }
+}
