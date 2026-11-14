@@ -1793,60 +1793,92 @@ function demarrerMemory() {
     memoryTimeout = null;
   }
 
+  // Les 8 cartes originales
   const cartesBase = [
-  { symbole: "✦", nom: "NOVA", code: "NX-01", couleur: "#38bdf8" },
-  { symbole: "◈", nom: "PHANTOM", code: "NX-02", couleur: "#a855f7" },
-  { symbole: "⬡", nom: "PULSE", code: "NX-03", couleur: "#22c55e" },
-  { symbole: "⟡", nom: "ORBIT", code: "NX-04", couleur: "#f59e0b" },
-  { symbole: "◎", nom: "CORE", code: "NX-05", couleur: "#ec4899" },
-  { symbole: "⌘", nom: "GLITCH", code: "NX-06", couleur: "#06b6d4" },
-  { symbole: "△", nom: "QUANTUM", code: "NX-07", couleur: "#ef4444" },
-  { symbole: "✧", nom: "ECLIPSE", code: "NX-08", couleur: "#c084fc" }
-];
+    { symbole: "✦", nom: "NOVA", code: "NX-01", couleur: "#38bdf8" },
+    { symbole: "◈", nom: "PHANTOM", code: "NX-02", couleur: "#a855f7" },
+    { symbole: "⬡", nom: "PULSE", code: "NX-03", couleur: "#22c55e" },
+    { symbole: "⟡", nom: "ORBIT", code: "NX-04", couleur: "#f59e0b" },
+    { symbole: "◎", nom: "CORE", code: "NX-05", couleur: "#ec4899" },
+    { symbole: "⌘", nom: "GLITCH", code: "NX-06", couleur: "#06b6d4" },
+    { symbole: "△", nom: "QUANTUM", code: "NX-07", couleur: "#ef4444" },
+    { symbole: "✧", nom: "ECLIPSE", code: "NX-08", couleur: "#c084fc" }
+  ];
 
-memoryCartes = [...cartesBase, ...cartesBase].map(carte => ({
-  ...carte,
-  trouve: false
-}));
+  // Créer les 16 cartes et les mélanger
+  memoryCartes = melangerCartesMemory(
+    [...cartesBase, ...cartesBase].map(carte => ({
+      ...carte,
+      trouvee: false
+    }))
+  );
 
   memorySelection = [];
   memoryVerrouille = false;
-
   memoryCoups = 0;
   memoryPairesTrouvees = 0;
 
-  
-grille.innerHTML = memoryCartes.map((carte, index) => {
+  // Générer les cartes
+  grille.innerHTML = memoryCartes.map((carte, index) => {
 
-  // Position et rotation aléatoires pour l'effet de mélange
-  const decalageX = Math.round((Math.random() - 0.5) * 220);
-  const decalageY = Math.round((Math.random() - 0.5) * 160);
-  const rotation = Math.round((Math.random() - 0.5) * 100);
+    const decalageX = Math.round((Math.random() - 0.5) * 220);
+    const decalageY = Math.round((Math.random() - 0.5) * 160);
+    const rotation = Math.round((Math.random() - 0.5) * 100);
 
-  return `
-    <button
-      type="button"
-      class="omni-memory-card"
-      data-memory-index="${index}"
-      aria-label="Retourner la carte ${index + 1}"
-      style="
-        --deal-index: ${index};
-        --shuffle-x: ${decalageX}px;
-        --shuffle-y: ${decalageY}px;
-        --shuffle-rotation: ${rotation}deg;
-      "
-      onclick="retournerCarteMemory(${index})"
-    >
-      <span class="memory-card-back">?</span>
-      <span class="memory-card-symbol">${carte.symbole}</span>
-    </button>
-  `;
+    return `
+      <button
+        type="button"
+        class="omni-memory-card"
+        data-memory-index="${index}"
+        aria-label="Retourner la carte ${index + 1}"
+        style="
+          --deal-index: ${index};
+          --shuffle-x: ${decalageX}px;
+          --shuffle-y: ${decalageY}px;
+          --shuffle-rotation: ${rotation}deg;
+        "
+        onclick="retournerCarteMemory(${index})"
+      >
 
-}).join("");
+        <span class="memory-card-back">
+          <span class="memory-back-logo">O</span>
+          <span class="memory-back-label">OMNI</span>
+          <span class="memory-back-code">MEMORY SYSTEM</span>
+        </span>
 
+        <span
+          class="memory-card-symbol"
+          style="--card-accent: ${carte.couleur};"
+        >
+          <span class="memory-trading-card">
+
+            <span class="memory-card-topline">
+              <span>${carte.code}</span>
+              <span>✦</span>
+            </span>
+
+            <span class="memory-card-art">
+              ${carte.symbole}
+            </span>
+
+            <span class="memory-card-name">
+              ${carte.nom}
+            </span>
+
+            <span class="memory-card-bottomline">
+              OMNI • COLLECTIBLE
+            </span>
+
+          </span>
+        </span>
+
+      </button>
+    `;
+
+  }).join("");
 
   if (statut) {
-    statut.textContent = "Trouve les 8 paires de symboles !";
+    statut.textContent = "Trouve les 8 paires de cartes OMNI !";
   }
 
   actualiserAffichageMemory();
@@ -1855,6 +1887,7 @@ grille.innerHTML = memoryCartes.map((carte, index) => {
 
 // RETOURNER UNE CARTE
 function retournerCarteMemory(index) {
+
   if (memoryVerrouille) return;
 
   if (
@@ -1869,6 +1902,7 @@ function retournerCarteMemory(index) {
   if (memorySelection.includes(index)) return;
 
   const grille = document.getElementById("memory-grid");
+
   const bouton = grille?.querySelector(
     `[data-memory-index="${index}"]`
   );
@@ -1880,6 +1914,7 @@ function retournerCarteMemory(index) {
 
   // Deux cartes sont retournées
   if (memorySelection.length === 2) {
+
     memoryCoups++;
     actualiserAffichageMemory();
 
@@ -1888,31 +1923,22 @@ function retournerCarteMemory(index) {
     const premiere = memoryCartes[premiereIndex];
     const deuxieme = memoryCartes[deuxiemeIndex];
 
-    // LES DEUX CARTES CORRESPONDENT
-    if (premiereCarte.symbole === deuxiemeCarte.symbole) {
-      const boutonA = document.querySelector(
-  `#page-arcade [data-memory-index="${premiereIndex}"]`
-);
+    // LES DEUX CARTES SONT IDENTIQUES
+    if (premiere.symbole === deuxieme.symbole) {
 
-const boutonB = document.querySelector(
-  `#page-arcade [data-memory-index="${deuxiemeIndex}"]`
-);
-
-boutonA?.classList.add("is-flipped", "is-matched");
-boutonB?.classList.add("is-flipped", "is-matched");
       premiere.trouvee = true;
       deuxieme.trouvee = true;
 
-      const premiereBouton = grille.querySelector(
+      const boutonA = grille.querySelector(
         `[data-memory-index="${premiereIndex}"]`
       );
 
-      const deuxiemeBouton = grille.querySelector(
+      const boutonB = grille.querySelector(
         `[data-memory-index="${deuxiemeIndex}"]`
       );
 
-      premiereBouton?.classList.add("is-matched");
-      deuxiemeBouton?.classList.add("is-matched");
+      boutonA?.classList.add("is-flipped", "is-matched");
+      boutonB?.classList.add("is-flipped", "is-matched");
 
       memoryPairesTrouvees++;
       memorySelection = [];
@@ -1920,18 +1946,18 @@ boutonB?.classList.add("is-flipped", "is-matched");
       const statut = document.getElementById("memory-status");
 
       if (statut) {
-        statut.textContent = "✅ Paire trouvée ! Bien joué !";
+        statut.textContent = "✨ Paire trouvée ! Elle est conservée !";
       }
 
       actualiserAffichageMemory();
 
-      // TOUTES LES PAIRES SONT TROUVÉES
       if (memoryPairesTrouvees === 8) {
         terminerMemory();
       }
 
     } else {
-      // LES CARTES NE CORRESPONDENT PAS
+
+      // LES DEUX CARTES SONT DIFFÉRENTES
       memoryVerrouille = true;
 
       const statut = document.getElementById("memory-status");
@@ -1940,13 +1966,18 @@ boutonB?.classList.add("is-flipped", "is-matched");
         statut.textContent = "❌ Pas de correspondance. Réessaie !";
       }
 
+      const cartesAretourner = [...memorySelection];
+
       memoryTimeout = setTimeout(() => {
-        memorySelection.forEach(carteIndex => {
+
+        cartesAretourner.forEach(carteIndex => {
+
           const carteBouton = grille.querySelector(
             `[data-memory-index="${carteIndex}"]`
           );
 
           carteBouton?.classList.remove("is-flipped");
+
         });
 
         memorySelection = [];
@@ -1954,8 +1985,9 @@ boutonB?.classList.add("is-flipped", "is-matched");
         memoryTimeout = null;
 
         if (statut) {
-          statut.textContent = "À toi de jouer ! Trouve les paires.";
+          statut.textContent = "À toi de jouer ! Trouve les autres paires.";
         }
+
       }, 800);
     }
   }
