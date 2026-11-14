@@ -1185,3 +1185,440 @@ setInterval(() => {
   }
   sauvegarderDonnees();
 }, 1000);
+
+/* ==========================================
+   OMNI-APP — ARCADE NAVIGATION + SNAKE CYBER
+========================================== */
+
+// Jeux actuellement programmés
+const omniJeuxDisponibles = ["simon", "snake"];
+
+// Ouvrir un mini-jeu depuis le menu
+function ouvrirMiniJeu(nom) {
+  if (!omniJeuxDisponibles.includes(nom)) {
+    alert("🚧 Ce mini-jeu arrive dans une prochaine mise à jour !");
+    return;
+  }
+
+  arreterMiniJeuActif();
+
+  const menu = document.getElementById("omni-arcade-menu");
+  const stage = document.getElementById("omni-game-stage");
+
+  if (!menu || !stage) return;
+
+  menu.hidden = true;
+  stage.hidden = false;
+
+  document.querySelectorAll("#omni-game-stage .omni-game-panel")
+    .forEach(panel => panel.hidden = true);
+
+  const panneau = document.getElementById("omni-game-" + nom);
+
+  if (panneau) {
+    panneau.hidden = false;
+  }
+
+  if (nom === "simon" && typeof initialiserScoresSimon === "function") {
+    initialiserScoresSimon();
+  }
+}
+
+// Revenir au menu de l'Arcade
+function retourMenuArcade() {
+  arreterMiniJeuActif();
+
+  const menu = document.getElementById("omni-arcade-menu");
+  const stage = document.getElementById("omni-game-stage");
+
+  if (menu) menu.hidden = false;
+  if (stage) stage.hidden = true;
+}
+
+// Arrêter proprement le jeu actif
+function arreterMiniJeuActif() {
+  arreterSnake(false);
+
+  if (typeof simonPlaying !== "undefined") {
+    simonPlaying = false;
+  }
+
+  if (typeof simonInterval !== "undefined" && simonInterval) {
+    clearInterval(simonInterval);
+    simonInterval = null;
+  }
+
+  if (typeof simonSequenceTimeout !== "undefined" && simonSequenceTimeout) {
+    clearTimeout(simonSequenceTimeout);
+    simonSequenceTimeout = null;
+  }
+}
+
+
+/* ==========================================
+   SNAKE CYBER
+========================================== */
+
+const SNAKE_TAILLE_CASE = 18;
+const SNAKE_NOMBRE_CASES = 20;
+
+let snakeCorps = [];
+let snakeDirection = "right";
+let snakeProchaineDirection = "right";
+let snakeNourriture = { x: 15, y: 10 };
+let snakeScore = 0;
+let snakeRecord = 0;
+let snakeEnCours = false;
+let snakeInterval = null;
+
+// Récupérer le canvas
+function obtenirCanvasSnake() {
+  const canvas = document.getElementById("snake-canvas");
+  if (!canvas) return null;
+
+  return canvas.getContext("2d");
+}
+
+// Lire le record personnel
+function chargerRecordSnake() {
+  try {
+    const valeur = Number.parseInt(
+      localStorage.getItem("omni_snake_best") || "0",
+      10
+    );
+
+    snakeRecord = Number.isFinite(valeur)
+      ? Math.max(0, valeur)
+      : 0;
+  } catch (error) {
+    snakeRecord = 0;
+  }
+
+  actualiserScoresSnake();
+}
+
+// Actualiser les statistiques
+function actualiserScoresSnake() {
+  const scoreElement = document.getElementById("snake-score");
+  const recordElement = document.getElementById("snake-best");
+
+  if (scoreElement) {
+    scoreElement.textContent = snakeScore;
+  }
+
+  if (recordElement) {
+    recordElement.textContent = snakeRecord;
+  }
+}
+
+// Créer une nourriture à un emplacement libre
+function placerNourritureSnake() {
+  let position;
+  let essais = 0;
+
+  do {
+    position = {
+      x: Math.floor(Math.random() * SNAKE_NOMBRE_CASES),
+      y: Math.floor(Math.random() * SNAKE_NOMBRE_CASES)
+    };
+
+    essais++;
+  } while (
+    snakeCorps.some(partie =>
+      partie.x === position.x && partie.y === position.y
+    ) && essais < 500
+  );
+
+  snakeNourriture = position;
+}
+
+// Dessiner le terrain et le serpent
+function dessinerSnake() {
+  const canvas = document.getElementById("snake-canvas");
+  const ctx = obtenirCanvasSnake();
+
+  if (!canvas || !ctx) return;
+
+  const taille = SNAKE_TAILLE_CASE;
+  const total = SNAKE_NOMBRE_CASES * taille;
+
+  // Fond
+  ctx.clearRect(0, 0, total, total);
+  ctx.fillStyle = "#050b18";
+  ctx.fillRect(0, 0, total, total);
+
+  // Grille
+  ctx.strokeStyle = "rgba(56, 232, 255, 0.09)";
+  ctx.lineWidth = 1;
+
+  for (let i = 0; i <= total; i += taille) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i, total);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, i);
+    ctx.lineTo(total, i);
+    ctx.stroke();
+  }
+
+  // Nourriture
+  const fx = snakeNourriture.x * taille + taille / 2;
+  const fy = snakeNourriture.y * taille + taille / 2;
+
+  ctx.save();
+  ctx.shadowColor = "#f472b6";
+  ctx.shadowBlur = 16;
+  ctx.fillStyle = "#ff5da8";
+  ctx.beginPath();
+  ctx.arc(fx, fy, taille * 0.34, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Serpent
+  snakeCorps.forEach((partie, index) => {
+    const marge = index === 0 ? 1 : 2;
+
+    ctx.save();
+
+    if (index === 0) {
+      ctx.fillStyle = "#b8ffff";
+      ctx.shadowColor = "#38e8ff";
+      ctx.shadowBlur = 16;
+    } else {
+      ctx.fillStyle = `hsl(${165 + index * 2}, 90%, ${55 - Math.min(index, 15)}%)`;
+    }
+
+    ctx.fillRect(
+      partie.x * taille + marge,
+      partie.y * taille + marge,
+      taille - marge * 2,
+      taille - marge * 2
+    );
+
+    ctx.restore();
+  });
+}
+
+// Démarrer une nouvelle partie
+function demarrerSnake() {
+  if (snakeInterval) {
+    clearInterval(snakeInterval);
+    snakeInterval = null;
+  }
+
+  snakeCorps = [
+    { x: 10, y: 10 },
+    { x: 9, y: 10 },
+    { x: 8, y: 10 }
+  ];
+
+  snakeDirection = "right";
+  snakeProchaineDirection = "right";
+  snakeScore = 0;
+  snakeEnCours = true;
+
+  placerNourritureSnake();
+  actualiserScoresSnake();
+  dessinerSnake();
+
+  snakeInterval = setInterval(avancerSnake, 125);
+}
+
+// Modifier la direction avec le clavier ou les boutons
+function changerDirectionSnake(direction) {
+  if (!snakeEnCours) return;
+
+  const directions = {
+    up: { x: 0, y: -1 },
+    down: { x: 0, y: 1 },
+    left: { x: -1, y: 0 },
+    right: { x: 1, y: 0 }
+  };
+
+  const nouvelle = directions[direction];
+  const actuelle = directions[snakeProchaineDirection];
+
+  if (!nouvelle || !actuelle) return;
+
+  // Interdire le demi-tour direct
+  if (
+    nouvelle.x === -actuelle.x &&
+    nouvelle.y === -actuelle.y
+  ) {
+    return;
+  }
+
+  snakeProchaineDirection = direction;
+}
+
+// Faire avancer le serpent
+function avancerSnake() {
+  if (!snakeEnCours || snakeCorps.length === 0) return;
+
+  snakeDirection = snakeProchaineDirection;
+
+  const mouvements = {
+    up: { x: 0, y: -1 },
+    down: { x: 0, y: 1 },
+    left: { x: -1, y: 0 },
+    right: { x: 1, y: 0 }
+  };
+
+  const mouvement = mouvements[snakeDirection];
+  const tete = snakeCorps[0];
+
+  const nouvelleTete = {
+    x: tete.x + mouvement.x,
+    y: tete.y + mouvement.y
+  };
+
+  // Collision avec les murs
+  if (
+    nouvelleTete.x < 0 ||
+    nouvelleTete.x >= SNAKE_NOMBRE_CASES ||
+    nouvelleTete.y < 0 ||
+    nouvelleTete.y >= SNAKE_NOMBRE_CASES
+  ) {
+    terminerSnake();
+    return;
+  }
+
+  const mange = (
+    nouvelleTete.x === snakeNourriture.x &&
+    nouvelleTete.y === snakeNourriture.y
+  );
+
+  // Collision avec le corps
+  const corpsAVerifier = mange
+    ? snakeCorps
+    : snakeCorps.slice(0, -1);
+
+  const collision = corpsAVerifier.some(partie =>
+    partie.x === nouvelleTete.x &&
+    partie.y === nouvelleTete.y
+  );
+
+  if (collision) {
+    terminerSnake();
+    return;
+  }
+
+  snakeCorps.unshift(nouvelleTete);
+
+  if (mange) {
+    snakeScore += 10;
+
+    if (snakeScore > snakeRecord) {
+      snakeRecord = snakeScore;
+
+      try {
+        localStorage.setItem(
+          "omni_snake_best",
+          String(snakeRecord)
+        );
+      } catch (error) {
+        // Le record reste en mémoire pour cette session.
+      }
+
+    }
+
+    placerNourritureSnake();
+    actualiserScoresSnake();
+
+  } else {
+    snakeCorps.pop();
+  }
+
+  dessinerSnake();
+}
+
+// Fin de partie
+function terminerSnake() {
+  if (!snakeEnCours) return;
+
+  snakeEnCours = false;
+
+  if (snakeInterval) {
+    clearInterval(snakeInterval);
+    snakeInterval = null;
+  }
+
+  dessinerSnake();
+
+  alert(
+    "🐍 FIN DE PARTIE !\n\n" +
+    "🎯 Ton score : " + snakeScore + "\n" +
+    "🏆 Ton record : " + snakeRecord
+  );
+}
+
+// Arrêter Snake sans afficher de message
+function arreterSnake(redessiner = false) {
+  snakeEnCours = false;
+
+  if (snakeInterval) {
+    clearInterval(snakeInterval);
+    snakeInterval = null;
+  }
+
+  if (redessiner) {
+    dessinerSnake();
+  }
+}
+
+// Contrôles clavier : flèches ou ZQSD
+document.addEventListener("keydown", function(event) {
+  const panneauSnake = document.getElementById("omni-game-snake");
+
+  if (!panneauSnake || panneauSnake.hidden || !snakeEnCours) {
+    return;
+  }
+
+  if (
+    event.target &&
+    ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName)
+  ) {
+    return;
+  }
+
+  const touches = {
+    ArrowUp: "up",
+    z: "up",
+    Z: "up",
+    ArrowDown: "down",
+    s: "down",
+    S: "down",
+    ArrowLeft: "left",
+    q: "left",
+    Q: "left",
+    ArrowRight: "right",
+    d: "right",
+    D: "right"
+  };
+
+  const direction = touches[event.key];
+
+  if (direction) {
+    event.preventDefault();
+    changerDirectionSnake(direction);
+  }
+});
+
+// Charger le record dès le démarrage
+chargerRecordSnake();
+
+// Arrêter les jeux lorsqu'on quitte l'onglet Arcade
+document.addEventListener("click", function(event) {
+  const boutonNavigation = event.target.closest(
+    ".bottom-nav .nav-item, .more-menu-item"
+  );
+
+  if (
+    boutonNavigation &&
+    boutonNavigation.id !== "btn-arcade"
+  ) {
+    arreterMiniJeuActif();
+  }
+});
