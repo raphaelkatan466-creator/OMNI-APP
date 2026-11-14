@@ -3623,24 +3623,6 @@ textarea, input[type="text"] {
   box-shadow: 0 0 22px #38bdf877;
 }
 
-#page-arcade .memory-card-back {
-  display: block;
-  color: #67e8f9;
-  text-shadow: 0 0 12px #38bdf8;
-}
-
-#page-arcade .memory-card-symbol {
-  display: none;
-}
-
-#page-arcade .omni-memory-card.is-flipped .memory-card-back {
-  display: none;
-}
-
-#page-arcade .omni-memory-card.is-flipped .memory-card-symbol {
-  display: block;
-}
-
 #page-arcade .omni-memory-card.is-flipped {
   background: linear-gradient(145deg, #243d66, #38205c);
 }
