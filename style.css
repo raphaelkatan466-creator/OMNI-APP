@@ -4206,3 +4206,14 @@ textarea, input[type="text"] {
 #page-arcade .omni-memory-grid button.omni-memory-card.is-flipped {
   transform: rotateY(180deg);
 }
+/* MEMORY MATRIX — FINITION DES CARTES */
+
+#page-arcade .omni-memory-grid button.omni-memory-card.is-matched {
+  opacity: 1;
+}
+
+/* Évite le double contour autour des motifs */
+#page-arcade .memory-card-back::after {
+  border: 0;
+  border-radius: 0;
+}
