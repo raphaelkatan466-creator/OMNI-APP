@@ -1811,18 +1811,35 @@ function demarrerMemory() {
   memoryCoups = 0;
   memoryPairesTrouvees = 0;
 
-  grille.innerHTML = memoryCartes.map((carte, index) => `
+  
+grille.innerHTML = memoryCartes.map((carte, index) => {
+
+  // Position et rotation aléatoires pour l'effet de mélange
+  const decalageX = Math.round((Math.random() - 0.5) * 220);
+  const decalageY = Math.round((Math.random() - 0.5) * 160);
+  const rotation = Math.round((Math.random() - 0.5) * 100);
+
+  return `
     <button
       type="button"
       class="omni-memory-card"
       data-memory-index="${index}"
       aria-label="Retourner la carte ${index + 1}"
+      style="
+        --deal-index: ${index};
+        --shuffle-x: ${decalageX}px;
+        --shuffle-y: ${decalageY}px;
+        --shuffle-rotation: ${rotation}deg;
+      "
       onclick="retournerCarteMemory(${index})"
     >
       <span class="memory-card-back">?</span>
       <span class="memory-card-symbol">${carte.symbole}</span>
     </button>
-  `).join("");
+  `;
+
+}).join("");
+
 
   if (statut) {
     statut.textContent = "Trouve les 8 paires de symboles !";
