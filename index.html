@@ -682,13 +682,15 @@
 </div> <!-- Fermeture du panneau Snake -->
 
     <!-- 3. MEMORY MATRIX -->
-    <div id="omni-game-memory" class="omni-game-panel" hidden>
-      <h3>🧩 MEMORY MATRIX</h3>
-      <p>Retrouve toutes les paires de symboles.</p>
-      <div class="omni-game-stats">
-        COUPS : <strong id="memory-moves">0</strong>
-        PAIRES : <strong id="memory-pairs">0</strong>
-      </div>
+    <div class="omni-game-stats">
+  COUPS : <strong id="memory-moves">0</strong>
+  PAIRES : <strong id="memory-pairs">0</strong>
+  RECORD : <strong id="memory-best">--</strong>
+</div>
+
+<p id="memory-status" class="omni-memory-status" aria-live="polite">
+  Trouve les 8 paires de symboles !
+</p>
       <div id="memory-grid" class="omni-memory-grid"></div>
       <button class="btn" onclick="demarrerMemory()">🔄 NOUVELLE PARTIE</button>
     </div>
