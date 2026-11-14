@@ -1751,7 +1751,99 @@ let memoryTimeout = null;
 
 let memoryMeilleurScore =
   Number(localStorage.getItem("omni_memory_best_moves")) || 0;
+// ============================================
+// OMNI FUTURE — COLLECTION DE 30 MOTIFS
+// ============================================
 
+const MEMORY_MOTIFS = [
+
+  // ⚡ FAMILLE ÉLECTRIQUE
+  { id: "electric-01", famille: "electric", primaire: "#38bdf8", secondaire: "#1d4ed8", decoration: "⚡" },
+  { id: "electric-02", famille: "electric", primaire: "#00e5ff", secondaire: "#2563eb", decoration: "✦" },
+  { id: "electric-03", famille: "electric", primaire: "#60a5fa", secondaire: "#1e40af", decoration: "ϟ" },
+  { id: "electric-04", famille: "electric", primaire: "#22d3ee", secondaire: "#0e7490", decoration: "◇" },
+  { id: "electric-05", famille: "electric", primaire: "#818cf8", secondaire: "#4338ca", decoration: "✧" },
+
+  // 🌈 FAMILLE HOLOGRAPHIQUE
+  { id: "holo-01", famille: "holographic", primaire: "#c084fc", secondaire: "#ec4899", decoration: "✧" },
+  { id: "holo-02", famille: "holographic", primaire: "#e879f9", secondaire: "#8b5cf6", decoration: "◇" },
+  { id: "holo-03", famille: "holographic", primaire: "#a78bfa", secondaire: "#22d3ee", decoration: "⟡" },
+  { id: "holo-04", famille: "holographic", primaire: "#f0abfc", secondaire: "#6366f1", decoration: "❖" },
+  { id: "holo-05", famille: "holographic", primaire: "#c4b5fd", secondaire: "#db2777", decoration: "✺" },
+
+  // 💻 FAMILLE TECHNOLOGIQUE
+  { id: "tech-01", famille: "circuit", primaire: "#22c55e", secondaire: "#0f766e", decoration: "⌘" },
+  { id: "tech-02", famille: "circuit", primaire: "#34d399", secondaire: "#065f46", decoration: "⊞" },
+  { id: "tech-03", famille: "circuit", primaire: "#2dd4bf", secondaire: "#155e75", decoration: "▦" },
+  { id: "tech-04", famille: "circuit", primaire: "#84cc16", secondaire: "#166534", decoration: "◉" },
+  { id: "tech-05", famille: "circuit", primaire: "#38bdf8", secondaire: "#075985", decoration: "⌬" },
+
+  // 🌌 FAMILLE COSMIQUE
+  { id: "cosmic-01", famille: "cosmic", primaire: "#818cf8", secondaire: "#312e81", decoration: "✧" },
+  { id: "cosmic-02", famille: "cosmic", primaire: "#c084fc", secondaire: "#4c1d95", decoration: "☾" },
+  { id: "cosmic-03", famille: "cosmic", primaire: "#60a5fa", secondaire: "#1e3a8a", decoration: "✦" },
+  { id: "cosmic-04", famille: "cosmic", primaire: "#e879f9", secondaire: "#701a75", decoration: "◌" },
+  { id: "cosmic-05", famille: "cosmic", primaire: "#a5b4fc", secondaire: "#3730a3", decoration: "✺" },
+
+  // 🔥 FAMILLE ÉNERGÉTIQUE
+  { id: "energy-01", famille: "energy", primaire: "#f97316", secondaire: "#9a3412", decoration: "✹" },
+  { id: "energy-02", famille: "energy", primaire: "#fb7185", secondaire: "#9f1239", decoration: "✧" },
+  { id: "energy-03", famille: "energy", primaire: "#facc15", secondaire: "#a16207", decoration: "✴" },
+  { id: "energy-04", famille: "energy", primaire: "#ef4444", secondaire: "#7f1d1d", decoration: "⬡" },
+  { id: "energy-05", famille: "energy", primaire: "#f472b6", secondaire: "#9d174d", decoration: "❋" },
+
+  // 🪙 FAMILLE MÉTALLIQUE
+  { id: "metal-01", famille: "metal", primaire: "#cbd5e1", secondaire: "#475569", decoration: "◈" },
+  { id: "metal-02", famille: "metal", primaire: "#94a3b8", secondaire: "#334155", decoration: "✦" },
+  { id: "metal-03", famille: "metal", primaire: "#e2e8f0", secondaire: "#64748b", decoration: "⬡" },
+  { id: "metal-04", famille: "metal", primaire: "#a1a1aa", secondaire: "#52525b", decoration: "⌘" },
+  { id: "metal-05", famille: "metal", primaire: "#f8fafc", secondaire: "#64748b", decoration: "❖" }
+
+];
+
+
+// MÉMORISER LE MOTIF PRÉCÉDENT
+let memoryMotifPrecedent = null;
+let memoryMotifActuel = null;
+
+
+// CHOISIR UN MOTIF SANS RÉPÉTER LE PRÉCÉDENT
+function choisirMotifMemory() {
+
+  if (memoryMotifPrecedent === null) {
+    try {
+      memoryMotifPrecedent =
+        localStorage.getItem("omni_memory_last_back_motif");
+    } catch (erreur) {
+      memoryMotifPrecedent = "";
+    }
+  }
+
+  const motifsDisponibles = MEMORY_MOTIFS.filter(
+    motif => motif.id !== memoryMotifPrecedent
+  );
+
+  const collection = motifsDisponibles.length
+    ? motifsDisponibles
+    : MEMORY_MOTIFS;
+
+  const choix = collection[
+    Math.floor(Math.random() * collection.length)
+  ];
+
+  memoryMotifPrecedent = choix.id;
+
+  try {
+    localStorage.setItem(
+      "omni_memory_last_back_motif",
+      choix.id
+    );
+  } catch (erreur) {
+    // Le motif reste utilisable pendant cette session.
+  }
+
+  return choix;
+}
 
 // AFFICHER LES STATISTIQUES
 function actualiserAffichageMemory() {
@@ -1783,6 +1875,7 @@ function melangerCartesMemory(cartes) {
 
 // DÉMARRER UNE NOUVELLE PARTIE
 function demarrerMemory() {
+
   const grille = document.getElementById("memory-grid");
   const statut = document.getElementById("memory-status");
 
@@ -1792,6 +1885,9 @@ function demarrerMemory() {
     clearTimeout(memoryTimeout);
     memoryTimeout = null;
   }
+
+  // Choisir un nouveau dos de carte OMNI
+  memoryMotifActuel = choisirMotifMemory();
 
   // Les 8 cartes originales
   const cartesBase = [
@@ -1840,10 +1936,21 @@ function demarrerMemory() {
         onclick="retournerCarteMemory(${index})"
       >
 
-        <span class="memory-card-back">
-          <span class="memory-back-logo">O</span>
-          <span class="memory-back-label">OMNI</span>
-          <span class="memory-back-code">MEMORY SYSTEM</span>
+        <span
+          class="memory-card-back"
+          data-memory-family="${memoryMotifActuel.famille}"
+          style="
+            --back-primary: ${memoryMotifActuel.primaire};
+            --back-secondary: ${memoryMotifActuel.secondaire};
+          "
+        >
+          <span class="memory-back-pattern" aria-hidden="true">
+            ${memoryMotifActuel.decoration}
+          </span>
+
+          <span class="memory-back-question" aria-hidden="true">
+            ?
+          </span>
         </span>
 
         <span
@@ -1878,7 +1985,8 @@ function demarrerMemory() {
   }).join("");
 
   if (statut) {
-    statut.textContent = "Trouve les 8 paires de cartes OMNI !";
+    statut.textContent =
+      `✨ Nouveau design OMNI : ${memoryMotifActuel.id} ! Trouve les 8 paires.`;
   }
 
   actualiserAffichageMemory();
