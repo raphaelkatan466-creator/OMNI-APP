@@ -1889,7 +1889,17 @@ function retournerCarteMemory(index) {
     const deuxieme = memoryCartes[deuxiemeIndex];
 
     // LES DEUX CARTES CORRESPONDENT
-    if (premiere.symbole === deuxieme.symbole) {
+    if (premiereCarte.symbole === deuxiemeCarte.symbole) {
+      const boutonA = document.querySelector(
+  `#page-arcade [data-memory-index="${premiereIndex}"]`
+);
+
+const boutonB = document.querySelector(
+  `#page-arcade [data-memory-index="${deuxiemeIndex}"]`
+);
+
+boutonA?.classList.add("is-flipped", "is-matched");
+boutonB?.classList.add("is-flipped", "is-matched");
       premiere.trouvee = true;
       deuxieme.trouvee = true;
 
