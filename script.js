@@ -1194,6 +1194,7 @@ setInterval(() => {
 const omniJeuxDisponibles = ["simon", "snake", "memory"];
 
 
+
 // Ouvrir un mini-jeu depuis le menu
 function ouvrirMiniJeu(nom) {
   if (!omniJeuxDisponibles.includes(nom)) {
@@ -1201,22 +1202,71 @@ function ouvrirMiniJeu(nom) {
     return;
   }
 
-  
+  // Arrêter le jeu précédent
+  arreterMiniJeuActif();
+
+  const menu = document.getElementById("omni-arcade-menu");
+  const stage = document.getElementById("omni-game-stage");
+
+  if (!menu || !stage) return;
+
+  menu.hidden = true;
+  stage.hidden = false;
+
+  // Cacher tous les panneaux
+  document.querySelectorAll("#omni-game-stage .omni-game-panel")
+    .forEach(panel => panel.hidden = true);
+
+  // Afficher le jeu sélectionné
+  const panneau = document.getElementById("omni-game-" + nom);
+
+  if (panneau) {
+    panneau.hidden = false;
+  }
+
+  // Initialiser Memory
+  if (nom === "memory") {
+    demarrerMemory();
+  }
+
+  // Initialiser Simon
+  if (nom === "simon") {
+    initialiserScoresSimon();
+  }
+
+  // Initialiser Snake
+  if (nom === "snake") {
+    chargerRecordSnake();
+  }
+}
+
+
+// Revenir au menu de l'Arcade
+function retourMenuArcade() {
+  arreterMiniJeuActif();
+
+  const menu = document.getElementById("omni-arcade-menu");
+  const stage = document.getElementById("omni-game-stage");
+
+  if (menu) menu.hidden = false;
+  if (stage) stage.hidden = true;
+}
+
+
 // Arrêter proprement le jeu actif
 function arreterMiniJeuActif() {
+  // Arrêter Snake
   arreterSnake(false);
 
   // Arrêter Simon
-  if (typeof simonPlaying !== "undefined") {
-    simonPlaying = false;
-  }
+  simonPlaying = false;
 
-  if (typeof simonInterval !== "undefined" && simonInterval) {
+  if (simonInterval) {
     clearInterval(simonInterval);
     simonInterval = null;
   }
 
-  if (typeof simonSequenceTimeout !== "undefined" && simonSequenceTimeout) {
+  if (simonSequenceTimeout) {
     clearTimeout(simonSequenceTimeout);
     simonSequenceTimeout = null;
   }
@@ -1226,6 +1276,7 @@ function arreterMiniJeuActif() {
     arreterMemory();
   }
 }
+
 
 
 
