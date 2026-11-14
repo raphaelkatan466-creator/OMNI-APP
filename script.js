@@ -1193,56 +1193,20 @@ setInterval(() => {
 // Jeux actuellement programmés
 const omniJeuxDisponibles = ["simon", "snake", "memory"];
 
+
 // Ouvrir un mini-jeu depuis le menu
 function ouvrirMiniJeu(nom) {
   if (!omniJeuxDisponibles.includes(nom)) {
     alert("🚧 Ce mini-jeu arrive dans une prochaine mise à jour !");
     return;
   }
-if (nom === "memory") {
-  demarrerMemory();
-}
-  arreterMiniJeuActif();
-if (typeof arreterMemory === "function") {
-  arreterMemory();
-}
-  const menu = document.getElementById("omni-arcade-menu");
-  const stage = document.getElementById("omni-game-stage");
 
-  if (!menu || !stage) return;
-
-  menu.hidden = true;
-  stage.hidden = false;
-
-  document.querySelectorAll("#omni-game-stage .omni-game-panel")
-    .forEach(panel => panel.hidden = true);
-
-  const panneau = document.getElementById("omni-game-" + nom);
-
-  if (panneau) {
-    panneau.hidden = false;
-  }
-
-  if (nom === "simon" && typeof initialiserScoresSimon === "function") {
-    initialiserScoresSimon();
-  }
-}
-
-// Revenir au menu de l'Arcade
-function retourMenuArcade() {
-  arreterMiniJeuActif();
-
-  const menu = document.getElementById("omni-arcade-menu");
-  const stage = document.getElementById("omni-game-stage");
-
-  if (menu) menu.hidden = false;
-  if (stage) stage.hidden = true;
-}
-
+  
 // Arrêter proprement le jeu actif
 function arreterMiniJeuActif() {
   arreterSnake(false);
 
+  // Arrêter Simon
   if (typeof simonPlaying !== "undefined") {
     simonPlaying = false;
   }
@@ -1256,7 +1220,14 @@ function arreterMiniJeuActif() {
     clearTimeout(simonSequenceTimeout);
     simonSequenceTimeout = null;
   }
+
+  // Arrêter Memory
+  if (typeof arreterMemory === "function") {
+    arreterMemory();
+  }
 }
+
+
 
 
 
