@@ -1793,17 +1793,21 @@ function demarrerMemory() {
     memoryTimeout = null;
   }
 
-  const symboles = [
-    "🚀", "👾", "💎", "⚡",
-    "🪐", "🎮", "🧬", "🔮"
-  ];
+  const cartesBase = [
+  { symbole: "✦", nom: "NOVA", code: "NX-01", couleur: "#38bdf8" },
+  { symbole: "◈", nom: "PHANTOM", code: "NX-02", couleur: "#a855f7" },
+  { symbole: "⬡", nom: "PULSE", code: "NX-03", couleur: "#22c55e" },
+  { symbole: "⟡", nom: "ORBIT", code: "NX-04", couleur: "#f59e0b" },
+  { symbole: "◎", nom: "CORE", code: "NX-05", couleur: "#ec4899" },
+  { symbole: "⌘", nom: "GLITCH", code: "NX-06", couleur: "#06b6d4" },
+  { symbole: "△", nom: "QUANTUM", code: "NX-07", couleur: "#ef4444" },
+  { symbole: "✧", nom: "ECLIPSE", code: "NX-08", couleur: "#c084fc" }
+];
 
-  memoryCartes = melangerCartesMemory(
-    [...symboles, ...symboles].map(symbole => ({
-      symbole: symbole,
-      trouvee: false
-    }))
-  );
+memoryCartes = [...cartesBase, ...cartesBase].map(carte => ({
+  ...carte,
+  trouve: false
+}));
 
   memorySelection = [];
   memoryVerrouille = false;
