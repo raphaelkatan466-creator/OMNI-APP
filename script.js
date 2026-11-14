@@ -1255,359 +1255,462 @@ function arreterMiniJeuActif() {
 }
 
 
-/* ==========================================
-   SNAKE CYBER
-========================================== */
 
-const SNAKE_TAILLE_CASE = 18;
-const SNAKE_NOMBRE_CASES = 20;
+// SNAKE CYBER — VERSION FLUIDE
+
+const snakeCanvas = document.getElementById("snake-canvas");
+const snakeCtx = snakeCanvas.getContext("2d");
+
+snakeCanvas.width = 720;
+snakeCanvas.height = 720;
+snakeCanvas.style.width = "min(100%, 420px)";
+snakeCanvas.style.height = "auto";
+
+const SNAKE_CASE = 36;
+const SNAKE_TAILLE = 20;
+const SNAKE_VITESSE = 115;
 
 let snakeCorps = [];
+let snakeAncienCorps = [];
 let snakeDirection = "right";
 let snakeProchaineDirection = "right";
-let snakeNourriture = { x: 15, y: 10 };
+let snakeNourriture = { x: 12, y: 10 };
 let snakeScore = 0;
-let snakeRecord = 0;
+let snakeRecord = Number(localStorage.getItem("omni_snake_best")) || 0;
 let snakeEnCours = false;
-let snakeInterval = null;
+let snakeAnimationFrame = null;
+let snakeDernierPas = 0;
+let snakeGameOver = false;
 
-// Récupérer le canvas
-function obtenirCanvasSnake() {
-  const canvas = document.getElementById("snake-canvas");
-  if (!canvas) return null;
-
-  return canvas.getContext("2d");
-}
-
-// Lire le record personnel
 function chargerRecordSnake() {
-  try {
-    const valeur = Number.parseInt(
-      localStorage.getItem("omni_snake_best") || "0",
-      10
-    );
-
-    snakeRecord = Number.isFinite(valeur)
-      ? Math.max(0, valeur)
-      : 0;
-  } catch (error) {
-    snakeRecord = 0;
-  }
-
-  actualiserScoresSnake();
+  snakeRecord = Number(localStorage.getItem("omni_snake_best")) || 0;
+  afficherScoreSnake();
 }
 
-// Actualiser les statistiques
-function actualiserScoresSnake() {
-  const scoreElement = document.getElementById("snake-score");
-  const recordElement = document.getElementById("snake-best");
+function afficherScoreSnake() {
+  const score = document.getElementById("snake-score");
+  const record = document.getElementById("snake-best");
 
-  if (scoreElement) {
-    scoreElement.textContent = snakeScore;
-  }
-
-  if (recordElement) {
-    recordElement.textContent = snakeRecord;
-  }
+  if (score) score.textContent = snakeScore;
+  if (record) record.textContent = snakeRecord;
 }
 
-// Créer une nourriture à un emplacement libre
 function placerNourritureSnake() {
-  let position;
-  let essais = 0;
+  let valide = false;
 
-  do {
-    position = {
-      x: Math.floor(Math.random() * SNAKE_NOMBRE_CASES),
-      y: Math.floor(Math.random() * SNAKE_NOMBRE_CASES)
+  while (!valide) {
+    snakeNourriture = {
+      x: Math.floor(Math.random() * SNAKE_TAILLE),
+      y: Math.floor(Math.random() * SNAKE_TAILLE)
     };
 
-    essais++;
-  } while (
-    snakeCorps.some(partie =>
-      partie.x === position.x && partie.y === position.y
-    ) && essais < 500
-  );
-
-  snakeNourriture = position;
-}
-
-// Dessiner le terrain et le serpent
-function dessinerSnake() {
-  const canvas = document.getElementById("snake-canvas");
-  const ctx = obtenirCanvasSnake();
-
-  if (!canvas || !ctx) return;
-
-  const taille = SNAKE_TAILLE_CASE;
-  const total = SNAKE_NOMBRE_CASES * taille;
-
-  // Fond
-  ctx.clearRect(0, 0, total, total);
-  ctx.fillStyle = "#050b18";
-  ctx.fillRect(0, 0, total, total);
-
-  // Grille
-  ctx.strokeStyle = "rgba(56, 232, 255, 0.09)";
-  ctx.lineWidth = 1;
-
-  for (let i = 0; i <= total; i += taille) {
-    ctx.beginPath();
-    ctx.moveTo(i, 0);
-    ctx.lineTo(i, total);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(0, i);
-    ctx.lineTo(total, i);
-    ctx.stroke();
-  }
-
-  // Nourriture
-  const fx = snakeNourriture.x * taille + taille / 2;
-  const fy = snakeNourriture.y * taille + taille / 2;
-
-  ctx.save();
-  ctx.shadowColor = "#f472b6";
-  ctx.shadowBlur = 16;
-  ctx.fillStyle = "#ff5da8";
-  ctx.beginPath();
-  ctx.arc(fx, fy, taille * 0.34, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  // Serpent
-  snakeCorps.forEach((partie, index) => {
-    const marge = index === 0 ? 1 : 2;
-
-    ctx.save();
-
-    if (index === 0) {
-      ctx.fillStyle = "#b8ffff";
-      ctx.shadowColor = "#38e8ff";
-      ctx.shadowBlur = 16;
-    } else {
-      ctx.fillStyle = `hsl(${165 + index * 2}, 90%, ${55 - Math.min(index, 15)}%)`;
-    }
-
-    ctx.fillRect(
-      partie.x * taille + marge,
-      partie.y * taille + marge,
-      taille - marge * 2,
-      taille - marge * 2
+    valide = !snakeCorps.some(
+      morceau =>
+        morceau.x === snakeNourriture.x &&
+        morceau.y === snakeNourriture.y
     );
-
-    ctx.restore();
-  });
+  }
 }
 
-// Démarrer une nouvelle partie
 function demarrerSnake() {
-  if (snakeInterval) {
-    clearInterval(snakeInterval);
-    snakeInterval = null;
-  }
+  arreterSnake();
 
   snakeCorps = [
-    { x: 10, y: 10 },
-    { x: 9, y: 10 },
-    { x: 8, y: 10 }
+    { x: 8, y: 10 },
+    { x: 7, y: 10 },
+    { x: 6, y: 10 }
   ];
 
+  snakeAncienCorps = snakeCorps.map(p => ({ ...p }));
   snakeDirection = "right";
   snakeProchaineDirection = "right";
   snakeScore = 0;
+  snakeGameOver = false;
   snakeEnCours = true;
+  snakeDernierPas = 0;
 
   placerNourritureSnake();
-  actualiserScoresSnake();
-  dessinerSnake();
+  afficherScoreSnake();
 
-  snakeInterval = setInterval(avancerSnake, 125);
+  const status = document.getElementById("snake-status");
+  if (status) status.textContent = "À toi de jouer !";
+
+  snakeAnimationFrame = requestAnimationFrame(boucleSnake);
 }
 
-// Modifier la direction avec le clavier ou les boutons
 function changerDirectionSnake(direction) {
-  if (!snakeEnCours) return;
-
-  const directions = {
-    up: { x: 0, y: -1 },
-    down: { x: 0, y: 1 },
-    left: { x: -1, y: 0 },
-    right: { x: 1, y: 0 }
+  const opposés = {
+    up: "down",
+    down: "up",
+    left: "right",
+    right: "left"
   };
 
-  const nouvelle = directions[direction];
-  const actuelle = directions[snakeProchaineDirection];
-
-  if (!nouvelle || !actuelle) return;
-
-  // Interdire le demi-tour direct
-  if (
-    nouvelle.x === -actuelle.x &&
-    nouvelle.y === -actuelle.y
-  ) {
-    return;
-  }
+  if (!snakeEnCours) return;
+  if (opposés[direction] === snakeDirection) return;
 
   snakeProchaineDirection = direction;
 }
 
-// Faire avancer le serpent
 function avancerSnake() {
-  if (!snakeEnCours || snakeCorps.length === 0) return;
-
   snakeDirection = snakeProchaineDirection;
 
-  const mouvements = {
-    up: { x: 0, y: -1 },
-    down: { x: 0, y: 1 },
-    left: { x: -1, y: 0 },
-    right: { x: 1, y: 0 }
-  };
+  snakeAncienCorps = snakeCorps.map(p => ({ ...p }));
 
-  const mouvement = mouvements[snakeDirection];
-  const tete = snakeCorps[0];
+  const tete = { ...snakeCorps[0] };
 
-  const nouvelleTete = {
-    x: tete.x + mouvement.x,
-    y: tete.y + mouvement.y
-  };
-
-  // Collision avec les murs
-  if (
-    nouvelleTete.x < 0 ||
-    nouvelleTete.x >= SNAKE_NOMBRE_CASES ||
-    nouvelleTete.y < 0 ||
-    nouvelleTete.y >= SNAKE_NOMBRE_CASES
-  ) {
-    terminerSnake();
-    return;
-  }
+  if (snakeDirection === "up") tete.y--;
+  if (snakeDirection === "down") tete.y++;
+  if (snakeDirection === "left") tete.x--;
+  if (snakeDirection === "right") tete.x++;
 
   const mange = (
-    nouvelleTete.x === snakeNourriture.x &&
-    nouvelleTete.y === snakeNourriture.y
+    tete.x === snakeNourriture.x &&
+    tete.y === snakeNourriture.y
   );
 
-  // Collision avec le corps
-  const corpsAVerifier = mange
+  const corpsCollision = mange
     ? snakeCorps
     : snakeCorps.slice(0, -1);
 
-  const collision = corpsAVerifier.some(partie =>
-    partie.x === nouvelleTete.x &&
-    partie.y === nouvelleTete.y
+  const collisionMur =
+    tete.x < 0 || tete.x >= SNAKE_TAILLE ||
+    tete.y < 0 || tete.y >= SNAKE_TAILLE;
+
+  const collisionCorps = corpsCollision.some(
+    p => p.x === tete.x && p.y === tete.y
   );
 
-  if (collision) {
+  if (collisionMur || collisionCorps) {
     terminerSnake();
     return;
   }
 
-  snakeCorps.unshift(nouvelleTete);
+  snakeCorps.unshift(tete);
 
   if (mange) {
-    snakeScore += 10;
+    snakeScore += 1;
 
     if (snakeScore > snakeRecord) {
       snakeRecord = snakeScore;
-
-      try {
-        localStorage.setItem(
-          "omni_snake_best",
-          String(snakeRecord)
-        );
-      } catch (error) {
-        // Le record reste en mémoire pour cette session.
-      }
-
+      localStorage.setItem("omni_snake_best", snakeRecord);
     }
 
     placerNourritureSnake();
-    actualiserScoresSnake();
-
+    afficherScoreSnake();
   } else {
     snakeCorps.pop();
   }
-
-  dessinerSnake();
 }
 
-// Fin de partie
-function terminerSnake() {
+function boucleSnake(temps) {
   if (!snakeEnCours) return;
 
-  snakeEnCours = false;
+  if (!snakeDernierPas) snakeDernierPas = temps;
 
-  if (snakeInterval) {
-    clearInterval(snakeInterval);
-    snakeInterval = null;
+  while (temps - snakeDernierPas >= SNAKE_VITESSE) {
+    avancerSnake();
+    snakeDernierPas += SNAKE_VITESSE;
+
+    if (!snakeEnCours) return;
   }
 
-  dessinerSnake();
-
-  alert(
-    "🐍 FIN DE PARTIE !\n\n" +
-    "🎯 Ton score : " + snakeScore + "\n" +
-    "🏆 Ton record : " + snakeRecord
+  const progression = Math.min(
+    1,
+    (temps - snakeDernierPas) / SNAKE_VITESSE
   );
+
+  dessinerSnake(progression);
+
+  snakeAnimationFrame = requestAnimationFrame(boucleSnake);
 }
 
-// Arrêter Snake sans afficher de message
+function positionSnakeLisse(index, progression) {
+  const actuel = snakeCorps[index];
+  const ancien = snakeAncienCorps[index] || actuel;
+
+  return {
+    x: ancien.x + (actuel.x - ancien.x) * progression,
+    y: ancien.y + (actuel.y - ancien.y) * progression
+  };
+}
+
+function dessinerPommeSnake(x, y, temps) {
+  const cx = (x + 0.5) * SNAKE_CASE;
+  const cy = (y + 0.5) * SNAKE_CASE;
+  const pulse = 1 + Math.sin(temps / 180) * 0.045;
+
+  snakeCtx.save();
+  snakeCtx.translate(cx, cy);
+  snakeCtx.scale(pulse, pulse);
+
+  snakeCtx.shadowColor = "#ff315f";
+  snakeCtx.shadowBlur = 22;
+
+  const pomme = snakeCtx.createRadialGradient(-8, -9, 2, 0, 0, 23);
+  pomme.addColorStop(0, "#ffb4c5");
+  pomme.addColorStop(0.35, "#ff416d");
+  pomme.addColorStop(1, "#a90035");
+
+  snakeCtx.fillStyle = pomme;
+  snakeCtx.beginPath();
+  snakeCtx.moveTo(0, -5);
+  snakeCtx.bezierCurveTo(-22, -22, -25, 4, -12, 17);
+  snakeCtx.bezierCurveTo(-5, 25, -1, 19, 0, 18);
+  snakeCtx.bezierCurveTo(8, 24, 18, 17, 22, 3);
+  snakeCtx.bezierCurveTo(28, -13, 11, -23, 0, -5);
+  snakeCtx.fill();
+
+  snakeCtx.shadowBlur = 0;
+
+  snakeCtx.strokeStyle = "#75411f";
+  snakeCtx.lineWidth = 5;
+  snakeCtx.lineCap = "round";
+  snakeCtx.beginPath();
+  snakeCtx.moveTo(0, -12);
+  snakeCtx.quadraticCurveTo(1, -23, 8, -26);
+  snakeCtx.stroke();
+
+  snakeCtx.fillStyle = "#70ef9a";
+  snakeCtx.beginPath();
+  snakeCtx.ellipse(12, -22, 9, 4, -0.55, 0, Math.PI * 2);
+  snakeCtx.fill();
+
+  snakeCtx.fillStyle = "#ffffff99";
+  snakeCtx.beginPath();
+  snakeCtx.ellipse(-10, -5, 4, 7, -0.5, 0, Math.PI * 2);
+  snakeCtx.fill();
+
+  snakeCtx.restore();
+}
+
+function dessinerSnake(progression = 1) {
+  const temps = performance.now();
+  const ctx = snakeCtx;
+  const taille = snakeCanvas.width;
+
+  ctx.clearRect(0, 0, taille, taille);
+
+  const fond = ctx.createLinearGradient(0, 0, taille, taille);
+  fond.addColorStop(0, "#07172a");
+  fond.addColorStop(1, "#10112b");
+  ctx.fillStyle = fond;
+  ctx.fillRect(0, 0, taille, taille);
+
+  ctx.strokeStyle = "#38bdf811";
+  ctx.lineWidth = 1;
+
+  for (let i = 0; i <= SNAKE_TAILLE; i++) {
+    const pos = i * SNAKE_CASE;
+    ctx.beginPath();
+    ctx.moveTo(pos, 0);
+    ctx.lineTo(pos, taille);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, pos);
+    ctx.lineTo(taille, pos);
+    ctx.stroke();
+  }
+
+  dessinerPommeSnake(
+    snakeNourriture.x,
+    snakeNourriture.y,
+    temps
+  );
+
+  if (snakeCorps.length === 0) return;
+
+  const positions = snakeCorps.map((_, i) =>
+    positionSnakeLisse(i, progression)
+  );
+
+  // Corps lumineux et arrondi
+  if (positions.length > 1) {
+    const gradient = ctx.createLinearGradient(0, 0, taille, taille);
+    gradient.addColorStop(0, "#a3ffca");
+    gradient.addColorStop(0.5, "#28d98a");
+    gradient.addColorStop(1, "#087b70");
+
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 27;
+    ctx.strokeStyle = gradient;
+    ctx.shadowColor = "#36ffad";
+    ctx.shadowBlur = 16;
+
+    ctx.beginPath();
+
+    positions.forEach((p, i) => {
+      const px = (p.x + 0.5) * SNAKE_CASE;
+      const py = (p.y + 0.5) * SNAKE_CASE;
+
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    });
+
+    ctx.stroke();
+    ctx.restore();
+
+    // Reflet sur le corps
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 7;
+    ctx.strokeStyle = "#e0fff477";
+
+    ctx.beginPath();
+
+    positions.forEach((p, i) => {
+      const px = (p.x + 0.5) * SNAKE_CASE;
+      const py = (p.y + 0.5) * SNAKE_CASE;
+
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    });
+
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Tête
+  const tete = positions[0];
+  const hx = (tete.x + 0.5) * SNAKE_CASE;
+  const hy = (tete.y + 0.5) * SNAKE_CASE;
+
+  const teteGradient = ctx.createRadialGradient(
+    hx - 7, hy - 8, 2, hx, hy, 22
+  );
+  teteGradient.addColorStop(0, "#e2ffe9");
+  teteGradient.addColorStop(0.35, "#65ffc0");
+  teteGradient.addColorStop(1, "#0da978");
+
+  ctx.save();
+  ctx.fillStyle = teteGradient;
+  ctx.shadowColor = "#48ffbd";
+  ctx.shadowBlur = 18;
+  ctx.beginPath();
+  ctx.arc(hx, hy, 17, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Yeux orientés selon la direction
+  let yeux = [];
+
+  if (snakeDirection === "right") yeux = [[7, -7], [7, 7]];
+  if (snakeDirection === "left") yeux = [[-7, -7], [-7, 7]];
+  if (snakeDirection === "up") yeux = [[-7, -7], [7, -7]];
+  if (snakeDirection === "down") yeux = [[-7, 7], [7, 7]];
+
+  yeux.forEach(([ox, oy]) => {
+    ctx.fillStyle = "#073b37";
+    ctx.beginPath();
+    ctx.arc(hx + ox, hy + oy, 3.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(hx + ox - 1, hy + oy - 1, 1.3, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  if (snakeGameOver) {
+    ctx.fillStyle = "#050b1dcc";
+    ctx.fillRect(0, 0, taille, taille);
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 48px Arial";
+    ctx.fillText("PARTIE TERMINÉE", taille / 2, taille / 2 - 12);
+
+    ctx.fillStyle = "#63f5ff";
+    ctx.font = "26px Arial";
+    ctx.fillText(
+      "Score : " + snakeScore,
+      taille / 2,
+      taille / 2 + 35
+    );
+  }
+}
+
+function terminerSnake() {
+  snakeEnCours = false;
+  snakeGameOver = true;
+
+  if (snakeAnimationFrame) {
+    cancelAnimationFrame(snakeAnimationFrame);
+  }
+
+  dessinerSnake(1);
+
+  const status = document.getElementById("snake-status");
+  if (status) status.textContent = "Partie terminée ! Relance une partie pour rejouer.";
+}
+
 function arreterSnake(redessiner = false) {
   snakeEnCours = false;
 
-  if (snakeInterval) {
-    clearInterval(snakeInterval);
-    snakeInterval = null;
+  if (snakeAnimationFrame) {
+    cancelAnimationFrame(snakeAnimationFrame);
+    snakeAnimationFrame = null;
   }
 
-  if (redessiner) {
-    dessinerSnake();
+  if (redessiner && snakeCanvas) {
+    dessinerSnake(1);
   }
 }
 
-// Contrôles clavier : flèches ou ZQSD
-document.addEventListener("keydown", function(event) {
-  const panneauSnake = document.getElementById("omni-game-snake");
+// Commandes à la souris : orienter le serpent vers le curseur
+snakeCanvas.addEventListener("pointermove", event => {
+  if (!snakeEnCours || snakeCorps.length === 0) return;
 
-  if (!panneauSnake || panneauSnake.hidden || !snakeEnCours) {
-    return;
+  const rect = snakeCanvas.getBoundingClientRect();
+  const x = (event.clientX - rect.left) * (snakeCanvas.width / rect.width);
+  const y = (event.clientY - rect.top) * (snakeCanvas.height / rect.height);
+
+  const tete = snakeCorps[0];
+  const dx = x - (tete.x + 0.5) * SNAKE_CASE;
+  const dy = y - (tete.y + 0.5) * SNAKE_CASE;
+
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+
+  if (Math.abs(dx) > Math.abs(dy)) {
+    changerDirectionSnake(dx > 0 ? "right" : "left");
+  } else {
+    changerDirectionSnake(dy > 0 ? "down" : "up");
   }
+});
 
-  if (
-    event.target &&
-    ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName)
-  ) {
-    return;
-  }
+// Commandes au clavier : flèches et ZQSD
+document.addEventListener("keydown", event => {
+  const panneau = document.getElementById("omni-game-snake");
 
-  const touches = {
+  if (!panneau || panneau.hidden || !snakeEnCours) return;
+
+  const directions = {
     ArrowUp: "up",
+    ArrowDown: "down",
+    ArrowLeft: "left",
+    ArrowRight: "right",
     z: "up",
     Z: "up",
-    ArrowDown: "down",
     s: "down",
     S: "down",
-    ArrowLeft: "left",
     q: "left",
     Q: "left",
-    ArrowRight: "right",
     d: "right",
     D: "right"
   };
 
-  const direction = touches[event.key];
-
-  if (direction) {
+  if (directions[event.key]) {
     event.preventDefault();
-    changerDirectionSnake(direction);
+    changerDirectionSnake(directions[event.key]);
   }
 });
 
-// Charger le record dès le démarrage
 chargerRecordSnake();
+
 
 // Arrêter les jeux lorsqu'on quitte l'onglet Arcade
 document.addEventListener("click", function(event) {
