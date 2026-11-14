@@ -3671,3 +3671,170 @@ textarea, input[type="text"] {
     border-radius: 11px;
   }
 }
+
+/* ==========================================
+   MEMORY MATRIX — ANIMATIONS CYBER NEXOR
+========================================== */
+
+/* CARTE PRINCIPALE */
+.omni-memory-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  min-height: 90px;
+  padding: 0;
+
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  transform: rotateY(0deg);
+
+  cursor: pointer;
+  transition:
+    transform 650ms cubic-bezier(.2, .8, .2, 1),
+    filter 250ms ease;
+
+  /* Animation d'arrivée des cartes */
+  animation: omni-memory-shuffle-in 680ms cubic-bezier(.18, .85, .25, 1) both;
+  animation-delay: calc(var(--deal-index, 0) * 28ms);
+}
+
+/* FACES DES CARTES */
+.memory-card-back,
+.memory-card-symbol {
+  position: absolute;
+  inset: 0;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: inherit;
+  box-sizing: border-box;
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  font-size: clamp(2rem, 6vw, 3.2rem);
+}
+
+/* FACE CACHÉE */
+.memory-card-back {
+  color: #67e8f9;
+
+  background: linear-gradient(
+    135deg,
+    #111c3b,
+    #081020 55%,
+    #172554
+  );
+
+  border: 2px solid #38bdf8;
+
+  box-shadow:
+    0 0 12px #38bdf855,
+    inset 0 0 18px #38bdf822;
+
+  text-shadow:
+    0 0 8px #38bdf8,
+    0 0 20px #38bdf8;
+
+  font-size: clamp(2.2rem, 6vw, 3.2rem);
+}
+
+/* PETIT CADRE INTÉRIEUR LUMINEUX */
+.memory-card-back::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+
+  border: 1px solid #67e8f966;
+  border-radius: 10px;
+
+  pointer-events: none;
+}
+
+/* FACE AVEC LE SYMBOLE */
+.memory-card-symbol {
+  transform: rotateY(180deg);
+
+  background: linear-gradient(
+    145deg,
+    #172554,
+    #312e81 60%,
+    #4c1d95
+  );
+
+  border: 2px solid #a78bfa;
+
+  box-shadow:
+    0 0 15px #8b5cf688,
+    inset 0 0 20px #a78bfa22;
+}
+
+/* RETOURNEMENT EN 3D */
+.omni-memory-card.is-flipped {
+  transform: rotateY(180deg);
+}
+
+/* SURVOL DE LA SOURIS */
+.omni-memory-card:hover:not(.is-flipped):not(.is-matched) {
+  translate: 0 -5px;
+  filter: drop-shadow(0 0 12px #38bdf8aa);
+}
+
+/* PETIT EFFET AU CLIC */
+.omni-memory-card:active:not(.is-flipped):not(.is-matched) {
+  scale: 0.96;
+}
+
+/* PAIRE TROUVÉE */
+.omni-memory-card.is-matched {
+  cursor: default;
+  filter: drop-shadow(0 0 12px #22c55e);
+}
+
+.omni-memory-card.is-matched .memory-card-symbol {
+  border-color: #22ff99;
+
+  box-shadow:
+    0 0 12px #22ff99,
+    0 0 28px #22ff9977,
+    inset 0 0 20px #22ff9922;
+}
+
+/* ANIMATION DE MÉLANGE ET D'APPARITION */
+@keyframes omni-memory-shuffle-in {
+  0% {
+    opacity: 0;
+    translate: var(--shuffle-x, 0) var(--shuffle-y, 0);
+    rotate: var(--shuffle-rotation, 0deg);
+    scale: 0.55;
+    filter: blur(8px);
+  }
+
+  70% {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+    scale: 1.08;
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+    scale: 1;
+    filter: blur(0);
+  }
+}
+
+/* ACCESSIBILITÉ : LIMITER LES ANIMATIONS SI NÉCESSAIRE */
+@media (prefers-reduced-motion: reduce) {
+  .omni-memory-card {
+    animation: none;
+    transition: none;
+  }
+}
