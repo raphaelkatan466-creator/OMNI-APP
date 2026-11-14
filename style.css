@@ -3698,7 +3698,7 @@ textarea, input[type="text"] {
     filter 250ms ease;
 
   /* Animation d'arrivée des cartes */
-  animation: omni-memory-shuffle-in 680ms cubic-bezier(.18, .85, .25, 1) both;
+  animation: omni-memory-shuffle-in 680ms cubic-bezier(.18, .85, .25, 1) backwards;
   animation-delay: calc(var(--deal-index, 0) * 28ms);
 }
 
@@ -3843,6 +3843,11 @@ textarea, input[type="text"] {
    MEMORY MATRIX — CORRECTION PRIORITÉ 3D
 ========================================== */
 
+#page-arcade .omni-memory-grid {
+  perspective: 1000px;
+  perspective-origin: center;
+}
+
 /* Structure des cartes */
 #page-arcade .omni-memory-grid button.omni-memory-card {
   display: block;
@@ -3917,4 +3922,22 @@ textarea, input[type="text"] {
   #page-arcade .omni-memory-grid button.omni-memory-card {
     min-height: 0;
   }
+}
+/* MEMORY MATRIX — ÉNERGIE DES PAIRES TROUVÉES */
+
+#page-arcade .omni-memory-grid
+.omni-memory-card.is-matched .memory-card-symbol {
+  background: linear-gradient(
+    145deg,
+    #064e3b,
+    #047857 60%,
+    #065f46
+  );
+
+  border-color: #22ff99;
+
+  box-shadow:
+    0 0 12px #22ff99,
+    0 0 28px #22ff9977,
+    inset 0 0 20px #22ff9922;
 }
