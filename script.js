@@ -62,7 +62,13 @@ function reinitialiserTout() {
 
   try {
     // Supprime uniquement la sauvegarde d'OMNI-APP
-    localStorage.removeItem("omni_app_full_save");
+    [
+  "omni_app_full_save",
+  "omni_simon_best_score",
+  "omni_snake_best",
+  "omni_memory_best_moves",
+  "omni_memory_last_back_motif"
+].forEach(cle => localStorage.removeItem(cle));
 
     // Recharge l'application avec les valeurs de départ
     window.location.reload();
