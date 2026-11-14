@@ -1191,7 +1191,7 @@ setInterval(() => {
 ========================================== */
 
 // Jeux actuellement programmés
-const omniJeuxDisponibles = ["simon", "snake"];
+const omniJeuxDisponibles = ["simon", "snake", "memory"];
 
 // Ouvrir un mini-jeu depuis le menu
 function ouvrirMiniJeu(nom) {
@@ -1199,9 +1199,13 @@ function ouvrirMiniJeu(nom) {
     alert("🚧 Ce mini-jeu arrive dans une prochaine mise à jour !");
     return;
   }
-
+if (nom === "memory") {
+  demarrerMemory();
+}
   arreterMiniJeuActif();
-
+if (typeof arreterMemory === "function") {
+  arreterMemory();
+}
   const menu = document.getElementById("omni-arcade-menu");
   const stage = document.getElementById("omni-game-stage");
 
@@ -1710,6 +1714,241 @@ document.addEventListener("keydown", event => {
 });
 
 chargerRecordSnake();
+
+/* ==========================================
+   OMNI-APP — MEMORY MATRIX
+========================================== */
+
+let memoryCartes = [];
+let memorySelection = [];
+let memoryVerrouille = false;
+
+let memoryCoups = 0;
+let memoryPairesTrouvees = 0;
+let memoryTimeout = null;
+
+let memoryMeilleurScore =
+  Number(localStorage.getItem("omni_memory_best_moves")) || 0;
+
+
+// AFFICHER LES STATISTIQUES
+function actualiserAffichageMemory() {
+  const coups = document.getElementById("memory-moves");
+  const paires = document.getElementById("memory-pairs");
+  const record = document.getElementById("memory-best");
+
+  if (coups) coups.textContent = memoryCoups;
+  if (paires) paires.textContent = memoryPairesTrouvees;
+
+  if (record) {
+    record.textContent = memoryMeilleurScore
+      ? `${memoryMeilleurScore} coups`
+      : "--";
+  }
+}
+
+
+// MÉLANGER LES CARTES
+function melangerCartesMemory(cartes) {
+  for (let i = cartes.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cartes[i], cartes[j]] = [cartes[j], cartes[i]];
+  }
+
+  return cartes;
+}
+
+
+// DÉMARRER UNE NOUVELLE PARTIE
+function demarrerMemory() {
+  const grille = document.getElementById("memory-grid");
+  const statut = document.getElementById("memory-status");
+
+  if (!grille) return;
+
+  if (memoryTimeout !== null) {
+    clearTimeout(memoryTimeout);
+    memoryTimeout = null;
+  }
+
+  const symboles = [
+    "🚀", "👾", "💎", "⚡",
+    "🪐", "🎮", "🧬", "🔮"
+  ];
+
+  memoryCartes = melangerCartesMemory(
+    [...symboles, ...symboles].map(symbole => ({
+      symbole: symbole,
+      trouvee: false
+    }))
+  );
+
+  memorySelection = [];
+  memoryVerrouille = false;
+
+  memoryCoups = 0;
+  memoryPairesTrouvees = 0;
+
+  grille.innerHTML = memoryCartes.map((carte, index) => `
+    <button
+      type="button"
+      class="omni-memory-card"
+      data-memory-index="${index}"
+      aria-label="Retourner la carte ${index + 1}"
+      onclick="retournerCarteMemory(${index})"
+    >
+      <span class="memory-card-back">?</span>
+      <span class="memory-card-symbol">${carte.symbole}</span>
+    </button>
+  `).join("");
+
+  if (statut) {
+    statut.textContent = "Trouve les 8 paires de symboles !";
+  }
+
+  actualiserAffichageMemory();
+}
+
+
+// RETOURNER UNE CARTE
+function retournerCarteMemory(index) {
+  if (memoryVerrouille) return;
+
+  if (
+    !Number.isInteger(index) ||
+    index < 0 ||
+    index >= memoryCartes.length
+  ) return;
+
+  const carte = memoryCartes[index];
+
+  if (!carte || carte.trouvee) return;
+  if (memorySelection.includes(index)) return;
+
+  const grille = document.getElementById("memory-grid");
+  const bouton = grille?.querySelector(
+    `[data-memory-index="${index}"]`
+  );
+
+  if (!bouton) return;
+
+  bouton.classList.add("is-flipped");
+  memorySelection.push(index);
+
+  // Deux cartes sont retournées
+  if (memorySelection.length === 2) {
+    memoryCoups++;
+    actualiserAffichageMemory();
+
+    const [premiereIndex, deuxiemeIndex] = memorySelection;
+
+    const premiere = memoryCartes[premiereIndex];
+    const deuxieme = memoryCartes[deuxiemeIndex];
+
+    // LES DEUX CARTES CORRESPONDENT
+    if (premiere.symbole === deuxieme.symbole) {
+      premiere.trouvee = true;
+      deuxieme.trouvee = true;
+
+      const premiereBouton = grille.querySelector(
+        `[data-memory-index="${premiereIndex}"]`
+      );
+
+      const deuxiemeBouton = grille.querySelector(
+        `[data-memory-index="${deuxiemeIndex}"]`
+      );
+
+      premiereBouton?.classList.add("is-matched");
+      deuxiemeBouton?.classList.add("is-matched");
+
+      memoryPairesTrouvees++;
+      memorySelection = [];
+
+      const statut = document.getElementById("memory-status");
+
+      if (statut) {
+        statut.textContent = "✅ Paire trouvée ! Bien joué !";
+      }
+
+      actualiserAffichageMemory();
+
+      // TOUTES LES PAIRES SONT TROUVÉES
+      if (memoryPairesTrouvees === 8) {
+        terminerMemory();
+      }
+
+    } else {
+      // LES CARTES NE CORRESPONDENT PAS
+      memoryVerrouille = true;
+
+      const statut = document.getElementById("memory-status");
+
+      if (statut) {
+        statut.textContent = "❌ Pas de correspondance. Réessaie !";
+      }
+
+      memoryTimeout = setTimeout(() => {
+        memorySelection.forEach(carteIndex => {
+          const carteBouton = grille.querySelector(
+            `[data-memory-index="${carteIndex}"]`
+          );
+
+          carteBouton?.classList.remove("is-flipped");
+        });
+
+        memorySelection = [];
+        memoryVerrouille = false;
+        memoryTimeout = null;
+
+        if (statut) {
+          statut.textContent = "À toi de jouer ! Trouve les paires.";
+        }
+      }, 800);
+    }
+  }
+}
+
+
+// FIN DE PARTIE
+function terminerMemory() {
+  const statut = document.getElementById("memory-status");
+
+  let nouveauRecord = false;
+
+  if (
+    memoryMeilleurScore === 0 ||
+    memoryCoups < memoryMeilleurScore
+  ) {
+    memoryMeilleurScore = memoryCoups;
+
+    localStorage.setItem(
+      "omni_memory_best_moves",
+      String(memoryMeilleurScore)
+    );
+
+    nouveauRecord = true;
+  }
+
+  if (statut) {
+    statut.textContent = nouveauRecord
+      ? `🏆 NOUVEAU RECORD ! ${memoryCoups} coups pour trouver les 8 paires !`
+      : `🎉 BRAVO ! Tu as trouvé les 8 paires en ${memoryCoups} coups !`;
+  }
+
+  actualiserAffichageMemory();
+}
+
+
+// ARRÊTER LE MEMORY
+function arreterMemory() {
+  if (memoryTimeout !== null) {
+    clearTimeout(memoryTimeout);
+    memoryTimeout = null;
+  }
+
+  memorySelection = [];
+  memoryVerrouille = true;
+}
 
 
 // Arrêter les jeux lorsqu'on quitte l'onglet Arcade
