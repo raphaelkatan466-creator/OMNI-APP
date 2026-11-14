@@ -3941,3 +3941,117 @@ textarea, input[type="text"] {
     0 0 28px #22ff9977,
     inset 0 0 20px #22ff9922;
 }
+/* MEMORY MATRIX — CARTES À COLLECTIONNER OMNI */
+
+#page-arcade .memory-card-back {
+  position: relative;
+  gap: 5px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 40%, #164e63 0%, transparent 55%),
+    linear-gradient(145deg, #071a32, #10102b 65%, #251044);
+  border: 1px solid #38bdf8;
+  box-shadow:
+    inset 0 0 20px #38bdf822,
+    0 0 10px #38bdf855;
+}
+
+#page-arcade .memory-card-back::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid #38bdf866;
+  border-radius: 9px;
+  pointer-events: none;
+}
+
+#page-arcade .memory-back-logo {
+  font-size: clamp(25px, 4vw, 38px);
+  font-weight: 900;
+  color: #7dd3fc;
+  text-shadow: 0 0 15px #38bdf8;
+}
+
+#page-arcade .memory-back-label {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: white;
+}
+
+#page-arcade .memory-back-code {
+  font-size: 7px;
+  letter-spacing: 2px;
+  color: #7dd3fc;
+}
+
+/* Face des cartes collectionnables */
+
+#page-arcade .memory-trading-card {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 6px;
+  overflow: hidden;
+  border: 1px solid var(--card-accent);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--card-accent) 25%, transparent), transparent 65%),
+    linear-gradient(145deg, #111827, #080b1b);
+  box-shadow:
+    inset 0 0 18px color-mix(in srgb, var(--card-accent) 20%, transparent),
+    0 0 10px color-mix(in srgb, var(--card-accent) 35%, transparent);
+}
+
+#page-arcade .memory-card-topline,
+#page-arcade .memory-card-bottomline {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  color: var(--card-accent);
+  font-size: clamp(7px, 1.2vw, 10px);
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+#page-arcade .memory-card-art {
+  font-size: clamp(30px, 6vw, 52px);
+  font-weight: 900;
+  color: var(--card-accent);
+  text-shadow:
+    0 0 10px var(--card-accent),
+    0 0 25px var(--card-accent);
+}
+
+#page-arcade .memory-card-name {
+  color: white;
+  font-size: clamp(8px, 1.5vw, 12px);
+  font-weight: 900;
+  letter-spacing: 1.5px;
+}
+
+#page-arcade .memory-card-bottomline {
+  justify-content: center;
+  font-size: 6px;
+  opacity: .8;
+}
+
+/* Énergie des paires découvertes */
+
+#page-arcade .omni-memory-card.is-matched .memory-trading-card {
+  border-color: #22ff99;
+  box-shadow:
+    inset 0 0 20px #22ff9922,
+    0 0 12px #22ff99,
+    0 0 25px #22ff9977;
+}
+
+#page-arcade .omni-memory-card.is-matched .memory-card-art {
+  color: #86efac;
+  text-shadow: 0 0 12px #22ff99;
+}
