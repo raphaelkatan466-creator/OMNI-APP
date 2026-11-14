@@ -3586,3 +3586,88 @@ textarea, input[type="text"] {
     font-size: 34px;
   }
 }
+
+/* ==========================================
+   OMNI-APP — MEMORY MATRIX CYBER DESIGN
+========================================== */
+
+#page-arcade .omni-memory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  width: min(100%, 520px);
+  margin: 22px auto;
+}
+
+#page-arcade .omni-memory-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  min-width: 0;
+  border: 1px solid #38bdf8;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #172d50, #21123e);
+  color: white;
+  font-size: clamp(23px, 5vw, 36px);
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 0 14px #38bdf833;
+  transition: transform .2s, background .2s, box-shadow .2s;
+}
+
+#page-arcade .omni-memory-card:hover:not(.is-matched) {
+  transform: translateY(-4px) scale(1.04);
+  background: linear-gradient(145deg, #075985, #4c1d95);
+  box-shadow: 0 0 22px #38bdf877;
+}
+
+#page-arcade .memory-card-back {
+  display: block;
+  color: #67e8f9;
+  text-shadow: 0 0 12px #38bdf8;
+}
+
+#page-arcade .memory-card-symbol {
+  display: none;
+}
+
+#page-arcade .omni-memory-card.is-flipped .memory-card-back {
+  display: none;
+}
+
+#page-arcade .omni-memory-card.is-flipped .memory-card-symbol {
+  display: block;
+}
+
+#page-arcade .omni-memory-card.is-flipped {
+  background: linear-gradient(145deg, #243d66, #38205c);
+}
+
+#page-arcade .omni-memory-card.is-matched {
+  border-color: #22c55e;
+  background: linear-gradient(145deg, #064e3b, #123c55);
+  box-shadow: 0 0 20px #22c55e66;
+  cursor: default;
+  opacity: .85;
+}
+
+#page-arcade .omni-memory-status {
+  min-height: 26px;
+  margin: 12px auto;
+  color: #67e8f9;
+  font-weight: bold;
+  text-align: center;
+  text-shadow: 0 0 10px #38bdf855;
+}
+
+@media (max-width: 480px) {
+  #page-arcade .omni-memory-grid {
+    gap: 8px;
+  }
+
+  #page-arcade .omni-memory-card {
+    border-radius: 11px;
+  }
+}
