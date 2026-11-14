@@ -3552,3 +3552,37 @@ textarea, input[type="text"] {
   }
 }
 
+
+/* SNAKE CYBER — PRIORITÉ AUX NOUVELLES FLÈCHES */
+
+#page-arcade .omni-snake-controls button.omni-arrow-btn {
+  width: 57px;
+  min-width: 57px;
+  height: 53px;
+  min-height: 53px;
+  padding: 0;
+  border: 1px solid #38e8ff88;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #193b60, #10172e);
+  color: #b8f7ff;
+  font-size: 31px;
+  font-weight: 900;
+  box-shadow: 0 0 15px #38e8ff33;
+}
+
+#page-arcade .omni-snake-controls button.omni-arrow-btn:hover {
+  background: linear-gradient(145deg, #087cbd, #35216c);
+  border-color: #8ff5ff;
+  color: white;
+  box-shadow: 0 0 22px #38e8ff77;
+}
+
+@media (max-width: 480px) {
+  #page-arcade .omni-snake-controls button.omni-arrow-btn {
+    width: 62px;
+    min-width: 62px;
+    height: 57px;
+    min-height: 57px;
+    font-size: 34px;
+  }
+}
