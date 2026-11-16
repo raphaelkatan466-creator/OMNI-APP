@@ -4,7 +4,8 @@
   "description": "L'application cyberpunk ultime avec mini-jeux, pizza clicker et modules sociaux.",
   "icons": [
     {
-      "src": "omni-app-icon.png",
+     "src": "omni-app-icon-transparent.png",
+    
       "type": "image/png",
       "sizes": "512x512"
     }
