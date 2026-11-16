@@ -14,7 +14,20 @@ function chargerDonnees() {
       const donnees = JSON.parse(save);
       const { offresBoutique, ...donneesEtat } = donnees;
 
-      Object.assign(state, donneesEtat);
+      if (donneesEtat && typeof donneesEtat === "object") Object.assign(state, donneesEtat);
+
+      if (!Array.isArray(state.unlockedSkins)) state.unlockedSkins = ["🍕"];
+      if (!Array.isArray(state.unlockedEffects)) state.unlockedEffects = ["cyan"];
+      if (!Array.isArray(state.secrets)) state.secrets = [];
+      if (!Array.isArray(state.capsules)) state.capsules = [];
+      if (!state.unlockedSkins.includes("🍕")) state.unlockedSkins.unshift("🍕");
+      if (!state.unlockedEffects.includes("cyan")) state.unlockedEffects.unshift("cyan");
+      if (!state.unlockedSkins.includes(state.activeSkin)) state.activeSkin = "🍕";
+      if (!state.unlockedEffects.includes(state.activeEffect)) state.activeEffect = "cyan";
+      ["pizzas", "clickPower", "pizzasPerSec", "omniPoints", "playTimeSeconds"].forEach(key => {
+        const value = Number(state[key]);
+        state[key] = Number.isFinite(value) && value >= 0 ? value : (key === "clickPower" ? 1 : 0);
+      });
 
       // Récupère les prix sauvegardés de la boutique
       if (Array.isArray(offresBoutique)) {
@@ -44,10 +57,11 @@ function sauvegarderDonnees() {
     }))
   };
 
-  localStorage.setItem(
-    "omni_app_full_save",
-    JSON.stringify(donnees)
-  );
+  try {
+    localStorage.setItem("omni_app_full_save", JSON.stringify(donnees));
+  } catch (erreur) {
+    console.error("Impossible de sauvegarder OMNI-APP :", erreur);
+  }
 }
 
 
@@ -67,7 +81,9 @@ function reinitialiserTout() {
   "omni_simon_best_score",
   "omni_snake_best",
   "omni_memory_best_moves",
-  "omni_memory_last_back_motif"
+  "omni_memory_last_back_motif",
+  "omni_reflex_best",
+  "omni_space_best"
 ].forEach(cle => localStorage.removeItem(cle));
 
     // Recharge l'application avec les valeurs de départ
@@ -135,8 +151,15 @@ function toggleMatrix() {
     initMatrixEngine();
     if (!matrixInterval) matrixInterval = setInterval(drawMatrixFrame, 33);
   } else {
-    if (matrixCtx) matrixCtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+    if (matrixInterval) {
+      clearInterval(matrixInterval);
+      matrixInterval = null;
+    }
+    if (matrixCtx && matrixCanvas) {
+      matrixCtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+    }
   }
+  sauvegarderDonnees();
 }
 function compterClicsTitre() {
   state.titleClicks++;
@@ -151,11 +174,15 @@ let raveEmojiInterval;
 function toggleRaveMode() {
   state.raveMode = !state.raveMode;
   document.body.classList.toggle("rave-active", state.raveMode);
-  document.getElementById("rave-btn").innerText = state.raveMode ? "🟢 Mode Rave : ON" : "🔴 Mode Rave : OFF";
+  const button = document.getElementById("rave-btn");
+  if (button) button.textContent = state.raveMode ? "🟢 Mode Rave : ON" : "🔴 Mode Rave : OFF";
+  sauvegarderDonnees();
 }
 function toggleCRTMode() {
   state.crtMode = !state.crtMode;
-  document.getElementById("crt-overlay").style.display = state.crtMode ? "block" : "none";
+  const overlay = document.getElementById("crt-overlay");
+  if (overlay) overlay.style.display = state.crtMode ? "block" : "none";
+  sauvegarderDonnees();
 }
 
 function changerAvatar() {
@@ -192,6 +219,9 @@ function afficherEffetClicPizza(e) {
 
   const effect = document.createElement("div");
   effect.className = "omni-click-effect";
+  effect.dataset.effect = EFFECTS_LIST.some(item => item.id === state.activeEffect)
+    ? state.activeEffect
+    : "cyan";
   effect.style.left = `${x}px`;
   effect.style.top = `${y}px`;
   effect.setAttribute("aria-hidden", "true");
@@ -794,7 +824,9 @@ function envoyerMessageIA() {
   setTimeout(() => {
     const aiMsg = document.createElement("div");
     aiMsg.style.cssText = "background:#1e293b; padding:8px 12px; border-radius:8px; align-self:flex-start; max-width:80%; font-size:13px;";
-    aiMsg.innerHTML = `🤖 <strong>Cyber-Bot :</strong> J'ai bien analysé "${text}". Tu gères !`;
+    const aiLabel = document.createElement("strong");
+    aiLabel.textContent = "🤖 Cyber-Bot : ";
+    aiMsg.append(aiLabel, document.createTextNode(`J'ai bien analysé "${text}". Tu gères !`));
     chatBox.appendChild(aiMsg);
     chatBox.scrollTop = chatBox.scrollHeight;
   }, 500);
@@ -899,7 +931,10 @@ function envoyerChatCommunautaire() {
   const chatBox = document.getElementById("community-chat-box");
   const msg = document.createElement("div");
   msg.style.cssText = "background:#1e293b; padding:6px 10px; border-radius:6px; font-size:13px;";
-  msg.innerHTML = `<strong style="color:#22c55e;">Moi :</strong> ${text}`;
+  const author = document.createElement("strong");
+  author.style.color = "#22c55e";
+  author.textContent = "Moi : ";
+  msg.append(author, document.createTextNode(text));
   chatBox.appendChild(msg);
   input.value = "";
   chatBox.scrollTop = chatBox.scrollHeight;
@@ -945,45 +980,107 @@ function prochainDilemmeIA() {
 }
 
 // CAPSULES & SECRETS
+let capsuleRefreshTimer = null;
+
+function programmerActualisationCapsules() {
+  if (capsuleRefreshTimer !== null) clearTimeout(capsuleRefreshTimer);
+  capsuleRefreshTimer = null;
+
+  const prochainsDeblocages = state.capsules
+    .map(capsule => Number(capsule?.unlockTime))
+    .filter(temps => Number.isFinite(temps) && temps > Date.now());
+
+  if (!prochainsDeblocages.length) return;
+
+  const prochain = Math.min(...prochainsDeblocages);
+  capsuleRefreshTimer = setTimeout(() => {
+    capsuleRefreshTimer = null;
+    afficherCapsules();
+  }, Math.min(Math.max(50, prochain - Date.now() + 25), 2147483647));
+}
+
 function creerCapsule() {
-  const txt = document.getElementById("capsule-text").value.trim();
-  if (!txt) return;
-  const delay = parseInt(document.getElementById("capsule-delay").value);
-  const unlockTime = Date.now() + delay * 60000;
-  state.capsules.push({ text: txt, unlockTime });
-  document.getElementById("capsule-text").value = "";
+  const input = document.getElementById("capsule-text");
+  const select = document.getElementById("capsule-delay");
+  if (!input || !select) return;
+
+  const txt = input.value.trim();
+  const delay = Number.parseInt(select.value, 10);
+  if (!txt || !Number.isFinite(delay) || delay <= 0) return;
+
+  state.capsules.push({ text: txt, unlockTime: Date.now() + delay * 60000 });
+  input.value = "";
   afficherCapsules();
   sauvegarderDonnees();
   alert("📦 Capsule verrouillée avec succès !");
 }
+
 function afficherCapsules() {
   const container = document.getElementById("capsules-list");
-  if(!container) return;
-  container.innerHTML = state.capsules.map((c) => {
-    const locked = Date.now() < c.unlockTime;
-    return `<div class="card" style="border-color:${locked ? '#ef4444' : 'var(--neon-green)'};">
-      <h4 style="color:${locked ? '#ef4444' : 'var(--neon-green)'};">${locked ? '🔒 Capsule Verrouillée' : '🔓 Capsule Déverrouillée !'}</h4>
-      <p>${locked ? '<i>Message scellé... Revenez plus tard !</i>' : c.text}</p>
-    </div>`;
-  }).join("");
+  if (!container) return;
+
+  container.replaceChildren();
+  const maintenant = Date.now();
+
+  state.capsules.forEach(capsule => {
+    if (!capsule || typeof capsule !== "object") return;
+
+    const verrouillee = Number(capsule.unlockTime) > maintenant;
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.borderColor = verrouillee ? "#ef4444" : "var(--neon-green)";
+
+    const titre = document.createElement("h4");
+    titre.style.color = verrouillee ? "#ef4444" : "var(--neon-green)";
+    titre.textContent = verrouillee ? "🔒 Capsule Verrouillée" : "🔓 Capsule Déverrouillée !";
+
+    const message = document.createElement("p");
+    if (verrouillee) {
+      const italic = document.createElement("i");
+      italic.textContent = "Message scellé... Revenez plus tard !";
+      message.appendChild(italic);
+    } else {
+      message.textContent = String(capsule.text ?? "");
+    }
+
+    card.append(titre, message);
+    container.appendChild(card);
+  });
+
+  programmerActualisationCapsules();
 }
 
 function publierSecret() {
-  const txt = document.getElementById("secret-input").value.trim();
+  const input = document.getElementById("secret-input");
+  if (!input) return;
+
+  const txt = input.value.trim();
   if (!txt) return;
+
   state.secrets.unshift(txt);
-  document.getElementById("secret-input").value = "";
+  input.value = "";
   afficherSecrets();
   sauvegarderDonnees();
 }
+
 function afficherSecrets() {
   const container = document.getElementById("secrets-list");
-  if(!container) return;
-  container.innerHTML = state.secrets.map(s => `
-    <div class="card" style="border-color:var(--neon-blue);">
-      <p style="font-size:16px; margin:0;">🤫 "${s}"</p>
-    </div>
-  `).join("");
+  if (!container) return;
+
+  container.replaceChildren();
+  state.secrets.forEach(secret => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.borderColor = "var(--neon-blue)";
+
+    const message = document.createElement("p");
+    message.style.fontSize = "16px";
+    message.style.margin = "0";
+    message.textContent = `🤫 "${String(secret ?? "")}"`;
+
+    card.appendChild(message);
+    container.appendChild(card);
+  });
 }
 
 function detruireSouciGeant() {
@@ -1012,16 +1109,33 @@ const EFFECTS_LIST = [
 ];
 function genererBoutiqueCosmetique() {
   const grid = document.getElementById("pizza-skins-grid");
-  if(grid) {
+  if (grid) {
     grid.innerHTML = SKINS_LIST.map(s => {
       const owned = state.unlockedSkins.includes(s.id);
-      return `<div class="cosmetic-card ${owned ? 'owned' : ''}">
+      return `<div class="cosmetic-card ${owned ? "owned" : ""}">
         <span style="font-size:45px;">${s.id}</span>
         <h4 style="margin:10px 0 5px 0;">${s.name}</h4>
         <p style="color:var(--neon-gold); font-size:13px; margin:0 0 10px 0;">${s.cost} ⭐</p>
-        ${owned ? 
-          `<button class="music-btn" onclick="equiperSkin('${s.id}')">${state.activeSkin === s.id ? 'Équipé ✅' : 'Équiper'}</button>` :
-          `<button class="btn" style="padding:6px; font-size:13px;" onclick="acheterSkin('${s.id}',${s.cost})">Acheter</button>`
+        ${owned
+          ? `<button class="music-btn" type="button" onclick="equiperSkin('${s.id}')">${state.activeSkin === s.id ? "Équipé ✅" : "Équiper"}</button>`
+          : `<button class="btn" type="button" style="padding:6px; font-size:13px;" onclick="acheterSkin('${s.id}',${s.cost})">Acheter</button>`
+        }
+      </div>`;
+    }).join("");
+  }
+
+  const effectsGrid = document.getElementById("click-effects-grid");
+  if (effectsGrid) {
+    effectsGrid.innerHTML = EFFECTS_LIST.map(effect => {
+      const owned = state.unlockedEffects.includes(effect.id);
+      const equipped = state.activeEffect === effect.id;
+      return `<div class="cosmetic-card ${owned ? "owned" : ""}">
+        <span class="cosmetic-effect-preview effect-preview-${effect.id}" aria-hidden="true">✦</span>
+        <h4 style="margin:10px 0 5px 0;">${effect.name}</h4>
+        <p style="color:var(--neon-gold); font-size:13px; margin:0 0 10px 0;">${effect.cost} ⭐</p>
+        ${owned
+          ? `<button class="music-btn" type="button" onclick="equiperEffet('${effect.id}')">${equipped ? "Équipé ✅" : "Équiper"}</button>`
+          : `<button class="btn" type="button" style="padding:6px; font-size:13px;" onclick="acheterEffet('${effect.id}')">Acheter</button>`
         }
       </div>`;
     }).join("");
@@ -1038,9 +1152,34 @@ function acheterSkin(id, cost) {
   } else alert("Points OMNI ⭐ insuffisants !");
 }
 function equiperSkin(id) {
+  if (!SKINS_LIST.some(skin => skin.id === id) || !state.unlockedSkins.includes(id)) return;
   state.activeSkin = id;
   const pizzaEl = document.getElementById("pizza-gigante");
-  if(pizzaEl) pizzaEl.innerText = id;
+  if (pizzaEl) pizzaEl.textContent = id;
+  genererBoutiqueCosmetique();
+  sauvegarderDonnees();
+}
+
+function acheterEffet(id) {
+  const effet = EFFECTS_LIST.find(item => item.id === id);
+  if (!effet || state.unlockedEffects.includes(id)) return;
+
+  if (state.omniPoints < effet.cost) {
+    alert("Points OMNI ⭐ insuffisants !");
+    return;
+  }
+
+  state.omniPoints -= effet.cost;
+  state.unlockedEffects.push(id);
+  state.activeEffect = id;
+  genererBoutiqueCosmetique();
+  rafraichirAffichagePizza();
+  sauvegarderDonnees();
+}
+
+function equiperEffet(id) {
+  if (!EFFECTS_LIST.some(effet => effet.id === id) || !state.unlockedEffects.includes(id)) return;
+  state.activeEffect = id;
   genererBoutiqueCosmetique();
   sauvegarderDonnees();
 }
@@ -1174,6 +1313,15 @@ window.onload = () => {
     profileAvatar.textContent = state.userAvatar;
   }
   initMatrixEngine();
+
+  document.body.classList.toggle("matrix-mode", Boolean(state.matrixMode));
+  document.body.classList.toggle("rave-active", Boolean(state.raveMode));
+  const raveButton = document.getElementById("rave-btn");
+  if (raveButton) raveButton.textContent = state.raveMode ? "🟢 Mode Rave : ON" : "🔴 Mode Rave : OFF";
+  const crtOverlay = document.getElementById("crt-overlay");
+  if (crtOverlay) crtOverlay.style.display = state.crtMode ? "block" : "none";
+  if (state.matrixMode && !matrixInterval) matrixInterval = setInterval(drawMatrixFrame, 33);
+
   initPapierBulle();
   initPixelArtPro();
   initGraffiti();
@@ -1184,11 +1332,16 @@ window.onload = () => {
   rafraichirAffichagePizza();
   
   const pizzaEl = document.getElementById("pizza-gigante");
-  if(pizzaEl) pizzaEl.innerText = state.activeSkin;
+  if (pizzaEl) pizzaEl.textContent = state.activeSkin;
+  actualiserAffichageScoresSimon();
+  afficherScoreSnake();
+  actualiserAffichageMemory();
 };
 
 window.addEventListener("resize", () => {
-  if (matrixCanvas) {
+  if (!matrixCanvas) return;
+  if (state.matrixMode) initMatrixEngine();
+  else {
     matrixCanvas.width = window.innerWidth;
     matrixCanvas.height = window.innerHeight;
   }
