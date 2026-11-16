@@ -1361,7 +1361,7 @@ setInterval(() => {
 ========================================== */
 
 // Jeux actuellement programmés
-const omniJeuxDisponibles = ["simon", "snake", "memory"];
+const omniJeuxDisponibles = ["simon", "snake", "memory", "reflex", "pong", "2048", "morpion", "space", "quiz"];
 
 
 
@@ -1408,6 +1408,13 @@ function ouvrirMiniJeu(nom) {
   if (nom === "snake") {
     chargerRecordSnake();
   }
+
+  if (nom === "reflex") initialiserReflexe();
+  if (nom === "pong") initialiserPong();
+  if (nom === "2048") demarrer2048();
+  if (nom === "morpion") recommencerMorpion();
+  if (nom === "space") initialiserSpaceDodger();
+  if (nom === "quiz") initialiserQuiz();
 }
 
 
@@ -1444,6 +1451,10 @@ function arreterMiniJeuActif() {
   // Arrêter Memory
   if (typeof arreterMemory === "function") {
     arreterMemory();
+  }
+
+  if (typeof arreterJeuxSecondaires === "function") {
+    arreterJeuxSecondaires();
   }
 }
 
@@ -2327,3 +2338,1008 @@ document.addEventListener("click", function(event) {
     arreterMiniJeuActif();
   }
 });
+
+
+
+/* =========================================================
+   OMNI-APP ARCADE — JEUX COMPLÉMENTAIRES
+   Développement local : aucune donnée n'est envoyée à un serveur.
+========================================================= */
+
+function omniLireRecord(cle) {
+  try {
+    const valeur = Number.parseInt(localStorage.getItem(cle) || "0", 10);
+    return Number.isFinite(valeur) && valeur >= 0 ? valeur : 0;
+  } catch (erreur) {
+    return 0;
+  }
+}
+
+function omniSauverRecord(cle, valeur) {
+  try {
+    localStorage.setItem(cle, String(valeur));
+  } catch (erreur) {
+    console.warn("Le record ne peut pas être sauvegardé sur cet appareil.", erreur);
+  }
+}
+
+function omniStatutJeu(id, texte, parent) {
+  let element = document.getElementById(id);
+  if (!element) {
+    element = document.createElement("p");
+    element.id = id;
+    element.className = "omni-game-feedback";
+    element.setAttribute("aria-live", "polite");
+    if (parent) parent.appendChild(element);
+  }
+  element.textContent = texte;
+  return element;
+}
+
+/* 4. RÉFLEXE NÉON — MODE CIBLE ET MODE CLAVIER */
+let reflexTimer = null;
+let reflexMode = "cible";
+let reflexPhase = "idle";
+let reflexDebut = 0;
+let reflexTouche = "";
+const reflexRecords = {
+  cible: omniLireRecord("omni_reflex_target_best"),
+  clavier: omniLireRecord("omni_reflex_keyboard_best")
+};
+const reflexTouches = ["A", "S", "D", "F", "J", "K", "L", "Q", "W", "E", "R", "U", "I", "O"];
+
+function afficherRecordsReflexe() {
+  const cible = document.getElementById("reflex-cible-best");
+  const clavier = document.getElementById("reflex-clavier-best");
+  if (cible) cible.textContent = reflexRecords.cible ? reflexRecords.cible + " ms" : "--";
+  if (clavier) clavier.textContent = reflexRecords.clavier ? reflexRecords.clavier + " ms" : "--";
+}
+
+function choisirModeReflexe(mode) {
+  if (mode !== "cible" && mode !== "clavier") return;
+  if (reflexTimer) clearTimeout(reflexTimer);
+  reflexTimer = null;
+  reflexPhase = "idle";
+  reflexMode = mode;
+
+  const cibleMode = document.getElementById("reflex-cible-mode");
+  const clavierMode = document.getElementById("reflex-clavier-mode");
+  const boutonCible = document.getElementById("reflex-mode-cible");
+  const boutonClavier = document.getElementById("reflex-mode-clavier");
+  const arena = document.getElementById("reflex-arena");
+  const touche = document.getElementById("reflex-key-display");
+
+  if (cibleMode) cibleMode.hidden = mode !== "cible";
+  if (clavierMode) clavierMode.hidden = mode !== "clavier";
+  if (boutonCible) {
+    boutonCible.classList.toggle("is-active", mode === "cible");
+    boutonCible.setAttribute("aria-pressed", String(mode === "cible"));
+  }
+  if (boutonClavier) {
+    boutonClavier.classList.toggle("is-active", mode === "clavier");
+    boutonClavier.setAttribute("aria-pressed", String(mode === "clavier"));
+  }
+  if (arena) {
+    arena.replaceChildren();
+    arena.classList.remove("is-ready");
+    const hint = document.createElement("span");
+    hint.className = "omni-reflex-arena-hint";
+    hint.textContent = "ZONE DE TEST";
+    arena.appendChild(hint);
+  }
+  if (touche) touche.textContent = "?";
+
+  const statusId = mode === "cible" ? "reflex-cible-status" : "reflex-clavier-status";
+  const status = document.getElementById(statusId);
+  const time = document.getElementById(mode === "cible" ? "reflex-cible-time" : "reflex-clavier-time");
+  if (status) status.textContent = mode === "cible"
+    ? "Lance une manche, attends le signal, puis touche la cible !"
+    : "Lance une manche, attends la lettre, puis tape-la au clavier !";
+  if (time) time.textContent = "--";
+  afficherRecordsReflexe();
+}
+
+function initialiserReflexe() {
+  reflexRecords.cible = omniLireRecord("omni_reflex_target_best");
+  reflexRecords.clavier = omniLireRecord("omni_reflex_keyboard_best");
+  afficherRecordsReflexe();
+  choisirModeReflexe("cible");
+}
+
+function demarrerReflexe() {
+  if (reflexTimer) clearTimeout(reflexTimer);
+  reflexTimer = null;
+  reflexPhase = "waiting";
+  reflexTouche = "";
+
+  const status = document.getElementById(reflexMode === "cible"
+    ? "reflex-cible-status" : "reflex-clavier-status");
+  const time = document.getElementById(reflexMode === "cible"
+    ? "reflex-cible-time" : "reflex-clavier-time");
+  const arena = document.getElementById("reflex-arena");
+  const keyDisplay = document.getElementById("reflex-key-display");
+
+  if (time) time.textContent = "--";
+  if (arena) {
+    arena.replaceChildren();
+    arena.classList.remove("is-ready");
+    const hint = document.createElement("span");
+    hint.className = "omni-reflex-arena-hint";
+    hint.textContent = "CONCENTRATION…";
+    arena.appendChild(hint);
+  }
+  if (keyDisplay) {
+    keyDisplay.textContent = "…";
+    keyDisplay.classList.remove("is-ready");
+  }
+  if (status) status.textContent = "Prépare-toi… le signal arrive à un moment aléatoire.";
+  const delai = 1200 + Math.random() * 2700;
+
+  reflexTimer = setTimeout(() => {
+    if (reflexPhase !== "waiting") return;
+    reflexPhase = "ready";
+    reflexDebut = performance.now();
+
+    if (reflexMode === "cible") {
+      afficherCibleReflexe();
+      if (status) status.textContent = "⚡ MAINTENANT ! Touche la cible !";
+    } else {
+      reflexTouche = reflexTouches[Math.floor(Math.random() * reflexTouches.length)];
+      if (keyDisplay) {
+        keyDisplay.textContent = reflexTouche;
+        keyDisplay.classList.add("is-ready");
+      }
+      if (status) status.textContent = "⚡ TAPE LA TOUCHE AFFICHÉE !";
+    }
+    reflexTimer = null;
+  }, delai);
+}
+
+function afficherCibleReflexe() {
+  const arena = document.getElementById("reflex-arena");
+  if (!arena) return;
+  arena.replaceChildren();
+  arena.classList.add("is-ready");
+
+  const cible = document.createElement("button");
+  cible.type = "button";
+  cible.className = "omni-reflex-live-target";
+  cible.textContent = "CLIQUE !";
+  cible.setAttribute("aria-label", "Cliquer sur la cible lumineuse");
+  cible.style.left = (8 + Math.random() * 76) + "%";
+  cible.style.top = (14 + Math.random() * 66) + "%";
+  cible.addEventListener("click", event => {
+    event.stopPropagation();
+    cliquerReflexe();
+  });
+  arena.appendChild(cible);
+  cible.focus({ preventScroll: true });
+}
+
+function cliquerZoneReflexe() {
+  if (reflexMode !== "cible") return;
+  if (reflexPhase === "waiting") {
+    reflexPhase = "idle";
+    if (reflexTimer) clearTimeout(reflexTimer);
+    reflexTimer = null;
+    const status = document.getElementById("reflex-cible-status");
+    if (status) status.textContent = "Trop tôt ! Attends que la cible apparaisse en vert.";
+  }
+}
+
+function cliquerReflexe() {
+  if (reflexMode !== "cible" || reflexPhase !== "ready") return;
+  const resultat = Math.max(0, Math.round(performance.now() - reflexDebut));
+  reflexPhase = "done";
+
+  const arena = document.getElementById("reflex-arena");
+  const status = document.getElementById("reflex-cible-status");
+  const time = document.getElementById("reflex-cible-time");
+  const nouveauRecord = !reflexRecords.cible || resultat < reflexRecords.cible;
+
+  if (arena) {
+    arena.classList.remove("is-ready");
+    arena.replaceChildren();
+    const marque = document.createElement("span");
+    marque.className = "omni-reflex-result-mark";
+    marque.textContent = "✓";
+    arena.appendChild(marque);
+  }
+  if (time) time.textContent = resultat + " ms";
+  if (status) status.textContent = nouveauRecord
+    ? "🏆 Nouveau record ! " + resultat + " ms"
+    : "Bien joué : " + resultat + " ms. Essaie encore pour battre ton record.";
+
+  if (nouveauRecord) {
+    reflexRecords.cible = resultat;
+    omniSauverRecord("omni_reflex_target_best", resultat);
+    afficherRecordsReflexe();
+  }
+}
+
+function traiterToucheReflexe(event) {
+  const panneau = document.getElementById("omni-game-reflex");
+  if (!panneau || panneau.hidden || reflexMode !== "clavier") return;
+  if (event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
+  if (event.target && /INPUT|TEXTAREA|SELECT/.test(event.target.tagName)) return;
+
+  if (reflexPhase === "waiting") {
+    reflexPhase = "idle";
+    if (reflexTimer) clearTimeout(reflexTimer);
+    reflexTimer = null;
+    const status = document.getElementById("reflex-clavier-status");
+    if (status) status.textContent = "Trop tôt ! Attends que la touche s'affiche.";
+    const keyDisplay = document.getElementById("reflex-key-display");
+    if (keyDisplay) keyDisplay.textContent = "…";
+    return;
+  }
+
+  if (reflexPhase !== "ready") return;
+  const touche = event.key.length === 1 ? event.key.toUpperCase() : "";
+  if (touche !== reflexTouche) {
+    const status = document.getElementById("reflex-clavier-status");
+    if (status) status.textContent = "Mauvaise touche ! Il fallait appuyer sur " + reflexTouche + ".";
+    reflexPhase = "idle";
+    const keyDisplay = document.getElementById("reflex-key-display");
+    if (keyDisplay) keyDisplay.classList.remove("is-ready");
+    return;
+  }
+
+  event.preventDefault();
+  const resultat = Math.max(0, Math.round(performance.now() - reflexDebut));
+  reflexPhase = "done";
+  const status = document.getElementById("reflex-clavier-status");
+  const time = document.getElementById("reflex-clavier-time");
+  const keyDisplay = document.getElementById("reflex-key-display");
+  const nouveauRecord = !reflexRecords.clavier || resultat < reflexRecords.clavier;
+
+  if (time) time.textContent = resultat + " ms";
+  if (keyDisplay) {
+    keyDisplay.classList.remove("is-ready");
+    keyDisplay.textContent = "✓";
+  }
+  if (status) status.textContent = nouveauRecord
+    ? "🏆 Nouveau record clavier ! " + resultat + " ms"
+    : "Bien joué : " + resultat + " ms. À toi de battre ton record !";
+
+  if (nouveauRecord) {
+    reflexRecords.clavier = resultat;
+    omniSauverRecord("omni_reflex_keyboard_best", resultat);
+    afficherRecordsReflexe();
+  }
+}
+
+/* 5. PONG NÉON — JOUEUR CONTRE IA */
+let pongCanvas = null;
+let pongCtx = null;
+let pongFrame = null;
+let pongEnCours = false;
+let pongDernierTemps = 0;
+let pongJoueurY = 130;
+let pongCpuY = 130;
+let pongBalle = { x: 240, y: 160, vx: 230, vy: 95 };
+let pongScoreJoueur = 0;
+let pongScoreCpu = 0;
+
+function initialiserPong() {
+  pongCanvas = document.getElementById("pong-canvas");
+  if (!pongCanvas) return;
+  pongCtx = pongCanvas.getContext("2d");
+  if (!pongCtx) return;
+  if (!pongEnCours) {
+    pongJoueurY = pongCanvas.height / 2 - 30;
+    pongCpuY = pongCanvas.height / 2 - 30;
+    pongBalle = { x: pongCanvas.width / 2, y: pongCanvas.height / 2, vx: 230, vy: 95 };
+    dessinerPong();
+  }
+  actualiserScorePong();
+  omniStatutJeu("pong-feedback", "Déplace ta raquette avec ↑ et ↓, ou les touches Z et S.", document.getElementById("omni-game-pong"));
+}
+
+function actualiserScorePong() {
+  const joueur = document.getElementById("pong-player-score");
+  const cpu = document.getElementById("pong-cpu-score");
+  if (joueur) joueur.textContent = pongScoreJoueur;
+  if (cpu) cpu.textContent = pongScoreCpu;
+}
+
+function dessinerPong() {
+  if (!pongCtx || !pongCanvas) return;
+  const ctx = pongCtx;
+  const w = pongCanvas.width;
+  const h = pongCanvas.height;
+  ctx.clearRect(0, 0, w, h);
+  const fond = ctx.createLinearGradient(0, 0, w, h);
+  fond.addColorStop(0, "#081a31");
+  fond.addColorStop(1, "#120d2b");
+  ctx.fillStyle = fond;
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.save();
+  ctx.strokeStyle = "#67e8f933";
+  ctx.setLineDash([8, 9]);
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(w / 2, 0);
+  ctx.lineTo(w / 2, h);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.shadowBlur = 18;
+  ctx.shadowColor = "#38e8ff";
+  ctx.fillStyle = "#38e8ff";
+  ctx.fillRect(22, pongJoueurY, 12, 60);
+  ctx.shadowColor = "#c084fc";
+  ctx.fillStyle = "#c084fc";
+  ctx.fillRect(w - 34, pongCpuY, 12, 60);
+
+  ctx.beginPath();
+  ctx.shadowColor = "#ffffff";
+  ctx.shadowBlur = 20;
+  ctx.fillStyle = "#ffffff";
+  ctx.arc(pongBalle.x, pongBalle.y, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  if (!pongEnCours) {
+    ctx.fillStyle = "#e6f6ff";
+    ctx.textAlign = "center";
+    ctx.font = "bold 17px Arial";
+    ctx.fillText("PONG NÉON", w / 2, h / 2 - 32);
+    ctx.font = "13px Arial";
+    ctx.fillText("Premier à 5 points", w / 2, h / 2 + 38);
+  }
+}
+
+function lancerBallePong(direction) {
+  const angle = Math.random() * 0.8 - 0.4;
+  const vitesse = 230;
+  pongBalle = {
+    x: pongCanvas.width / 2,
+    y: pongCanvas.height / 2,
+    vx: Math.cos(angle) * vitesse * direction,
+    vy: Math.sin(angle) * vitesse + (Math.random() * 70 - 35)
+  };
+}
+
+function demarrerPong() {
+  if (pongFrame) cancelAnimationFrame(pongFrame);
+  initialiserPong();
+  if (!pongCanvas || !pongCtx) return;
+  pongScoreJoueur = 0;
+  pongScoreCpu = 0;
+  pongJoueurY = pongCanvas.height / 2 - 30;
+  pongCpuY = pongCanvas.height / 2 - 30;
+  lancerBallePong(Math.random() > 0.5 ? 1 : -1);
+  pongEnCours = true;
+  pongDernierTemps = 0;
+  actualiserScorePong();
+  omniStatutJeu("pong-feedback", "À toi de jouer ! Le premier à 5 points gagne.", document.getElementById("omni-game-pong"));
+  pongFrame = requestAnimationFrame(bouclePong);
+}
+
+function bouclePong(temps) {
+  if (!pongEnCours || !pongCanvas) return;
+  const dt = Math.min(0.032, pongDernierTemps ? (temps - pongDernierTemps) / 1000 : 0.016);
+  pongDernierTemps = temps;
+  const w = pongCanvas.width;
+  const h = pongCanvas.height;
+
+  pongCpuY += ((pongBalle.y - 30) - pongCpuY) * Math.min(1, dt * 3.1);
+  pongCpuY = Math.max(0, Math.min(h - 60, pongCpuY));
+  pongBalle.x += pongBalle.vx * dt;
+  pongBalle.y += pongBalle.vy * dt;
+
+  if (pongBalle.y < 8 || pongBalle.y > h - 8) pongBalle.vy *= -1;
+
+  if (pongBalle.vx < 0 && pongBalle.x <= 42 &&
+      pongBalle.y >= pongJoueurY - 7 && pongBalle.y <= pongJoueurY + 67) {
+    pongBalle.x = 42;
+    pongBalle.vx = Math.abs(pongBalle.vx) * 1.035;
+    pongBalle.vy += (pongBalle.y - (pongJoueurY + 30)) * 3;
+  }
+
+  if (pongBalle.vx > 0 && pongBalle.x >= w - 42 &&
+      pongBalle.y >= pongCpuY - 7 && pongBalle.y <= pongCpuY + 67) {
+    pongBalle.x = w - 42;
+    pongBalle.vx = -Math.abs(pongBalle.vx) * 1.025;
+    pongBalle.vy += (pongBalle.y - (pongCpuY + 30)) * 2.3;
+  }
+
+  if (pongBalle.x < -12) {
+    pongScoreCpu++;
+    actualiserScorePong();
+    if (pongScoreCpu >= 5) return terminerPong("L'ordinateur remporte la partie. Retente ta chance !");
+    lancerBallePong(1);
+  } else if (pongBalle.x > w + 12) {
+    pongScoreJoueur++;
+    actualiserScorePong();
+    if (pongScoreJoueur >= 5) return terminerPong("🏆 Victoire ! Tu as battu l'ordinateur !");
+    lancerBallePong(-1);
+  }
+
+  dessinerPong();
+  pongFrame = requestAnimationFrame(bouclePong);
+}
+
+function deplacerRaquettePong(direction) {
+  if (!pongCanvas) initialiserPong();
+  if (!pongCanvas) return;
+  const pas = 38;
+  if (direction === "up") pongJoueurY -= pas;
+  if (direction === "down") pongJoueurY += pas;
+  pongJoueurY = Math.max(0, Math.min(pongCanvas.height - 60, pongJoueurY));
+  dessinerPong();
+}
+
+function terminerPong(message) {
+  pongEnCours = false;
+  if (pongFrame) cancelAnimationFrame(pongFrame);
+  pongFrame = null;
+  omniStatutJeu("pong-feedback", message, document.getElementById("omni-game-pong"));
+  dessinerPong();
+}
+
+function arreterPong() {
+  pongEnCours = false;
+  if (pongFrame) cancelAnimationFrame(pongFrame);
+  pongFrame = null;
+}
+
+/* 6. 2048 CYBER */
+let grille2048 = [];
+let score2048 = 0;
+let gagne2048 = false;
+let fin2048 = false;
+
+function demarrer2048() {
+  grille2048 = Array.from({ length: 4 }, () => [0, 0, 0, 0]);
+  score2048 = 0;
+  gagne2048 = false;
+  fin2048 = false;
+  ajouterTuile2048();
+  ajouterTuile2048();
+  afficher2048();
+  omniStatutJeu("2048-feedback", "Fusionne deux tuiles identiques pour atteindre 2048. Flèches ou ZQSD.", document.getElementById("omni-game-2048"));
+}
+
+function ajouterTuile2048() {
+  const libres = [];
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      if (grille2048[r][c] === 0) libres.push([r, c]);
+    }
+  }
+  if (!libres.length) return;
+  const [r, c] = libres[Math.floor(Math.random() * libres.length)];
+  grille2048[r][c] = Math.random() < 0.9 ? 2 : 4;
+}
+
+function afficher2048() {
+  const grille = document.getElementById("2048-grid");
+  const score = document.getElementById("2048-score");
+  if (!grille) return;
+  grille.replaceChildren();
+  grille2048.flat().forEach(valeur => {
+    const tuile = document.createElement("div");
+    tuile.className = "omni-2048-tile" + (valeur ? " tile-" + Math.min(valeur, 2048) : " tile-empty");
+    tuile.dataset.value = String(valeur);
+    tuile.textContent = valeur ? valeur.toLocaleString("fr-FR") : "";
+    tuile.setAttribute("aria-label", valeur ? "Tuile " + valeur : "Case vide");
+    grille.appendChild(tuile);
+  });
+  if (score) score.textContent = score2048.toLocaleString("fr-FR");
+}
+
+function deplacer2048(direction) {
+  if (fin2048 || !grille2048.length) return;
+  const avant = grille2048.map(ligne => ligne.slice());
+  let gagneMaintenant = false;
+
+  for (let index = 0; index < 4; index++) {
+    const coordonnees = [];
+    for (let pas = 0; pas < 4; pas++) {
+      if (direction === "left") coordonnees.push([index, pas]);
+      if (direction === "right") coordonnees.push([index, 3 - pas]);
+      if (direction === "up") coordonnees.push([pas, index]);
+      if (direction === "down") coordonnees.push([3 - pas, index]);
+    }
+
+    const valeurs = coordonnees.map(([r, c]) => grille2048[r][c]).filter(Boolean);
+    const resultat = [];
+    for (let i = 0; i < valeurs.length; i++) {
+      if (valeurs[i] === valeurs[i + 1]) {
+        const fusion = valeurs[i] * 2;
+        resultat.push(fusion);
+        score2048 += fusion;
+        if (fusion === 2048) gagneMaintenant = true;
+        i++;
+      } else {
+        resultat.push(valeurs[i]);
+      }
+    }
+    while (resultat.length < 4) resultat.push(0);
+    coordonnees.forEach(([r, c], i) => { grille2048[r][c] = resultat[i]; });
+  }
+
+  const change = grille2048.some((ligne, r) => ligne.some((valeur, c) => valeur !== avant[r][c]));
+  if (!change) return;
+
+  ajouterTuile2048();
+  afficher2048();
+
+  if (gagneMaintenant && !gagne2048) {
+    gagne2048 = true;
+    omniStatutJeu("2048-feedback", "🎉 2048 atteint ! Tu peux continuer pour battre ton score.", document.getElementById("omni-game-2048"));
+  }
+  if (!peutBouger2048()) {
+    fin2048 = true;
+    omniStatutJeu("2048-feedback", "Partie terminée : plus aucun mouvement possible. Appuie sur Recommencer.", document.getElementById("omni-game-2048"));
+  }
+}
+
+function peutBouger2048() {
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      if (!grille2048[r][c]) return true;
+      if (r < 3 && grille2048[r][c] === grille2048[r + 1][c]) return true;
+      if (c < 3 && grille2048[r][c] === grille2048[r][c + 1]) return true;
+    }
+  }
+  return false;
+}
+
+/* 7. MORPION CYBER — DEUX JOUEURS SUR LE MÊME ÉCRAN */
+let morpionCases = Array(9).fill("");
+let morpionJoueur = "X";
+let morpionTermine = false;
+const MORPION_COMBINAISONS = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8],
+  [0, 3, 6], [1, 4, 7], [2, 5, 8],
+  [0, 4, 8], [2, 4, 6]
+];
+
+function recommencerMorpion() {
+  morpionCases = Array(9).fill("");
+  morpionJoueur = "X";
+  morpionTermine = false;
+  const grille = document.getElementById("morpion-grid");
+  if (grille) {
+    grille.querySelectorAll("button").forEach((bouton, index) => {
+      bouton.textContent = "";
+      bouton.disabled = false;
+      bouton.classList.remove("is-winning", "mark-x", "mark-o");
+      bouton.setAttribute("aria-label", "Case " + (index + 1));
+    });
+  }
+  const statut = document.getElementById("morpion-status");
+  if (statut) statut.textContent = "Au joueur X de commencer !";
+}
+
+function jouerMorpion(index) {
+  if (morpionTermine || !Number.isInteger(index) || index < 0 || index > 8 || morpionCases[index]) return;
+  morpionCases[index] = morpionJoueur;
+  const grille = document.getElementById("morpion-grid");
+  const boutons = grille ? grille.querySelectorAll("button") : [];
+  const bouton = boutons[index];
+
+  if (bouton) {
+    bouton.textContent = morpionJoueur;
+    bouton.disabled = true;
+    bouton.classList.add(morpionJoueur === "X" ? "mark-x" : "mark-o");
+    bouton.setAttribute("aria-label", "Case " + (index + 1) + " : " + morpionJoueur);
+  }
+
+  const gagnante = MORPION_COMBINAISONS.find(combo =>
+    combo.every(position => morpionCases[position] === morpionJoueur)
+  );
+  const statut = document.getElementById("morpion-status");
+
+  if (gagnante) {
+    morpionTermine = true;
+    gagnante.forEach(position => boutons[position]?.classList.add("is-winning"));
+    if (statut) statut.textContent = "🏆 Le joueur " + morpionJoueur + " gagne !";
+    boutons.forEach(b => { b.disabled = true; });
+    return;
+  }
+
+  if (morpionCases.every(Boolean)) {
+    morpionTermine = true;
+    if (statut) statut.textContent = "🤝 Match nul ! Rejouez une partie.";
+    return;
+  }
+
+  morpionJoueur = morpionJoueur === "X" ? "O" : "X";
+  if (statut) statut.textContent = "Au joueur " + morpionJoueur + " de jouer.";
+}
+
+/* 8. SPACE DODGER — ESQUIVE SPATIALE */
+let spaceCanvas = null;
+let spaceCtx = null;
+let spaceFrame = null;
+let spaceEnCours = false;
+let spaceDernierTemps = 0;
+let spaceTempsSpawn = 0;
+let spaceScore = 0;
+let spaceRecord = omniLireRecord("omni_space_best");
+let spaceJoueurX = 210;
+let spaceObstacles = [];
+let spaceEtoiles = [];
+
+function initialiserSpaceDodger() {
+  spaceCanvas = document.getElementById("space-canvas");
+  if (!spaceCanvas) return;
+  spaceCtx = spaceCanvas.getContext("2d");
+  if (!spaceCtx) return;
+  spaceRecord = omniLireRecord("omni_space_best");
+  const record = document.getElementById("space-best");
+  if (record) record.textContent = spaceRecord;
+  if (!spaceEnCours) dessinerSpaceDodger();
+  omniStatutJeu("space-feedback", "Évite les météorites. Utilise les flèches, A/D ou les boutons.", document.getElementById("omni-game-space"));
+}
+
+function demarrerSpaceDodger() {
+  if (spaceFrame) cancelAnimationFrame(spaceFrame);
+  initialiserSpaceDodger();
+  if (!spaceCanvas || !spaceCtx) return;
+  spaceEnCours = true;
+  spaceDernierTemps = 0;
+  spaceTempsSpawn = 0;
+  spaceScore = 0;
+  spaceJoueurX = spaceCanvas.width / 2;
+  spaceObstacles = [];
+  spaceEtoiles = Array.from({ length: 48 }, () => ({
+    x: Math.random() * spaceCanvas.width,
+    y: Math.random() * spaceCanvas.height,
+    vitesse: 20 + Math.random() * 75,
+    rayon: Math.random() * 1.7 + 0.5
+  }));
+  actualiserScoreSpace();
+  omniStatutJeu("space-feedback", "🚀 Décollage ! Reste en mouvement.", document.getElementById("omni-game-space"));
+  spaceFrame = requestAnimationFrame(boucleSpaceDodger);
+}
+
+function actualiserScoreSpace() {
+  const score = document.getElementById("space-score");
+  const record = document.getElementById("space-best");
+  if (score) score.textContent = Math.floor(spaceScore);
+  if (record) record.textContent = spaceRecord;
+}
+
+function deplacerVaisseau(direction) {
+  if (!spaceCanvas) initialiserSpaceDodger();
+  if (!spaceCanvas) return;
+  spaceJoueurX += Number(direction) * 34;
+  spaceJoueurX = Math.max(22, Math.min(spaceCanvas.width - 22, spaceJoueurX));
+  if (!spaceEnCours) dessinerSpaceDodger();
+}
+
+function dessinerSpaceDodger() {
+  if (!spaceCanvas || !spaceCtx) return;
+  const ctx = spaceCtx;
+  const w = spaceCanvas.width;
+  const h = spaceCanvas.height;
+  ctx.clearRect(0, 0, w, h);
+  const fond = ctx.createLinearGradient(0, 0, w, h);
+  fond.addColorStop(0, "#050b1c");
+  fond.addColorStop(1, "#1b1040");
+  ctx.fillStyle = fond;
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.fillStyle = "#dbeafe";
+  spaceEtoiles.forEach(etoile => {
+    ctx.globalAlpha = 0.5 + Math.sin(performance.now() / 350 + etoile.x) * 0.3;
+    ctx.beginPath();
+    ctx.arc(etoile.x, etoile.y, etoile.rayon, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  spaceObstacles.forEach(obstacle => {
+    ctx.save();
+    ctx.shadowColor = "#fb7185";
+    ctx.shadowBlur = 16;
+    const gradient = ctx.createRadialGradient(
+      obstacle.x - 5, obstacle.y - 6, 2,
+      obstacle.x, obstacle.y, obstacle.r
+    );
+    gradient.addColorStop(0, "#ffe4e6");
+    gradient.addColorStop(0.38, "#fb7185");
+    gradient.addColorStop(1, "#7f1d1d");
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(obstacle.x, obstacle.y, obstacle.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+
+  ctx.save();
+  ctx.translate(spaceJoueurX, h - 48);
+  ctx.shadowColor = "#38e8ff";
+  ctx.shadowBlur = 20;
+  ctx.fillStyle = "#38e8ff";
+  ctx.beginPath();
+  ctx.moveTo(0, -22);
+  ctx.lineTo(18, 18);
+  ctx.lineTo(0, 11);
+  ctx.lineTo(-18, 18);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(0, 2, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function boucleSpaceDodger(temps) {
+  if (!spaceEnCours || !spaceCanvas) return;
+  const dt = Math.min(0.035, spaceDernierTemps ? (temps - spaceDernierTemps) / 1000 : 0.016);
+  spaceDernierTemps = temps;
+  spaceScore += dt * 10;
+
+  spaceEtoiles.forEach(etoile => {
+    etoile.y += etoile.vitesse * dt;
+    if (etoile.y > spaceCanvas.height) {
+      etoile.y = 0;
+      etoile.x = Math.random() * spaceCanvas.width;
+    }
+  });
+
+  spaceTempsSpawn += dt * 1000;
+  const intervalleSpawn = Math.max(350, 880 - spaceScore * 1.1);
+  if (spaceTempsSpawn >= intervalleSpawn) {
+    spaceTempsSpawn = 0;
+    spaceObstacles.push({
+      x: 20 + Math.random() * (spaceCanvas.width - 40),
+      y: -24,
+      r: 10 + Math.random() * 9,
+      vitesse: 125 + Math.min(170, spaceScore * 1.1)
+    });
+  }
+
+  spaceObstacles.forEach(obstacle => { obstacle.y += obstacle.vitesse * dt; });
+  spaceObstacles = spaceObstacles.filter(obstacle => obstacle.y < spaceCanvas.height + 30);
+
+  const shipY = spaceCanvas.height - 48;
+  const collision = spaceObstacles.some(obstacle =>
+    Math.abs(obstacle.x - spaceJoueurX) < obstacle.r + 15 &&
+    Math.abs(obstacle.y - shipY) < obstacle.r + 15
+  );
+  actualiserScoreSpace();
+  dessinerSpaceDodger();
+
+  if (collision) {
+    terminerSpaceDodger();
+    return;
+  }
+  spaceFrame = requestAnimationFrame(boucleSpaceDodger);
+}
+
+function terminerSpaceDodger() {
+  spaceEnCours = false;
+  if (spaceFrame) cancelAnimationFrame(spaceFrame);
+  spaceFrame = null;
+  const scoreFinal = Math.floor(spaceScore);
+  const nouveauRecord = scoreFinal > spaceRecord;
+  if (nouveauRecord) {
+    spaceRecord = scoreFinal;
+    omniSauverRecord("omni_space_best", spaceRecord);
+  }
+  actualiserScoreSpace();
+  dessinerSpaceDodger();
+  const ctx = spaceCtx;
+  if (ctx && spaceCanvas) {
+    ctx.fillStyle = "#071226dd";
+    ctx.fillRect(20, spaceCanvas.height / 2 - 55, spaceCanvas.width - 40, 110);
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 22px Arial";
+    ctx.fillText("MISSION TERMINÉE", spaceCanvas.width / 2, spaceCanvas.height / 2 - 8);
+    ctx.fillStyle = "#67e8f9";
+    ctx.font = "16px Arial";
+    ctx.fillText("Score : " + scoreFinal, spaceCanvas.width / 2, spaceCanvas.height / 2 + 24);
+  }
+  omniStatutJeu("space-feedback",
+    (nouveauRecord ? "🏆 Nouveau record ! " : "Bien joué ! ") +
+    "Score : " + scoreFinal + ". Appuie sur Décoller pour rejouer.",
+    document.getElementById("omni-game-space"));
+}
+
+function arreterSpaceDodger() {
+  spaceEnCours = false;
+  if (spaceFrame) cancelAnimationFrame(spaceFrame);
+  spaceFrame = null;
+}
+
+/* 9. QUIZ CYBER */
+const quizQuestions = [
+  { question: "Quel langage structure le contenu d'une page web ?", answers: ["HTML", "CSS", "SQL", "Python"], correct: 0 },
+  { question: "Quel langage sert principalement à styliser une page web ?", answers: ["Java", "CSS", "C++", "Bash"], correct: 1 },
+  { question: "Que signifie CPU ?", answers: ["Central Processing Unit", "Control Pixel Utility", "Core Program User", "Central Private Upload"], correct: 0 },
+  { question: "Quel élément HTML crée un lien ?", answers: ["<p>", "<a>", "<img>", "<main>"], correct: 1 },
+  { question: "Quel est le rôle de JavaScript dans un site ?", answers: ["Stocker l'électricité", "Ajouter des interactions", "Remplacer l'écran", "Créer le réseau Wi-Fi"], correct: 1 },
+  { question: "Combien de côtés possède un hexagone ?", answers: ["5", "6", "7", "8"], correct: 1 },
+  { question: "Quelle planète est surnommée la planète rouge ?", answers: ["Vénus", "Mars", "Jupiter", "Mercure"], correct: 1 },
+  { question: "Quel raccourci clavier copie généralement un élément ?", answers: ["Ctrl + X", "Ctrl + V", "Ctrl + C", "Ctrl + Z"], correct: 2 },
+  { question: "Quel composant affiche généralement les pages d'un site ?", answers: ["Navigateur", "Clavier", "Routeur seul", "Imprimante"], correct: 0 },
+  { question: "Quelle valeur CSS rend un élément invisible tout en gardant sa place ?", answers: ["display: none", "visibility: hidden", "position: fixed", "float: left"], correct: 1 }
+];
+let quizListe = [];
+let quizIndex = 0;
+let quizScore = 0;
+let quizRecord = omniLireRecord("omni_quiz_best");
+let quizActif = false;
+let quizTimeout = null;
+
+function initialiserQuiz() {
+  quizRecord = omniLireRecord("omni_quiz_best");
+  const record = document.getElementById("quiz-best");
+  if (record) record.textContent = quizRecord;
+  const score = document.getElementById("quiz-score");
+  if (score) score.textContent = "0";
+  const question = document.getElementById("quiz-question");
+  if (question) question.textContent = "Prêt à relever le défi ? 10 questions t'attendent.";
+  const answers = document.getElementById("quiz-answers");
+  if (answers) answers.replaceChildren();
+  const start = document.getElementById("quiz-start");
+  if (start) {
+    start.disabled = false;
+    start.textContent = "▶ COMMENCER LE QUIZ";
+  }
+}
+
+function demarrerQuiz() {
+  if (quizTimeout) clearTimeout(quizTimeout);
+  quizTimeout = null;
+  quizListe = quizQuestions.map(question => ({ ...question, answers: question.answers.slice() }))
+    .sort(() => Math.random() - 0.5);
+  quizIndex = 0;
+  quizScore = 0;
+  quizActif = true;
+  const score = document.getElementById("quiz-score");
+  if (score) score.textContent = "0";
+  const start = document.getElementById("quiz-start");
+  if (start) start.disabled = true;
+  afficherQuestionQuiz();
+}
+
+function afficherQuestionQuiz() {
+  const question = document.getElementById("quiz-question");
+  const answers = document.getElementById("quiz-answers");
+  if (!question || !answers) return;
+  if (quizIndex >= quizListe.length) {
+    terminerQuiz();
+    return;
+  }
+
+  const item = quizListe[quizIndex];
+  question.textContent = (quizIndex + 1) + "/" + quizListe.length + " — " + item.question;
+  answers.replaceChildren();
+  item.answers.forEach((reponse, index) => {
+    const bouton = document.createElement("button");
+    bouton.type = "button";
+    bouton.textContent = reponse;
+    bouton.addEventListener("click", () => repondreQuiz(index));
+    answers.appendChild(bouton);
+  });
+  omniStatutJeu("quiz-feedback", "Choisis la bonne réponse pour gagner 1 point.", document.getElementById("omni-game-quiz"));
+}
+
+function repondreQuiz(index) {
+  if (!quizActif || quizTimeout) return;
+  const item = quizListe[quizIndex];
+  const boutons = document.querySelectorAll("#quiz-answers button");
+  boutons.forEach((bouton, position) => {
+    bouton.disabled = true;
+    if (position === item.correct) bouton.classList.add("is-correct");
+    else if (position === index) bouton.classList.add("is-wrong");
+  });
+
+  const correct = index === item.correct;
+  if (correct) quizScore++;
+  const score = document.getElementById("quiz-score");
+  if (score) score.textContent = quizScore;
+  omniStatutJeu("quiz-feedback",
+    correct ? "✅ Bonne réponse ! +1 point." : "❌ Pas tout à fait. La bonne réponse était : " + item.answers[item.correct] + ".",
+    document.getElementById("omni-game-quiz"));
+
+  quizIndex++;
+  quizTimeout = setTimeout(() => {
+    quizTimeout = null;
+    afficherQuestionQuiz();
+  }, 850);
+}
+
+function terminerQuiz() {
+  quizActif = false;
+  const nouveauRecord = quizScore > quizRecord;
+  if (nouveauRecord) {
+    quizRecord = quizScore;
+    omniSauverRecord("omni_quiz_best", quizRecord);
+  }
+  const record = document.getElementById("quiz-best");
+  if (record) record.textContent = quizRecord;
+  const question = document.getElementById("quiz-question");
+  if (question) question.textContent = "🎉 Quiz terminé : " + quizScore + " / " + quizListe.length;
+  const answers = document.getElementById("quiz-answers");
+  if (answers) answers.replaceChildren();
+  omniStatutJeu("quiz-feedback",
+    (nouveauRecord ? "🏆 Nouveau record personnel ! " : "Bien joué ! ") +
+    "Tu as obtenu " + quizScore + " point(s).",
+    document.getElementById("omni-game-quiz"));
+  const start = document.getElementById("quiz-start");
+  if (start) {
+    start.disabled = false;
+    start.textContent = "🔄 REJOUER";
+  }
+}
+
+function arreterQuiz() {
+  quizActif = false;
+  if (quizTimeout) clearTimeout(quizTimeout);
+  quizTimeout = null;
+}
+
+/* COMMANDES CLAVIER PARTAGÉES */
+document.addEventListener("keydown", event => {
+  traiterToucheReflexe(event);
+
+  const panneauPong = document.getElementById("omni-game-pong");
+  if (panneauPong && !panneauPong.hidden && pongEnCours) {
+    if (event.key === "ArrowUp" || event.key.toLowerCase() === "z") {
+      event.preventDefault();
+      deplacerRaquettePong("up");
+    } else if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") {
+      event.preventDefault();
+      deplacerRaquettePong("down");
+    }
+  }
+
+  const panneau2048 = document.getElementById("omni-game-2048");
+  if (panneau2048 && !panneau2048.hidden) {
+    const directions = {
+      ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right",
+      z: "up", Z: "up", s: "down", S: "down", q: "left", Q: "left", d: "right", D: "right"
+    };
+    if (directions[event.key]) {
+      event.preventDefault();
+      deplacer2048(directions[event.key]);
+    }
+  }
+
+  const panneauSpace = document.getElementById("omni-game-space");
+  if (panneauSpace && !panneauSpace.hidden && spaceEnCours) {
+    if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a" || event.key.toLowerCase() === "q") {
+      event.preventDefault();
+      deplacerVaisseau(-1);
+    } else if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
+      event.preventDefault();
+      deplacerVaisseau(1);
+    }
+  }
+});
+
+/* COMMANDES SOURIS / TACTILES POUR SPACE DODGER */
+document.addEventListener("pointermove", event => {
+  if (!spaceEnCours || !spaceCanvas) return;
+  const panneau = document.getElementById("omni-game-space");
+  if (!panneau || panneau.hidden) return;
+  if (event.pointerType === "mouse" && event.buttons === 0) return;
+  const rect = spaceCanvas.getBoundingClientRect();
+  const x = (event.clientX - rect.left) * (spaceCanvas.width / rect.width);
+  if (x >= 0 && x <= spaceCanvas.width) {
+    spaceJoueurX = Math.max(22, Math.min(spaceCanvas.width - 22, x));
+  }
+});
+
+/* ARRÊT DES BOUCLES ET DÉLAIS QUAND ON QUITTE UN JEU */
+function arreterJeuxSecondaires() {
+  if (reflexTimer) clearTimeout(reflexTimer);
+  reflexTimer = null;
+  reflexPhase = "idle";
+  arreterPong();
+  arreterSpaceDodger();
+  arreterQuiz();
+}
+
