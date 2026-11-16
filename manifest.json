@@ -4,7 +4,7 @@
   "description": "L'application cyberpunk ultime avec mini-jeux, pizza clicker et modules sociaux.",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3502/3502685.png",
+      "src": "omni-app-icon.png",
       "type": "image/png",
       "sizes": "512x512"
     }
