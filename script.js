@@ -1143,6 +1143,24 @@ function supprimerSecret(index) {
   sauvegarderDonnees();
 }
 
+function detruireSouciGeant() {
+  const textarea = document.getElementById("vent-input");
+  if (!textarea || !textarea.value.trim()) return;
+  if (textarea.dataset.animating === "true") return;
+
+  textarea.dataset.animating = "true";
+  textarea.style.transition = "transform 0.65s ease, opacity 0.65s ease";
+  textarea.style.transform = "scale(0) rotate(360deg)";
+  textarea.style.opacity = "0";
+
+  setTimeout(() => {
+    textarea.value = "";
+    textarea.style.transform = "none";
+    textarea.style.opacity = "1";
+    textarea.dataset.animating = "false";
+  }, 650);
+}
+
 // BOUTIQUE COSMÉTIQUE
 
 // BOUTIQUE COSMÉTIQUE
