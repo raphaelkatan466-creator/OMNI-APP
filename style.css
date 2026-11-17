@@ -4440,3 +4440,24 @@ textarea, input[type="text"] {
     padding: 10px;
   }
 }
+
+
+/* BONUS DE PRODUCTION HORS LIGNE */
+.omni-offline-reward {
+  margin: 16px auto;
+  padding: 14px 18px;
+  border: 1px solid #22e6a577;
+  border-radius: 14px;
+  background: linear-gradient(110deg, #22e6a51a, #38e8ff12);
+  color: #baf7df;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.6;
+  text-align: center;
+  box-shadow: 0 0 22px #22e6a51c;
+  animation: omniArcadeAppear .35s ease both;
+}
+
+.omni-offline-reward[hidden] {
+  display: none !important;
+}
