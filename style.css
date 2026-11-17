@@ -6571,3 +6571,7 @@ body.rave-active #rave-background-layer {
 }
 
 /* FIN OMNI AUDIO EXPERIENCE */
+
+/* Alias de rareté pour les noms de cartes français */
+.rarity-legendaire { --card-rarity:#ffc86f; }
+.rarity-mythique { --card-rarity:#ff83d4; }
