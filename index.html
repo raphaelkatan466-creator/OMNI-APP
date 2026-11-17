@@ -827,13 +827,13 @@
 
       <!-- 5. ROBOT IA -->
       <section id="page-pets" class="page">
-        <h2>🤖 Robot Cyber-Bot (Assistant IA)</h2>
+        <h2>🤖 Cyber-Bot (mode démo)</h2>
         <div class="card" style="display:flex; flex-direction:column; gap:12px;">
           <div style="display:flex; align-items:center; gap:15px;">
             <span style="font-size:50px;">🤖</span>
             <div>
               <h3 style="margin:0; color:var(--neon-blue);">Cyber-Bot Assistant IA</h3>
-              <p style="margin:0; font-size:13px; color:#94a3b8;">Pose-moi des questions ou demande-moi de l'aide !</p>
+              <p style="margin:0; font-size:13px; color:#94a3b8;">Réponses de démonstration locales : aucun service d'IA externe n'est appelé.</p>
             </div>
           </div>
           <div id="ai-chat-box" style="height:200px; background:#090d16; border:1px solid #334155; border-radius:10px; padding:12px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
@@ -879,9 +879,10 @@
 
       <!-- 7. COMMUNAUTÉ -->
       <section id="page-community" class="page">
-        <h2>🌐 Espace Communautaire & Anonyme</h2>
+        <h2>🌐 Espace communautaire (mode démo)</h2>
         <div class="card">
-          <h3 style="color:var(--neon-gold);">📊 Météo d'Humeur & Chat Communautaire</h3>
+          <h3 style="color:var(--neon-gold);">📊 Météo d'humeur & salon de discussion</h3>
+          <p class="omni-local-notice">Mode démo : les messages et les choix d'humeur sont visibles uniquement dans cette session sur cet appareil. Ils ne sont pas transmis aux autres joueurs.</p>
           <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:15px;">
             <button class="menu-btn" onclick="voterHumeur('🔥 Super')">🔥 Super</button>
             <button class="menu-btn" onclick="voterHumeur('😎 Cool')">😎 Cool</button>
@@ -889,9 +890,10 @@
             <button class="menu-btn" onclick="voterHumeur('⚡ Électrique')">⚡ Électrique</button>
             <button class="menu-btn" onclick="voterHumeur('🚀 Motivé')">🚀 Motivé</button>
           </div>
+          <p id="mood-status" class="omni-local-notice" aria-live="polite">Choisis une humeur pour l'afficher ici.</p>
           <div id="community-chat-box" style="height:180px; background:#090d16; border:1px solid #334155; border-radius:10px; padding:12px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
             <div style="background:#1e293b; padding:8px 12px; border-radius:8px; font-size:13px;">
-              <strong style="color:var(--neon-blue);">Sora_Cyber :</strong> Salut tout le monde ! L'OmniApp est géniale 🔥
+              <strong style="color:var(--neon-blue);">Message exemple :</strong> Bienvenue dans le salon de démonstration !
             </div>
           </div>
           <div style="display:flex; gap:8px;">
@@ -901,10 +903,10 @@
         </div>
 
         <div class="card">
-          <h3 style="color:var(--neon-green);">🎨 Mur de Graffiti Collectif</h3>
+          <h3 style="color:var(--neon-green);">🎨 Mur de graffiti local</h3>
           <canvas id="graffiti-canvas" width="340" height="200" style="background:#090d16; border:2px solid var(--neon-blue); border-radius:10px; display:block; margin:0 auto; cursor:crosshair; touch-action:none;"></canvas>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
-            <span style="font-size:12px; color:#94a3b8;">Dessine avec la souris ou le doigt !</span>
+            <span style="font-size:12px; color:#94a3b8;">Ton dessin reste ici jusqu'à ce que tu l'effaces ou recharges la page.</span>
             <button class="menu-btn" onclick="effacerGraffiti()" style="padding:6px 12px; font-size:12px;">🗑️ Effacer</button>
           </div>
         </div>
@@ -930,8 +932,9 @@
       <section id="page-capsule" class="page">
         <h2>⏳ Capsule Temporelle XL 📦</h2>
         <div class="card">
-          <p style="color:#94a3b8; font-size:15px;">Verrouille une pensée ou un message secret qui ne se rouvrira qu'après le délai choisi !</p>
-          <textarea id="capsule-text" class="xl-textarea" placeholder="✍️ Écris ton message pour le futur ici..."></textarea>
+          <p style="color:#94a3b8; font-size:15px;">Crée une capsule qui se déverrouille après le délai choisi. Les textes restent dans le stockage de ce navigateur et ne sont pas chiffrés : évite les informations très personnelles.</p>
+          <textarea id="capsule-text" class="xl-textarea" maxlength="500" placeholder="✍️ Écris ton message pour le futur ici..."></textarea>
+          <p id="capsule-status" class="omni-local-notice" aria-live="polite">Maximum 500 caractères. Les capsules restent sur cet appareil.</p>
           <div style="margin: 20px 0; display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
             <label style="font-weight:bold; color:var(--neon-gold); font-size:16px;">⏱️ Déverrouillage dans : </label>
             <select id="capsule-delay" style="background:#090d16; color:white; border:2px solid var(--neon-purple); padding:12px; border-radius:10px; font-size:15px;">
@@ -948,14 +951,14 @@
 
       <!-- 10. SECRETS XL -->
       <section id="page-secrets" class="page">
-        <h2>🏝️ L'Île aux Secrets Anonymes XL 📜</h2>
+        <h2>🏝️ Carnet de notes personnelles 📜</h2>
         <div class="card">
-          <p style="color:#94a3b8; font-size:15px;">Dépose un secret totalement anonyme sur l'île ou lis ce que les autres joueurs ont laissé...</p>
-          <textarea id="secret-input" class="xl-textarea" style="border-color:var(--neon-blue);" placeholder="🤫 Confie ton secret anonyme..."></textarea>
+          <p class="omni-local-notice">Ces notes sont enregistrées dans le navigateur de cet appareil. Elles ne sont ni anonymisées sur un serveur ni partagées avec d'autres joueurs. Évite d'y écrire des informations sensibles sur un appareil partagé.</p>
+          <textarea id="secret-input" class="xl-textarea" maxlength="500" style="border-color:var(--neon-blue);" placeholder="🤫 Écris une note personnelle..."></textarea>
           <br><br>
           <button class="btn" style="background:var(--neon-blue); color:#0f172a; font-size:18px; padding:15px;" onclick="publierSecret()">🏝️ Déposer mon Secret</button>
         </div>
-        <h3 style="color:var(--neon-blue);">📜 Secrets de l'Île</h3>
+        <h3 style="color:var(--neon-blue);">📜 Tes notes enregistrées</h3>
         <div id="secrets-list"></div>
       </section>
 
@@ -963,8 +966,8 @@
       <section id="page-vent" class="page">
         <h2>🔥 Le Destructeur de Soucis (Anti-Stress)</h2>
         <div class="card" style="text-align: center; padding:30px;">
-          <p style="font-size:16px; color:#94a3b8; margin-bottom:20px;">Écris tout ce qui te tracasse, puis anéantis-le dans le trou noir cosmique !</p>
-          <textarea id="vent-input" class="vent-giant-textarea" placeholder="Vide ton sac ici... Personne ne lira jamais ce que tu écris."></textarea>
+          <p style="font-size:16px; color:#94a3b8; margin-bottom:20px;">Écris ce que tu souhaites poser sur papier, puis efface-le avec une animation. Le texte n'est pas envoyé, mais évite les informations très personnelles sur un appareil partagé.</p>
+          <textarea id="vent-input" class="vent-giant-textarea" maxlength="2000" placeholder="Écris ce que tu souhaites ensuite effacer..."></textarea>
           <br><br>
           <button class="btn" style="background:#ef4444; color:white; font-size:20px; padding:18px;" onclick="detruireSouciGeant()">💥 Anéantir ce souci dans le Néant !</button>
         </div>
@@ -985,8 +988,9 @@
         <h2>🎡 Quêtes Quotidiennes & Roue OMNI XL 🎁</h2>
         <div class="card" style="text-align:center; padding:30px;">
           <h3 style="font-size:26px; color:var(--neon-gold);">🎰 La Grande Roue de la Fortune</h3>
-          <p style="color:#94a3b8; margin-bottom:20px; font-size:15px;">Tente ta chance quotidiennement pour remporter d'immenses trésors cybernétiques !</p>
-          <button class="btn" style="background:var(--neon-gold); color:#0f172a; font-size:20px; padding:18px; width:auto;" onclick="ouvrirGrandeRoue()">🎡 Lancer la Grande Roue !</button>
+          <p style="color:#94a3b8; margin-bottom:12px; font-size:15px;">Une tentative gratuite par jour. Les récompenses sont virtuelles et restent sur cet appareil.</p>
+          <p id="wheel-page-status" class="omni-local-notice" aria-live="polite">Vérification de ta tentative quotidienne…</p>
+          <button id="wheel-open-btn" class="btn" style="background:var(--neon-gold); color:#0f172a; font-size:20px; padding:18px; width:auto;" onclick="ouvrirGrandeRoue()">🎡 Lancer la Grande Roue !</button>
         </div>
       </section>
     </main>
@@ -995,6 +999,7 @@
   <!-- MODAL ROUE GEANTE -->
   <div id="wheel-modal">
     <h2 style="color:var(--neon-gold); font-size:34px; margin-bottom:15px; text-shadow:0 0 15px var(--neon-gold);">🎡 GRANDE ROUE OMNI 🎡</h2>
+    <p id="wheel-status" class="omni-local-notice" aria-live="polite"></p>
     <canvas id="wheel-canvas" width="320" height="320"></canvas>
     <br>
     <button class="btn" id="spin-wheel-btn" style="width:auto; font-size:20px; padding:14px 35px; background:var(--neon-gold); color:#0f172a;" onclick="tournerLaGrandeRoue()">🎰 TOURNER !</button>
