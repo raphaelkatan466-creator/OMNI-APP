@@ -2,6 +2,7 @@ const state = {
   username: "Joueur Cyber", userAvatar: "🤖",
   pizzas: 0, clickPower: 1, pizzasPerSec: 0, omniPoints: 0,
   activeSkin: '🍕', unlockedSkins: ['🍕'],
+  cardsCollection: {},
   activeEffect: 'cyan', unlockedEffects: ['cyan'],
   secrets: [], capsules: [], titleClicks: 0, matrixMode: false, raveMode: false, crtMode: false
 };
@@ -24,6 +25,14 @@ function chargerDonnees() {
       if (!Array.isArray(state.capsules)) state.capsules = [];
       if (!Array.isArray(state.unlockedSkins)) state.unlockedSkins = ["🍕"];
       if (!Array.isArray(state.unlockedEffects)) state.unlockedEffects = ["cyan"];
+      if (!state.cardsCollection || typeof state.cardsCollection !== "object" || Array.isArray(state.cardsCollection)) {
+        state.cardsCollection = {};
+      }
+      Object.keys(state.cardsCollection).forEach(id => {
+        const count = Number(state.cardsCollection[id]);
+        if (!Number.isSafeInteger(count) || count < 0 || count > 1000000) delete state.cardsCollection[id];
+        else state.cardsCollection[id] = count;
+      });
 
       ["pizzas", "clickPower", "pizzasPerSec", "omniPoints"].forEach(cle => {
         if (!Number.isFinite(state[cle]) || state[cle] < 0) {
@@ -133,27 +142,303 @@ function reinitialiserTout() {
 }
 
 
-// AUDIO DEVERROUILLE AUTOMATIQUEMENT
+// MOTEUR AUDIO OMNI — SONS ORIGINAUX ET RADIO SYNTHÉTIQUE
 let audioCtx = null;
-function initAudio() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-}
-window.addEventListener("click", initAudio, { once: true });
-window.addEventListener("touchstart", initAudio, { once: true });
+let omniMasterGain = null;
+let omniSfxGain = null;
+let omniMusicGain = null;
+let omniSfxEnabled = true;
+let omniMusicVolume = 0.28;
+let audioPreferencesLoaded = false;
+let radioIsPlaying = false;
+let radioTimer = null;
+let radioStep = 0;
+let radioNextStepAt = 0;
+let radioStationIndex = 0;
 
-function jouerNote(freq, duration = 0.08, vol = 0.1) {
-  if (!audioCtx) initAudio();
+const OMNI_RADIO_STATIONS = [
+  { name:"NEON DRIVE", style:"Synthwave • 112 BPM", bpm:112, root:55,
+    scale:[0,2,3,7,9,10,12,14], chords:[[0,3,7],[5,8,12],[3,7,10],[7,10,14]],
+    bass:[0,5,3,7], melody:[0,2,4,7,4,2,5,7,0,2,4,9,7,5,4,2], lead:"triangle", bassWave:"sawtooth" },
+  { name:"SPACE DREAMS", style:"Ambient spatial • 76 BPM", bpm:76, root:49,
+    scale:[0,2,5,7,9,12,14,17], chords:[[0,4,7],[2,5,9],[5,9,12],[7,11,14]],
+    bass:[0,2,5,7], melody:[0,null,2,null,4,null,7,null,5,null,4,null,2,null,0,null], lead:"sine", bassWave:"triangle" },
+  { name:"ARCADE RUSH", style:"Chiptune rétro • 132 BPM", bpm:132, root:65.41,
+    scale:[0,2,4,7,9,12,14,16], chords:[[0,4,7],[7,11,14],[5,9,12],[3,7,10]],
+    bass:[0,7,5,3], melody:[0,4,7,4,2,5,9,5,0,4,7,12,9,7,4,2], lead:"square", bassWave:"triangle" },
+  { name:"RAVE CIRCUIT", style:"Electro néon • 126 BPM", bpm:126, root:73.42,
+    scale:[0,2,3,6,7,9,10,12], chords:[[0,3,7],[3,6,10],[5,9,12],[7,10,14]],
+    bass:[0,0,5,3], melody:[0,3,6,7,3,6,9,7,0,3,6,10,9,7,6,3], lead:"sawtooth", bassWave:"square" }
+];
+
+function chargerPreferencesAudio() {
+  if (audioPreferencesLoaded) return;
+  audioPreferencesLoaded = true;
   try {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.start(); osc.stop(audioCtx.currentTime + duration);
-  } catch(e){}
+    const prefs = JSON.parse(localStorage.getItem("omni_audio_preferences") || "{}");
+    if (typeof prefs.sfxEnabled === "boolean") omniSfxEnabled = prefs.sfxEnabled;
+    if (Number.isFinite(prefs.musicVolume)) omniMusicVolume = Math.max(0, Math.min(.6, prefs.musicVolume));
+    if (Number.isInteger(prefs.station) && prefs.station >= 0 && prefs.station < OMNI_RADIO_STATIONS.length) {
+      radioStationIndex = prefs.station;
+    }
+  } catch (error) {
+    console.warn("Préférences audio indisponibles :", error);
+  }
 }
 
+function sauvegarderPreferencesAudio() {
+  try {
+    localStorage.setItem("omni_audio_preferences", JSON.stringify({
+      sfxEnabled: omniSfxEnabled, musicVolume: omniMusicVolume, station: radioStationIndex
+    }));
+  } catch (error) {
+    console.warn("Impossible de sauvegarder les préférences audio :", error);
+  }
+}
+
+function initAudio() {
+  chargerPreferencesAudio();
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return false;
+    if (!audioCtx) {
+      audioCtx = new AudioContextClass();
+      omniMasterGain = audioCtx.createGain();
+      omniSfxGain = audioCtx.createGain();
+      omniMusicGain = audioCtx.createGain();
+      omniSfxGain.connect(omniMasterGain);
+      omniMusicGain.connect(omniMasterGain);
+      omniMasterGain.connect(audioCtx.destination);
+      omniMasterGain.gain.value = .82;
+      appliquerVolumesAudio();
+    }
+    if (audioCtx.state === "suspended") {
+      const resumed = audioCtx.resume();
+      if (resumed && typeof resumed.catch === "function") resumed.catch(() => {});
+    }
+    return true;
+  } catch (error) {
+    console.warn("Le moteur audio OMNI n'est pas disponible :", error);
+    return false;
+  }
+}
+
+function appliquerVolumesAudio() {
+  if (!audioCtx || !omniSfxGain || !omniMusicGain) return;
+  const now = audioCtx.currentTime;
+  omniSfxGain.gain.setTargetAtTime(omniSfxEnabled ? .78 : .0001, now, .035);
+  omniMusicGain.gain.setTargetAtTime(radioIsPlaying ? omniMusicVolume : .0001, now, .09);
+}
+
+function jouerOscillateur(freq, duration, volume, wave="sine", destination=null, when=null, endFreq=null) {
+  if (!audioCtx && !initAudio()) return;
+  if (!audioCtx) return;
+  const start = Number.isFinite(when) ? when : audioCtx.currentTime;
+  const length = Math.max(.035, duration);
+  const osc = audioCtx.createOscillator();
+  const env = audioCtx.createGain();
+  osc.type = wave;
+  osc.frequency.setValueAtTime(Math.max(1, freq), start);
+  if (Number.isFinite(endFreq) && endFreq > 0 && endFreq !== freq) {
+    osc.frequency.exponentialRampToValueAtTime(endFreq, start + length);
+  }
+  env.gain.setValueAtTime(.0001, start);
+  env.gain.linearRampToValueAtTime(Math.max(.0001, volume), start + Math.min(.018, length * .35));
+  env.gain.exponentialRampToValueAtTime(.0001, start + length);
+  osc.connect(env);
+  env.connect(destination || omniSfxGain || audioCtx.destination);
+  osc.start(start);
+  osc.stop(start + length + .025);
+}
+
+function jouerNote(freq, duration=.08, vol=.1) {
+  if (!omniSfxEnabled) return;
+  jouerOscillateur(freq, duration, Math.min(.12, vol), "sine", omniSfxGain);
+}
+
+function jouerEffetSonore(type="click") {
+  if (!omniSfxEnabled || !initAudio() || !audioCtx) return;
+  const now = audioCtx.currentTime;
+  const patterns = {
+    click:[[740,.045,.025,"sine",0]],
+    nav:[[540,.06,.025,"sine",0],[820,.07,.018,"triangle",.045]],
+    pizza:[[430,.055,.045,"triangle",0],[690,.07,.025,"sine",.045]],
+    purchase:[[590,.08,.035,"triangle",0],[790,.09,.035,"sine",.075],[1040,.12,.025,"sine",.15]],
+    success:[[523,.12,.04,"sine",0],[659,.13,.04,"sine",.09],[784,.18,.035,"triangle",.18]],
+    error:[[290,.12,.04,"triangle",0],[210,.17,.035,"sawtooth",.1]],
+    booster:[[310,.1,.035,"triangle",0],[420,.1,.04,"triangle",.09],[620,.13,.045,"sine",.18],[880,.2,.035,"sine",.3]],
+    legendary:[[392,.18,.05,"sine",0],[523,.2,.05,"sine",.12],[659,.22,.05,"triangle",.24],[784,.28,.05,"sine",.37],[1046,.42,.035,"sine",.52]],
+    flip:[[530,.055,.025,"triangle",0],[760,.06,.018,"sine",.035]],
+    match:[[660,.09,.035,"sine",0],[880,.13,.04,"triangle",.08]],
+    bubble:[[360,.055,.045,"sine",0,210]],
+    coin:[[700,.07,.035,"sine",0],[1050,.11,.035,"sine",.07]],
+    bounce:[[240,.055,.025,"triangle",0],[480,.06,.018,"sine",.025]],
+    merge:[[460,.07,.025,"triangle",0],[690,.09,.035,"sine",.05],[920,.12,.03,"sine",.12]],
+    tile:[[390,.045,.018,"sine",0]],
+    tap:[[420,.04,.025,"triangle",0]],
+    signal:[[880,.16,.04,"sine",0],[1175,.18,.025,"sine",.1]],
+    start:[[330,.09,.03,"triangle",0],[494,.12,.03,"sine",.09]],
+    crash:[[260,.17,.045,"sawtooth",0,95],[160,.2,.025,"triangle",.08,70]],
+    win:[[523,.13,.035,"sine",0],[659,.13,.04,"sine",.11],[784,.18,.04,"triangle",.22],[1046,.3,.035,"sine",.36]],
+    wheel:[[260,.09,.022,"sawtooth",0,500],[420,.1,.028,"triangle",.1,720],[620,.14,.025,"sine",.2,1000]],
+    raveOn:[[392,.09,.025,"sawtooth",0],[587,.11,.03,"square",.07],[784,.16,.025,"triangle",.15]],
+    raveOff:[[660,.08,.025,"sine",0],[440,.14,.025,"sine",.08]],
+    crt:[[180,.07,.025,"square",0],[420,.09,.022,"triangle",.06]],
+    matrix:[[900,.045,.02,"square",0],[1200,.055,.018,"square",.05]],
+    whoosh:[[520,.18,.028,"sawtooth",0,120]],
+    open:[[460,.1,.03,"sine",0],[690,.13,.025,"triangle",.1]]
+  };
+  if (type.startsWith("simon-")) {
+    const n = [392,494,587,784][(Number(type.split("-")[1]) || 0) % 4];
+    jouerOscillateur(n,.16,.035,"sine",omniSfxGain,now);
+    return;
+  }
+  (patterns[type] || patterns.click).forEach(note => {
+    jouerOscillateur(note[0],note[1],note[2],note[3],omniSfxGain,now+note[4],note[5]);
+  });
+}
+
+function actualiserInterfaceRadio() {
+  const station = OMNI_RADIO_STATIONS[radioStationIndex] || OMNI_RADIO_STATIONS[0];
+  const nom = document.getElementById("radio-current-station");
+  const style = document.getElementById("radio-current-style");
+  const play = document.getElementById("radio-play-btn");
+  const status = document.getElementById("radio-status");
+  const visualizer = document.getElementById("omni-radio-visualizer");
+  const select = document.getElementById("radio-station-select");
+  const volume = document.getElementById("radio-volume");
+  const volumeValue = document.getElementById("radio-volume-value");
+  const sfx = document.getElementById("omni-sfx-toggle-btn");
+  if (nom) nom.textContent = station.name;
+  if (style) style.textContent = station.style + (radioIsPlaying ? " • EN DIRECT" : " • En pause");
+  if (play) {
+    play.textContent = radioIsPlaying ? "Ⅱ" : "▶";
+    play.setAttribute("aria-label",radioIsPlaying ? "Mettre la radio en pause" : "Lancer la radio");
+  }
+  if (status) status.textContent = radioIsPlaying
+    ? "DIFFUSION EN DIRECT — " + station.name
+    : "RADIO EN VEILLE — Appuie sur lecture pour lancer la musique.";
+  if (visualizer) visualizer.classList.toggle("is-playing",radioIsPlaying);
+  if (select) select.value = String(radioStationIndex);
+  if (volume) volume.value = String(Math.round(omniMusicVolume*100));
+  if (volumeValue) volumeValue.textContent = Math.round(omniMusicVolume*100)+"%";
+  if (sfx) {
+    sfx.textContent = omniSfxEnabled ? "🔊 SONS ON" : "🔇 SONS OFF";
+    sfx.setAttribute("aria-pressed",String(omniSfxEnabled));
+  }
+}
+
+function programmerNoteRadio(freq,duration,volume,wave,when,endFreq=null) {
+  if (!audioCtx || !omniMusicGain) return;
+  jouerOscillateur(freq,duration,volume,wave,omniMusicGain,when,endFreq);
+}
+
+function programmerPasRadio(station,step,when) {
+  const position = step % 64;
+  const bar = Math.floor(position/16) % station.chords.length;
+  const beat = position % 16;
+  const root = station.root;
+  const stepDuration = 60/station.bpm/2;
+
+  if (beat===0 || beat===8) {
+    station.chords[bar].forEach((interval,index) => {
+      const freq = root*4*Math.pow(2,interval/12);
+      programmerNoteRadio(freq,1.55,index===0?.016:.011,"sine",when);
+    });
+  }
+  if (beat%4===0) {
+    const bass = station.bass[bar] || 0;
+    const freq = root*2*Math.pow(2,bass/12);
+    programmerNoteRadio(freq,.32,.04,station.bassWave,when,freq*.985);
+  }
+  const melody = station.melody[beat];
+  if (melody!==null && melody!==undefined) {
+    const freq = root*8*Math.pow(2,station.scale[melody%station.scale.length]/12);
+    programmerNoteRadio(freq,station.lead==="square"?.105:.16,station.lead==="square"?.01:.02,station.lead,when);
+  }
+  if (beat%4===2 && station.name==="RAVE CIRCUIT") programmerNoteRadio(1700,.025,.005,"square",when);
+  return stepDuration;
+}
+
+function programmerBoucleRadio() {
+  if (!radioIsPlaying || !audioCtx) return;
+  const station = OMNI_RADIO_STATIONS[radioStationIndex];
+  const horizon = audioCtx.currentTime+.22;
+  let guard = 0;
+  while (radioNextStepAt<horizon && guard<12) {
+    radioNextStepAt += programmerPasRadio(station,radioStep,radioNextStepAt);
+    radioStep++;
+    guard++;
+  }
+}
+
+function lancerRadioCyber() {
+  if (!initAudio()) {
+    const status = document.getElementById("radio-status");
+    if (status) status.textContent = "Audio indisponible dans ce navigateur.";
+    return;
+  }
+  radioIsPlaying = true;
+  appliquerVolumesAudio();
+  radioStep = 0;
+  radioNextStepAt = audioCtx.currentTime+.06;
+  if (radioTimer!==null) clearInterval(radioTimer);
+  programmerBoucleRadio();
+  radioTimer = setInterval(programmerBoucleRadio,70);
+  actualiserInterfaceRadio();
+}
+
+function mettreRadioEnPause() {
+  radioIsPlaying = false;
+  if (radioTimer!==null) clearInterval(radioTimer);
+  radioTimer = null;
+  appliquerVolumesAudio();
+  actualiserInterfaceRadio();
+}
+
+function toggleCyberRadioPlayback() {
+  if (radioIsPlaying) mettreRadioEnPause();
+  else lancerRadioCyber();
+}
+
+function changerStationRadio(value) {
+  const index = Number(value);
+  if (!Number.isInteger(index) || index<0 || index>=OMNI_RADIO_STATIONS.length) return;
+  radioStationIndex = index;
+  sauvegarderPreferencesAudio();
+  if (radioIsPlaying) {
+    mettreRadioEnPause();
+    lancerRadioCyber();
+  } else actualiserInterfaceRadio();
+}
+
+function modifierVolumeRadio(value) {
+  const volume = Number(value);
+  if (!Number.isFinite(volume)) return;
+  omniMusicVolume = Math.max(0,Math.min(.6,volume/100));
+  appliquerVolumesAudio();
+  sauvegarderPreferencesAudio();
+  actualiserInterfaceRadio();
+}
+
+function toggleCyberRadioPanel() {
+  const panel = document.getElementById("omni-radio-settings");
+  const button = document.getElementById("omni-radio-settings-btn");
+  if (!panel) return;
+  panel.hidden = !panel.hidden;
+  if (button) button.setAttribute("aria-expanded",String(!panel.hidden));
+}
+
+function toggleSoundEffects() {
+  omniSfxEnabled = !omniSfxEnabled;
+  appliquerVolumesAudio();
+  sauvegarderPreferencesAudio();
+  actualiserInterfaceRadio();
+  if (omniSfxEnabled) jouerEffetSonore("success");
+}
+
+window.addEventListener("click",initAudio,{once:true});
+window.addEventListener("touchstart",initAudio,{once:true,passive:true});
 // MATRIX & RAVE
 let matrixCanvas, matrixCtx, matrixInterval;
 const matrixChars = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -202,14 +487,50 @@ function compterClicsTitre() {
 }
 
 let raveEmojiInterval;
+function creerParticuleRave() {
+  if (!state.raveMode || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const container = document.getElementById("rave-emoji-container");
+  if (!container) return;
+  const particle = document.createElement("span");
+  const symbols = ["✦","✧","⚡","♫","◆"];
+  particle.className = "rave-emoji";
+  particle.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+  particle.style.left = (5+Math.random()*90)+"vw";
+  particle.style.animationDuration = (3.2+Math.random()*1.4)+"s";
+  particle.style.opacity = String(.35+Math.random()*.35);
+  container.appendChild(particle);
+  setTimeout(() => particle.remove(),5000);
+}
 function toggleRaveMode() {
   state.raveMode = !state.raveMode;
-  document.body.classList.toggle("rave-active", state.raveMode);
-  document.getElementById("rave-btn").innerText = state.raveMode ? "🟢 Mode Rave : ON" : "🔴 Mode Rave : OFF";
+  document.body.classList.toggle("rave-active",state.raveMode);
+  const button = document.getElementById("rave-btn");
+  if (button) {
+    button.innerText = state.raveMode ? "🟢 Mode Rave : ON" : "🔴 Mode Rave : OFF";
+    button.setAttribute("aria-pressed",String(state.raveMode));
+  }
+  if (raveEmojiInterval) { clearInterval(raveEmojiInterval); raveEmojiInterval = null; }
+  if (state.raveMode) {
+    jouerEffetSonore("raveOn");
+    creerParticuleRave();
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      raveEmojiInterval = setInterval(creerParticuleRave,950);
+    }
+  } else {
+    jouerEffetSonore("raveOff");
+    const container = document.getElementById("rave-emoji-container");
+    if (container) container.replaceChildren();
+  }
+  sauvegarderDonnees();
 }
 function toggleCRTMode() {
   state.crtMode = !state.crtMode;
-  document.getElementById("crt-overlay").style.display = state.crtMode ? "block" : "none";
+  const overlay = document.getElementById("crt-overlay");
+  const button = document.getElementById("crt-toggle-btn");
+  if (overlay) overlay.style.display = state.crtMode ? "block" : "none";
+  if (button) button.setAttribute("aria-pressed",String(state.crtMode));
+  jouerEffetSonore("crt");
+  sauvegarderDonnees();
 }
 
 function changerAvatar() {
@@ -299,7 +620,7 @@ function cliquerPizza(e) {
   sauvegarderDonnees();
 
   // Son du clic
-  jouerNote(400, 0.05, 0.05);
+  jouerEffetSonore("pizza");
 
   // Animation de la pizza
   const pizzaEl = document.getElementById("pizza-gigante");
@@ -618,36 +939,164 @@ function acheterObjet(id) {
   sauvegarderDonnees();
 
   // Son de réussite
-  jouerNote(700, 0.12, 0.08);
+  jouerEffetSonore("purchase");
 
 }
 
 
-// CARTES RARES (BOOSTER)
-function ouvrirBooster() {
-  document.getElementById("booster-container").style.display = "none";
-  document.getElementById("cards-selection-container").style.display = "block";
-  jouerNote(600, 0.2, 0.1);
-}
+// CARTES RARES — BOOSTERS À CHOIX ET COLLECTION PERSISTANTE
 const cardsList = [
-  "🐉 Dragon Cybernétique (Légendaire)",
-  "🍕 Pizza Quantique d'Or (Mythique)",
-  "⚡ Matrix Hacker (Rare)",
-  "🛸 Soucoupe Volante Néon (Épique)"
+  {id:"mini-bot-neon",name:"Mini-Bot Néon",rarity:"COMMUNE",icon:"🤖",weight:38},
+  {id:"renard-pixel",name:"Renard Pixel",rarity:"COMMUNE",icon:"🦊",weight:27},
+  {id:"matrix-hacker",name:"Matrix Hacker",rarity:"RARE",icon:"⚡",weight:18},
+  {id:"soucoupe-neon",name:"Soucoupe Volante Néon",rarity:"ÉPIQUE",icon:"🛸",weight:10},
+  {id:"dragon-cyber",name:"Dragon Cybernétique",rarity:"LÉGENDAIRE",icon:"🐉",weight:5},
+  {id:"pizza-quantique",name:"Pizza Quantique d'Or",rarity:"MYTHIQUE",icon:"🍕",weight:2}
 ];
-function revelerCarte(id) {
-  const card = cardsList[Math.floor(Math.random() * cardsList.length)];
-  document.getElementById("cards-selection-container").style.display = "none";
-  document.getElementById("card-result").style.display = "block";
-  document.getElementById("card-result-name").innerText = "🎉 Tu as obtenu : " + card;
-  jouerNote(800, 0.3, 0.2);
-}
-function reinitialiserBooster() {
-  document.getElementById("booster-container").style.display = "block";
-  document.getElementById("cards-selection-container").style.display = "none";
-  document.getElementById("card-result").style.display = "none";
+let boosterEnCours = [];
+let ouvertureBoosterEnCours = false;
+
+function tirerCarteCosmique() {
+  const total = cardsList.reduce((sum,card)=>sum+card.weight,0);
+  let draw = Math.random()*total;
+  for (const card of cardsList) {
+    draw -= card.weight;
+    if (draw<0) return card;
+  }
+  return cardsList[0];
 }
 
+function classeRareteCarte(rarete) {
+  return "rarity-"+String(rarete||"commune").toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z]/g,"");
+}
+
+function afficherCollectionCartes() {
+  const grid = document.getElementById("card-collection-grid");
+  if (!grid) return;
+  if (!state.cardsCollection || typeof state.cardsCollection!=="object" || Array.isArray(state.cardsCollection)) {
+    state.cardsCollection = {};
+  }
+  grid.replaceChildren();
+  let unique = 0;
+  let total = 0;
+
+  cardsList.forEach(card => {
+    const count = Math.max(0,Number(state.cardsCollection[card.id])||0);
+    total += count;
+    if (count>0) unique++;
+    const item = document.createElement("article");
+    item.className = "omni-collection-card "+(count>0?classeRareteCarte(card.rarity):"is-locked");
+    const icon = document.createElement("span");
+    icon.className = "omni-collection-icon";
+    icon.textContent = count>0?card.icon:"🔒";
+    const name = document.createElement("strong");
+    name.textContent = count>0?card.name:"Carte à découvrir";
+    const rarity = document.createElement("small");
+    rarity.textContent = count>0?card.rarity:"INCONNUE";
+    const quantity = document.createElement("span");
+    quantity.className = "omni-collection-count";
+    quantity.textContent = count>0?"×"+count:"NON OBTENUE";
+    item.append(icon,name,rarity,quantity);
+    grid.appendChild(item);
+  });
+
+  const counter = document.getElementById("card-collection-count");
+  const progress = document.getElementById("card-collection-progress");
+  const badge = document.querySelector(".omni-collection-badge");
+  if (counter) counter.textContent = unique+" / "+cardsList.length;
+  if (progress) progress.style.width = (unique/cardsList.length*100)+"%";
+  if (badge) badge.textContent = "🎴 "+total+" CARTE"+(total>1?"S":"")+" OBTENUE"+(total>1?"S":"");
+}
+
+function ouvrirBooster() {
+  if (ouvertureBoosterEnCours) return;
+  const booster = document.getElementById("booster-container");
+  const selection = document.getElementById("cards-selection-container");
+  const pack = booster?.querySelector(".booster-pack");
+  if (!booster || !selection || !pack) return;
+  ouvertureBoosterEnCours = true;
+  boosterEnCours = Array.from({length:3},tirerCarteCosmique);
+  pack.classList.add("is-opening");
+  jouerEffetSonore("booster");
+
+  setTimeout(() => {
+    booster.style.display = "none";
+    selection.style.display = "block";
+    selection.classList.add("is-visible");
+    document.querySelectorAll("[data-card-choice]").forEach((button,index) => {
+      button.disabled = false;
+      button.classList.remove("is-revealed","is-selected");
+      button.dataset.rarity = "";
+      const symbol = button.querySelector(".card-back-symbol");
+      const label = button.querySelector("small");
+      if (symbol) symbol.textContent = index===1?"✧":"✦";
+      if (label) label.textContent = "OMNI • 0"+(index+1);
+    });
+    ouvertureBoosterEnCours = false;
+  },360);
+}
+
+function revelerCarte(id) {
+  if (ouvertureBoosterEnCours || !Number.isInteger(Number(id))) return;
+  const index = Number(id)-1;
+  const card = boosterEnCours[index];
+  if (!card) return;
+
+  document.querySelectorAll("[data-card-choice]").forEach(button=>button.disabled=true);
+  const selection = document.getElementById("cards-selection-container");
+  const result = document.getElementById("card-result");
+  const icon = document.getElementById("card-result-icon");
+  const name = document.getElementById("card-result-name");
+  const rarity = document.getElementById("card-result-rarity");
+  if (!result || !icon || !name || !rarity) return;
+
+  const selectedButton = document.querySelector('[data-card-choice="'+(index+1)+'"]');
+  if (selectedButton) {
+    selectedButton.classList.add("is-revealed","is-selected",classeRareteCarte(card.rarity));
+    const symbol = selectedButton.querySelector(".card-back-symbol");
+    const label = selectedButton.querySelector("small");
+    if (symbol) symbol.textContent = card.icon;
+    if (label) label.textContent = card.rarity;
+  }
+  if (!state.cardsCollection || typeof state.cardsCollection!=="object" || Array.isArray(state.cardsCollection)) {
+    state.cardsCollection = {};
+  }
+  const duplicate = Number(state.cardsCollection[card.id])>0;
+  state.cardsCollection[card.id] = (Number(state.cardsCollection[card.id])||0)+1;
+  if (selection) selection.style.display = "none";
+
+  icon.textContent = card.icon;
+  icon.className = "omni-card-result-icon "+classeRareteCarte(card.rarity);
+  name.textContent = card.name;
+  rarity.textContent = card.rarity+(duplicate?" • DOUBLON AJOUTÉ À LA COLLECTION":" • NOUVELLE CARTE !");
+  result.style.display = "grid";
+  result.classList.remove("is-revealing");
+  void result.offsetWidth;
+  result.classList.add("is-revealing");
+
+  jouerEffetSonore(card.rarity==="LÉGENDAIRE"||card.rarity==="MYTHIQUE"?"legendary":duplicate?"coin":"success");
+  afficherCollectionCartes();
+  sauvegarderDonnees();
+}
+
+function reinitialiserBooster() {
+  const booster = document.getElementById("booster-container");
+  const selection = document.getElementById("cards-selection-container");
+  const result = document.getElementById("card-result");
+  const pack = booster?.querySelector(".booster-pack");
+  if (booster) booster.style.display = "flex";
+  if (selection) { selection.style.display = "none"; selection.classList.remove("is-visible"); }
+  if (result) result.style.display = "none";
+  if (pack) pack.classList.remove("is-opening");
+  document.querySelectorAll("[data-card-choice]").forEach(button => {
+    button.disabled = false;
+    button.classList.remove("is-revealed","is-selected","rarity-commune","rarity-rare","rarity-epique","rarity-legendaire","rarity-mythique");
+  });
+  boosterEnCours = [];
+  ouvertureBoosterEnCours = false;
+  jouerEffetSonore("open");
+}
 
 // SIMON SAYS — COMPTEUR ET RECORD PERSONNEL
 
@@ -763,6 +1212,7 @@ function flasherBoutonSimon(id) {
   const btn = document.getElementById("simon-" + id);
 
   if (!btn) return;
+  jouerEffetSonore("simon-" + id);
 
   btn.style.opacity = "0.3";
 
@@ -871,7 +1321,7 @@ function initPapierBulle() {
     const pop = () => {
       if (!bubble.classList.contains("popped")) {
         bubble.classList.add("popped");
-        jouerNote(300, 0.04, 0.1);
+        jouerEffetSonore("bubble");
       }
     };
     bubble.onmouseover = () => { if (isSwipingBubble) pop(); };
@@ -963,6 +1413,7 @@ function initGraffiti() {
   gCanvas.ontouchmove = draw;
 }
 function effacerGraffiti() {
+  jouerEffetSonore("whoosh");
   if (gCtx && gCanvas) gCtx.clearRect(0, 0, gCanvas.width, gCanvas.height);
 }
 
@@ -990,6 +1441,7 @@ function envoyerChatCommunautaire() {
 function voterHumeur(humeur) {
   const statut = document.getElementById("mood-status");
   if (statut) statut.textContent = "Humeur choisie sur cet appareil : " + humeur + " (démo locale).";
+  jouerEffetSonore("success");
 }
 
 // CITATIONS & DILEMMES
@@ -1003,6 +1455,7 @@ function genererCitationIA() {
   const verb = aiVerbs[Math.floor(Math.random() * aiVerbs.length)];
   const ctx = aiContexts[Math.floor(Math.random() * aiContexts.length)];
   document.getElementById("citation-display").innerText = `« ${sub} ${verb} ${ctx} »`;
+  jouerEffetSonore("open");
 }
 
 const dilemmesIADatabase = [
@@ -1050,6 +1503,7 @@ function creerCapsule() {
 
   if (!Array.isArray(state.capsules)) state.capsules = [];
   state.capsules.unshift({ text: txt, unlockTime });
+  jouerEffetSonore("success");
   state.capsules = state.capsules.slice(0, 50);
 
   input.value = "";
@@ -1123,6 +1577,7 @@ function publierSecret() {
 
   if (!Array.isArray(state.secrets)) state.secrets = [];
   state.secrets.unshift(txt);
+  jouerEffetSonore("success");
   state.secrets = state.secrets.slice(0, 50);
   input.value = "";
   afficherSecrets();
@@ -1167,6 +1622,7 @@ function supprimerSecret(index) {
 }
 
 function detruireSouciGeant() {
+  jouerEffetSonore("whoosh");
   const textarea = document.getElementById("vent-input");
   if (!textarea || !textarea.value.trim()) return;
   if (textarea.dataset.animating === "true") return;
@@ -1702,6 +2158,7 @@ function avancerSnake() {
   snakeCorps.unshift(tete);
 
   if (mange) {
+    jouerEffetSonore("coin");
     snakeScore += 1;
 
     if (snakeScore > snakeRecord) {
@@ -1948,6 +2405,7 @@ function dessinerSnake(progression = 1) {
 }
 
 function terminerSnake() {
+  jouerEffetSonore("crash");
   snakeEnCours = false;
   snakeGameOver = true;
 
@@ -2295,6 +2753,7 @@ function retournerCarteMemory(index) {
 
   if (!carte || carte.trouvee) return;
   if (memorySelection.includes(index)) return;
+  jouerEffetSonore("flip");
 
   const grille = document.getElementById("memory-grid");
 
@@ -2336,6 +2795,7 @@ function retournerCarteMemory(index) {
       boutonB?.classList.add("is-flipped", "is-matched");
 
       memoryPairesTrouvees++;
+      jouerEffetSonore("match");
       memorySelection = [];
 
       const statut = document.getElementById("memory-status");
@@ -2353,6 +2813,7 @@ function retournerCarteMemory(index) {
     } else {
 
       // LES DEUX CARTES SONT DIFFÉRENTES
+      jouerEffetSonore("error");
       memoryVerrouille = true;
 
       const statut = document.getElementById("memory-status");
@@ -2391,6 +2852,7 @@ function retournerCarteMemory(index) {
 
 // FIN DE PARTIE
 function terminerMemory() {
+  jouerEffetSonore("win");
   const statut = document.getElementById("memory-status");
 
   let nouveauRecord = false;
@@ -2484,6 +2946,7 @@ function demarrerReflexe() {
   const bouton = document.getElementById("reflex-start");
   const temps = document.getElementById("reflex-time");
   if (!cible || !statut) return;
+  jouerEffetSonore("start");
 
   reflexEtat = "waiting";
   cible.classList.remove("ready");
@@ -2497,6 +2960,7 @@ function demarrerReflexe() {
     if (reflexEtat !== "waiting") return;
     reflexEtat = "ready";
     reflexDebut = performance.now();
+    jouerEffetSonore("signal");
     cible.classList.remove("waiting");
     cible.classList.add("ready");
     statut.textContent = "MAINTENANT ! CLIQUE !";
@@ -2514,6 +2978,7 @@ function cliquerReflexe() {
     if (reflexTimer !== null) clearTimeout(reflexTimer);
     reflexTimer = null;
     reflexEtat = "idle";
+    jouerEffetSonore("error");
     cible.classList.remove("waiting", "ready");
     statut.textContent = "TROP TÔT ! Recommence.";
     if (bouton) bouton.disabled = false;
@@ -2526,6 +2991,7 @@ function cliquerReflexe() {
   }
 
   const reaction = Math.max(0, Math.round(performance.now() - reflexDebut));
+  jouerEffetSonore("success");
   reflexEtat = "idle";
   reflexTimer = null;
   cible.classList.remove("ready", "waiting");
@@ -2729,9 +3195,11 @@ function bouclePong(timestamp) {
   pongBalle.y += pongBalle.vy * facteur;
 
   if (pongBalle.x - pongBalle.r <= 0) {
+    jouerEffetSonore("bounce");
     pongBalle.x = pongBalle.r;
     pongBalle.vx = Math.abs(pongBalle.vx);
   } else if (pongBalle.x + pongBalle.r >= PONG_LARGEUR) {
+    jouerEffetSonore("bounce");
     pongBalle.x = PONG_LARGEUR - pongBalle.r;
     pongBalle.vx = -Math.abs(pongBalle.vx);
   }
@@ -2765,11 +3233,13 @@ function bouclePong(timestamp) {
   }
 
   if (pongBalle.y < -pongBalle.r) {
+    jouerEffetSonore("success");
     pongScoreJoueur++;
     mettreAJourScorePong();
     if (pongScoreJoueur >= 5) return terminerPong("🏆 Victoire ! Tu as battu l'ordinateur.");
     lancerBallePong(1);
   } else if (pongBalle.y > PONG_HAUTEUR + pongBalle.r) {
+    jouerEffetSonore("error");
     pongScoreCpu++;
     mettreAJourScorePong();
     if (pongScoreCpu >= 5) return terminerPong("🤖 L'ordinateur gagne cette manche. Retente ta chance !");
@@ -2781,6 +3251,7 @@ function bouclePong(timestamp) {
 }
 
 function terminerPong(message) {
+  jouerEffetSonore(message.includes("Victoire") ? "win" : "crash");
   pongEnCours = false;
   const boutonJouer = document.getElementById("pong-start");
   if (boutonJouer) boutonJouer.disabled = false;
@@ -2911,6 +3382,7 @@ function deplacer2048(direction) {
   });
 
   if (avant === grille2048.join(",")) return;
+  jouerEffetSonore(pointsGagnes > 0 ? "merge" : "tile");
   score2048 += pointsGagnes;
   if (score2048 > meilleur2048) {
     meilleur2048 = score2048;
@@ -2921,9 +3393,11 @@ function deplacer2048(direction) {
 
   if (!victoire2048 && grille2048.some(valeur => valeur >= 2048)) {
     victoire2048 = true;
+    jouerEffetSonore("win");
     statut2048("🏆 2048 atteint ! Tu peux continuer à jouer pour battre ton record.");
   } else if (!aDesCoups2048()) {
     jeu2048Actif = false;
+    jouerEffetSonore("crash");
     statut2048("Fin de partie ! Score : " + score2048 + ". Clique sur RECOMMENCER.");
   } else if (!victoire2048) {
     statut2048("Bien joué ! Continue à fusionner les tuiles.");
@@ -2968,6 +3442,7 @@ function jouerMorpion(index) {
   if (!Number.isInteger(index) || index < 0 || index > 8) return;
   if (morpionTermine || morpionPlateau[index]) return;
   morpionPlateau[index] = morpionJoueur;
+  jouerEffetSonore("tap");
 
   const ligneGagnante = MORPION_LIGNES_GAGNANTES.find(ligne =>
     ligne.every(position => morpionPlateau[position] === morpionJoueur)
@@ -2975,6 +3450,7 @@ function jouerMorpion(index) {
   const statut = document.getElementById("morpion-status");
 
   if (ligneGagnante) {
+    jouerEffetSonore("win");
     morpionTermine = true;
     if (statut) statut.textContent = "🏆 Joueur " + morpionJoueur + " remporte la partie !";
     afficherMorpion(ligneGagnante);
@@ -2982,6 +3458,7 @@ function jouerMorpion(index) {
   }
 
   if (morpionPlateau.every(Boolean)) {
+    jouerEffetSonore("success");
     morpionTermine = true;
     if (statut) statut.textContent = "🤝 Égalité ! Bien joué à tous les deux.";
     afficherMorpion(null);
@@ -3103,6 +3580,7 @@ function dessinerSpaceDodger(fin) {
 
 function demarrerSpaceDodger() {
   if (!obtenirCanvasSpace()) return;
+  jouerEffetSonore("start");
   if (spaceAnimation !== null) cancelAnimationFrame(spaceAnimation);
   spaceEnCours = true;
   spaceDerniereImage = 0;
@@ -3181,6 +3659,7 @@ function boucleSpaceDodger(timestamp) {
 }
 
 function terminerSpaceDodger() {
+  jouerEffetSonore("crash");
   spaceEnCours = false;
   if (spaceAnimation !== null) cancelAnimationFrame(spaceAnimation);
   spaceAnimation = null;
@@ -3310,9 +3789,11 @@ function repondreQuiz(choix) {
 
   const statut = document.getElementById("quiz-status");
   if (choix === item.c) {
+    jouerEffetSonore("success");
     quizScoreValeur += 10;
     if (statut) statut.textContent = "✅ Bonne réponse ! +10 points";
   } else if (statut) {
+    jouerEffetSonore("error");
     statut.textContent = "❌ Pas tout à fait. La bonne réponse est : " + item.a[item.c];
   }
 
@@ -3364,6 +3845,19 @@ function arreterQuiz() {
     if (statut) statut.textContent = "Partie interrompue. Tu peux relancer un quiz.";
   }
 }
+
+
+/* Sons discrets des interactions hors mini-jeux */
+document.addEventListener("click",function(event){
+  const target=event.target && event.target.closest
+    ? event.target.closest("button, summary, .color-swatch")
+    : null;
+  if(!target || target.disabled) return;
+  if(target.closest("#omni-radio-player, .omni-game-panel, #wheel-modal")) return;
+  if(target.matches("#pizza-gigante, #rave-btn, #crt-toggle-btn, .booster-pack, .card-item, .bubble-item")) return;
+  if(target.closest(".omni-game-card, [onclick^='switchTab'], #shop-container")) return;
+  jouerEffetSonore("click");
+},false);
 
 /* COMMANDES AU CLAVIER — ACTIVES UNIQUEMENT DANS LE JEU AFFICHÉ */
 document.addEventListener("keydown", function(event) {
