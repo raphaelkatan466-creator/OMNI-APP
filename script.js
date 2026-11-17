@@ -1355,8 +1355,6 @@ function tournerLaGrandeRoue() {
   }, 4200);
 }
 
-function switchTab(tabId)
-
 function switchTab(tabId) {
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   document.querySelectorAll(".menu-btn").forEach(b => b.classList.remove("active"));
