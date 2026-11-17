@@ -16,6 +16,29 @@ function chargerDonnees() {
 
       Object.assign(state, donneesEtat);
 
+      // Vérifier les champs sauvegardés avant de les utiliser.
+      if (!Array.isArray(state.secrets)) state.secrets = [];
+      if (!Array.isArray(state.capsules)) state.capsules = [];
+      if (!Array.isArray(state.unlockedSkins)) state.unlockedSkins = ["🍕"];
+      if (!Array.isArray(state.unlockedEffects)) state.unlockedEffects = ["cyan"];
+
+      ["pizzas", "clickPower", "pizzasPerSec", "omniPoints"].forEach(cle => {
+        if (!Number.isFinite(state[cle]) || state[cle] < 0) {
+          state[cle] = cle === "clickPower" ? 1 : 0;
+        }
+      });
+
+      state.secrets = state.secrets
+        .filter(texte => typeof texte === "string")
+        .slice(0, 50);
+      state.capsules = state.capsules
+        .filter(capsule =>
+          capsule &&
+          typeof capsule.text === "string" &&
+          Number.isFinite(capsule.unlockTime)
+        )
+        .slice(0, 50);
+
       // Récupère les prix sauvegardés de la boutique
       if (Array.isArray(offresBoutique)) {
         offresBoutique.forEach(offreSauvee => {
@@ -36,18 +59,21 @@ function chargerDonnees() {
 
 
 function sauvegarderDonnees() {
-  const donnees = {
-    ...state,
-    offresBoutique: OFFRES_BOUTIQUE.map(item => ({
-      id: item.id,
-      cost: item.cost
-    }))
-  };
+  try {
+    const donnees = {
+      ...state,
+      offresBoutique: OFFRES_BOUTIQUE.map(item => ({
+        id: item.id,
+        cost: item.cost
+      }))
+    };
 
-  localStorage.setItem(
-    "omni_app_full_save",
-    JSON.stringify(donnees)
-  );
+    localStorage.setItem("omni_app_full_save", JSON.stringify(donnees));
+  } catch (erreur) {
+    console.warn("La sauvegarde locale OMNI-APP a échoué :", erreur);
+    const statut = document.getElementById("app-save-status");
+    if (statut) statut.textContent = "⚠️ Sauvegarde impossible : vérifie l'espace disponible du navigateur.";
+  }
 }
 
 
@@ -71,7 +97,8 @@ function reinitialiserTout() {
   "omni_reflex_best",
   "omni_2048_best",
   "omni_space_best",
-  "omni_quiz_best"
+  "omni_quiz_best",
+  "omni_wheel_last_spin_date"
 ].forEach(cle => localStorage.removeItem(cle));
 
     // Recharge l'application avec les valeurs de départ
@@ -973,7 +1000,7 @@ function voterDilemme(choix) {
   const p1 = Math.floor(Math.random() * 40) + 30;
   document.getElementById("dilemme-options").style.display = "none";
   document.getElementById("dilemme-resultats").style.display = "block";
-  document.getElementById("res-texte").innerHTML = `📊 Résultats :<br><span style="color:var(--neon-blue)">Choix 1 : ${p1}%</span> | <span style="color:var(--neon-gold)">Choix 2 : ${100 - p1}%</span>`;
+  document.getElementById("res-texte").textContent = `📊 Répartition simulée pour s'amuser : Choix 1 : ${p1}% | Choix 2 : ${100 - p1}%`;
 }
 function prochainDilemmeIA() {
   currentDilemmeIndex++;
@@ -1203,6 +1230,8 @@ function actualiserRoueQuotidienne() {
   const boutonOuvrir = document.getElementById("wheel-open-btn");
   const boutonTourner = document.getElementById("spin-wheel-btn");
   const statut = document.getElementById("wheel-status");
+  const statutPage = document.getElementById("wheel-page-status");
+  const boutonFermer = document.getElementById("wheel-close-btn");
   const disponible = !dejaUtilisee && !isSpinning;
 
   if (boutonOuvrir) {
@@ -1213,11 +1242,16 @@ function actualiserRoueQuotidienne() {
     boutonTourner.disabled = !disponible;
     boutonTourner.textContent = dejaUtilisee ? "✅ Déjà utilisée aujourd’hui" : "🎰 TOURNER !";
   }
-  if (statut) {
-    statut.textContent = dejaUtilisee
+  const messageRoue = isSpinning
+    ? "✨ La roue tourne…"
+    : dejaUtilisee
       ? "Tu as déjà utilisé ta roue aujourd’hui. Reviens demain pour une nouvelle tentative."
       : "Une tentative gratuite par jour. Les récompenses sont virtuelles et restent sur cet appareil.";
-  }
+  if (statut) statut.textContent = messageRoue;
+  if (statutPage) statutPage.textContent = dejaUtilisee
+    ? "✅ Tentative utilisée aujourd'hui. La prochaine sera disponible demain."
+    : "🎁 Ta tentative quotidienne est disponible.";
+  if (boutonFermer) boutonFermer.disabled = isSpinning;
 }
 
 function ouvrirGrandeRoue() {
@@ -1353,6 +1387,7 @@ window.onload = () => {
   genererBoutiqueCosmetique();
   afficherCapsules();
   afficherSecrets();
+  actualiserRoueQuotidienne();
   rafraichirAffichagePizza();
   
   const pizzaEl = document.getElementById("pizza-gigante");
