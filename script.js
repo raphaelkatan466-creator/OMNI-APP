@@ -411,6 +411,7 @@ function changerStationRadio(value) {
   const index = Number(value);
   if (!Number.isInteger(index) || index<0 || index>=OMNI_RADIO_STATIONS.length) return;
   radioStationIndex = index;
+  jouerEffetSonore("open");
   sauvegarderPreferencesAudio();
   if (radioIsPlaying) {
     mettreRadioEnPause();
@@ -442,6 +443,7 @@ function toggleCyberRadioPanel() {
   if (!panel) return;
   panel.hidden = !panel.hidden;
   if (button) button.setAttribute("aria-expanded",String(!panel.hidden));
+  jouerEffetSonore("click");
 }
 
 function toggleSoundEffects() {
@@ -491,10 +493,14 @@ function toggleMatrix() {
     initMatrixEngine();
     if (!matrixInterval) matrixInterval = setInterval(drawMatrixFrame, 33);
   } else {
+    if (matrixInterval) clearInterval(matrixInterval);
+    matrixInterval = null;
     if (matrixCtx) matrixCtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
   }
+  sauvegarderDonnees();
 }
 function compterClicsTitre() {
+  jouerEffetSonore("click");
   state.titleClicks++;
   if (state.titleClicks >= 5) {
     state.titleClicks = 0;
@@ -1645,8 +1651,8 @@ function supprimerSecret(index) {
 function detruireSouciGeant() {
   const textarea = document.getElementById("vent-input");
   if (!textarea || !textarea.value.trim()) return;
-  jouerEffetSonore("whoosh");
   if (textarea.dataset.animating === "true") return;
+  jouerEffetSonore("whoosh");
 
   textarea.dataset.animating = "true";
   textarea.style.transition = "transform 0.65s ease, opacity 0.65s ease";
@@ -1829,6 +1835,7 @@ function tournerLaGrandeRoue() {
   try {
     localStorage.setItem(OMNI_WHEEL_DATE_KEY, dateLocaleActuelle());
   } catch (erreur) {
+    jouerEffetSonore("error");
     console.warn("La roue ne peut pas enregistrer sa date :", erreur);
     isSpinning = false;
     actualiserRoueQuotidienne();
@@ -1869,6 +1876,7 @@ function tournerLaGrandeRoue() {
     } else if (reward.type === "pizza") {
       alert("🍕 Super ! Tu remportes " + reward.amount + " pizzas !");
     } else {
+      jouerEffetSonore("error");
       alert("😢 Pas de récompense cette fois-ci. Reviens demain !");
     }
 
@@ -1904,6 +1912,22 @@ window.onload = () => {
     profileAvatar.textContent = state.userAvatar;
   }
   initMatrixEngine();
+  document.body.classList.toggle("matrix-mode",state.matrixMode);
+  if (state.matrixMode && !matrixInterval) matrixInterval = setInterval(drawMatrixFrame,33);
+  const raveButton = document.getElementById("rave-btn");
+  const crtButton = document.getElementById("crt-toggle-btn");
+  const crtOverlay = document.getElementById("crt-overlay");
+  document.body.classList.toggle("rave-active",state.raveMode);
+  if (raveButton) {
+    raveButton.textContent = state.raveMode ? "🟢 Mode Rave : ON" : "🔴 Mode Rave : OFF";
+    raveButton.setAttribute("aria-pressed",String(state.raveMode));
+  }
+  if (state.raveMode && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    creerParticuleRave();
+    raveEmojiInterval = setInterval(creerParticuleRave,950);
+  }
+  if (crtOverlay) crtOverlay.style.display = state.crtMode ? "block" : "none";
+  if (crtButton) crtButton.setAttribute("aria-pressed",String(state.crtMode));
   initPapierBulle();
   initPixelArtPro();
   initGraffiti();
@@ -2144,8 +2168,6 @@ function demarrerSnake() {
 }
 
 function changerDirectionSnake(direction) {
-  jouerEffetSonore("tap");
-
   const opposés = {
     up: "down",
     down: "up",
@@ -2155,6 +2177,7 @@ function changerDirectionSnake(direction) {
 
   if (!snakeEnCours) return;
   if (opposés[direction] === snakeDirection) return;
+  jouerEffetSonore("tap");
 
   snakeProchaineDirection = direction;
 }
@@ -3648,10 +3671,9 @@ function demarrerSpaceDodger() {
 }
 
 function deplacerVaisseau(direction) {
-  jouerEffetSonore("tap");
-
   const sens = Number(direction);
   if (!Number.isFinite(sens) || !spaceEnCours) return;
+  jouerEffetSonore("tap");
   // Le vaisseau rejoint progressivement sa cible au lieu de sauter par à-coups.
   spaceJoueurCibleX = Math.max(22, Math.min(398, spaceJoueurCibleX + sens * 68));
 }
@@ -3907,9 +3929,10 @@ document.addEventListener("click",function(event){
     ? event.target.closest("button, summary, .color-swatch")
     : null;
   if(!target || target.disabled) return;
-  if(target.closest("#omni-radio-player, .omni-game-panel, #wheel-modal")) return;
+  if(target.closest("#omni-radio-player, .omni-game-panel, #omni-game-stage, #wheel-modal")) return;
   if(target.matches("#pizza-gigante, #rave-btn, #crt-toggle-btn, .booster-pack, .card-item, .bubble-item")) return;
-  if(target.closest("[onclick^='switchTab'], #shop-container")) return;
+  if(target.closest("[onclick^='switchTab'], #shop-container, #wheel-open-btn")) return;
+  if(target.closest('[onclick*="voterHumeur"], [onclick*="publierSecret"], [onclick*="creerCapsule"], [onclick*="detruireSouciGeant"], [onclick*="effacerGraffiti"], [onclick*="genererCitationIA"]')) return;
   jouerEffetSonore("click");
 },false);
 
