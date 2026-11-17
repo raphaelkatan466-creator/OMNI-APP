@@ -148,6 +148,7 @@ let omniMasterGain = null;
 let omniSfxGain = null;
 let omniMusicGain = null;
 let omniSfxEnabled = true;
+let omniSfxVolume = 0.78;
 let omniMusicVolume = 0.28;
 let audioPreferencesLoaded = false;
 let radioIsPlaying = false;
@@ -177,6 +178,7 @@ function chargerPreferencesAudio() {
   try {
     const prefs = JSON.parse(localStorage.getItem("omni_audio_preferences") || "{}");
     if (typeof prefs.sfxEnabled === "boolean") omniSfxEnabled = prefs.sfxEnabled;
+    if (Number.isFinite(prefs.sfxVolume)) omniSfxVolume = Math.max(0,Math.min(1,prefs.sfxVolume));
     if (Number.isFinite(prefs.musicVolume)) omniMusicVolume = Math.max(0, Math.min(.6, prefs.musicVolume));
     if (Number.isInteger(prefs.station) && prefs.station >= 0 && prefs.station < OMNI_RADIO_STATIONS.length) {
       radioStationIndex = prefs.station;
@@ -189,7 +191,7 @@ function chargerPreferencesAudio() {
 function sauvegarderPreferencesAudio() {
   try {
     localStorage.setItem("omni_audio_preferences", JSON.stringify({
-      sfxEnabled: omniSfxEnabled, musicVolume: omniMusicVolume, station: radioStationIndex
+      sfxEnabled: omniSfxEnabled, sfxVolume: omniSfxVolume, musicVolume: omniMusicVolume, station: radioStationIndex
     }));
   } catch (error) {
     console.warn("Impossible de sauvegarder les préférences audio :", error);
@@ -226,7 +228,7 @@ function initAudio() {
 function appliquerVolumesAudio() {
   if (!audioCtx || !omniSfxGain || !omniMusicGain) return;
   const now = audioCtx.currentTime;
-  omniSfxGain.gain.setTargetAtTime(omniSfxEnabled ? .78 : .0001, now, .035);
+  omniSfxGain.gain.setTargetAtTime(omniSfxEnabled ? omniSfxVolume : .0001, now, .035);
   omniMusicGain.gain.setTargetAtTime(radioIsPlaying ? omniMusicVolume : .0001, now, .09);
 }
 
@@ -309,6 +311,8 @@ function actualiserInterfaceRadio() {
   const volume = document.getElementById("radio-volume");
   const volumeValue = document.getElementById("radio-volume-value");
   const sfx = document.getElementById("omni-sfx-toggle-btn");
+  const sfxVolume = document.getElementById("radio-sfx-volume");
+  const sfxVolumeValue = document.getElementById("radio-sfx-volume-value");
   if (nom) nom.textContent = station.name;
   if (style) style.textContent = station.style + (radioIsPlaying ? " • EN DIRECT" : " • En pause");
   if (play) {
@@ -326,6 +330,8 @@ function actualiserInterfaceRadio() {
     sfx.textContent = omniSfxEnabled ? "🔊 SONS ON" : "🔇 SONS OFF";
     sfx.setAttribute("aria-pressed",String(omniSfxEnabled));
   }
+  if (sfxVolume) sfxVolume.value = String(Math.round(omniSfxVolume*100));
+  if (sfxVolumeValue) sfxVolumeValue.textContent = Math.round(omniSfxVolume*100)+"%";
 }
 
 function programmerNoteRadio(freq,duration,volume,wave,when,endFreq=null) {
@@ -421,6 +427,15 @@ function modifierVolumeRadio(value) {
   actualiserInterfaceRadio();
 }
 
+function modifierVolumeEffets(value) {
+  const volume = Number(value);
+  if (!Number.isFinite(volume)) return;
+  omniSfxVolume = Math.max(0,Math.min(1,volume/100));
+  appliquerVolumesAudio();
+  sauvegarderPreferencesAudio();
+  actualiserInterfaceRadio();
+}
+
 function toggleCyberRadioPanel() {
   const panel = document.getElementById("omni-radio-settings");
   const button = document.getElementById("omni-radio-settings-btn");
@@ -468,6 +483,8 @@ function drawMatrixFrame() {
   }
 }
 function toggleMatrix() {
+  jouerEffetSonore("matrix");
+
   state.matrixMode = !state.matrixMode;
   document.body.classList.toggle("matrix-mode", state.matrixMode);
   if (state.matrixMode) {
@@ -534,6 +551,8 @@ function toggleCRTMode() {
 }
 
 function changerAvatar() {
+  jouerEffetSonore("open");
+
   const avatars = ["🤖", "👽", "👑", "🦊", "🥷", "🦁", "👾"];
   state.userAvatar = avatars[(avatars.indexOf(state.userAvatar) + 1 || 0) % avatars.length];
   document.getElementById("profile-avatar").innerText = state.userAvatar;
@@ -1162,6 +1181,8 @@ function enregistrerRecordSimon() {
 
 // Démarrer une nouvelle partie
 function demarrerSimonGame() {
+  jouerEffetSonore("start");
+
   if (simonInterval) clearInterval(simonInterval);
   if (simonSequenceTimeout) clearTimeout(simonSequenceTimeout);
 
@@ -1622,9 +1643,9 @@ function supprimerSecret(index) {
 }
 
 function detruireSouciGeant() {
-  jouerEffetSonore("whoosh");
   const textarea = document.getElementById("vent-input");
   if (!textarea || !textarea.value.trim()) return;
+  jouerEffetSonore("whoosh");
   if (textarea.dataset.animating === "true") return;
 
   textarea.dataset.animating = "true";
@@ -1755,13 +1776,14 @@ function ouvrirGrandeRoue() {
   const modal = document.getElementById("wheel-modal");
   if (!modal) return;
   modal.style.display = "flex";
+  jouerEffetSonore("open");
   dessinerRoue();
   actualiserRoueQuotidienne();
 }
 
 function fermerGrandeRoue() {
   const modal = document.getElementById("wheel-modal");
-  if (modal && !isSpinning) modal.style.display = "none";
+  if (modal && !isSpinning) { modal.style.display = "none"; jouerEffetSonore("open"); }
 }
 
 function dessinerRoue() {
@@ -1803,6 +1825,7 @@ function tournerLaGrandeRoue() {
   }
 
   isSpinning = true;
+  jouerEffetSonore("wheel");
   try {
     localStorage.setItem(OMNI_WHEEL_DATE_KEY, dateLocaleActuelle());
   } catch (erreur) {
@@ -1829,8 +1852,10 @@ function tournerLaGrandeRoue() {
     wheelSpinTimeout = null;
 
     if (reward.type === "omni") {
+      jouerEffetSonore("win");
       state.omniPoints += reward.amount;
     } else if (reward.type === "pizza") {
+      jouerEffetSonore("win");
       state.pizzas += reward.amount;
     }
 
@@ -1853,6 +1878,10 @@ function tournerLaGrandeRoue() {
 }
 
 function switchTab(tabId) {
+  jouerEffetSonore("nav");
+  const moreMenu = document.querySelector(".more-nav");
+  if (moreMenu) moreMenu.open = false;
+
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   document.querySelectorAll(".menu-btn").forEach(b => b.classList.remove("active"));
   const p = document.getElementById("page-" + tabId);
@@ -1880,6 +1909,9 @@ window.onload = () => {
   initGraffiti();
   chargerDilemmeIA();
   genererBoutiqueCosmetique();
+  afficherCollectionCartes();
+  chargerPreferencesAudio();
+  actualiserInterfaceRadio();
   afficherCapsules();
   afficherSecrets();
   actualiserRoueQuotidienne();
@@ -1980,6 +2012,8 @@ function ouvrirMiniJeu(nom) {
 
 // Revenir au menu de l'Arcade
 function retourMenuArcade() {
+  jouerEffetSonore("nav");
+
   arreterMiniJeuActif();
 
   const menu = document.getElementById("omni-arcade-menu");
@@ -2082,6 +2116,8 @@ function placerNourritureSnake() {
 }
 
 function demarrerSnake() {
+  jouerEffetSonore("start");
+
   arreterSnake();
 
   snakeCorps = [
@@ -2108,6 +2144,8 @@ function demarrerSnake() {
 }
 
 function changerDirectionSnake(direction) {
+  jouerEffetSonore("tap");
+
   const opposés = {
     up: "down",
     down: "up",
@@ -2620,6 +2658,8 @@ function melangerCartesMemory(cartes) {
 
 // DÉMARRER UNE NOUVELLE PARTIE
 function demarrerMemory() {
+  jouerEffetSonore("start");
+
 
   const grille = document.getElementById("memory-grid");
   const statut = document.getElementById("memory-status");
@@ -3112,6 +3152,8 @@ function lancerBallePong(direction) {
 }
 
 function demarrerPong() {
+  jouerEffetSonore("start");
+
   if (!obtenirCanvasPong() || pongEnCours) return;
   if (pongAnimation !== null) cancelAnimationFrame(pongAnimation);
   pongScoreJoueur = 0;
@@ -3166,6 +3208,8 @@ function animerRaquettePongHorsJeu(timestamp) {
 }
 
 function deplacerRaquettePong(direction) {
+  jouerEffetSonore("tap");
+
   const sens = direction === "left" ? -1 : 1;
   // Un clic donne un vrai déplacement, mais la raquette glisse jusqu'à sa cible.
   pongJoueurCibleX = Math.max(
@@ -3214,6 +3258,7 @@ function bouclePong(timestamp) {
       pongBalle.y - pongBalle.r <= yJoueur + PONG_RAQUETTE_H &&
       pongBalle.x >= pongJoueurX - pongBalle.r &&
       pongBalle.x <= pongJoueurX + PONG_RAQUETTE_L + pongBalle.r) {
+    jouerEffetSonore("bounce");
     pongBalle.y = yJoueur - pongBalle.r;
     pongBalle.vy = -Math.abs(pongBalle.vy) * 1.025;
     const decalage = (pongBalle.x - (pongJoueurX + PONG_RAQUETTE_L / 2)) / (PONG_RAQUETTE_L / 2);
@@ -3226,6 +3271,7 @@ function bouclePong(timestamp) {
       pongBalle.y + pongBalle.r >= yCpu - PONG_RAQUETTE_H &&
       pongBalle.x >= pongCpuX - pongBalle.r &&
       pongBalle.x <= pongCpuX + PONG_RAQUETTE_L + pongBalle.r) {
+    jouerEffetSonore("bounce");
     pongBalle.y = yCpu + pongBalle.r;
     pongBalle.vy = Math.abs(pongBalle.vy) * 1.015;
     const decalageCpu = (pongBalle.x - (pongCpuX + PONG_RAQUETTE_L / 2)) / (PONG_RAQUETTE_L / 2);
@@ -3319,6 +3365,8 @@ function afficher2048() {
 }
 
 function demarrer2048() {
+  jouerEffetSonore("start");
+
   grille2048 = Array(16).fill(0);
   score2048 = 0;
   victoire2048 = false;
@@ -3430,6 +3478,8 @@ function afficherMorpion(ligneGagnante) {
 }
 
 function initialiserMorpion() {
+  jouerEffetSonore("start");
+
   morpionPlateau = Array(9).fill("");
   morpionJoueur = "X";
   morpionTermine = false;
@@ -3598,6 +3648,8 @@ function demarrerSpaceDodger() {
 }
 
 function deplacerVaisseau(direction) {
+  jouerEffetSonore("tap");
+
   const sens = Number(direction);
   if (!Number.isFinite(sens) || !spaceEnCours) return;
   // Le vaisseau rejoint progressivement sa cible au lieu de sauter par à-coups.
@@ -3731,6 +3783,8 @@ function initialiserQuiz() {
 }
 
 function demarrerQuiz() {
+  jouerEffetSonore("start");
+
   if (quizTimerSuivant !== null) clearTimeout(quizTimerSuivant);
   quizTimerSuivant = null;
   quizQuestionsPartie = BANQUE_QUESTIONS_QUIZ.slice();
@@ -3855,7 +3909,7 @@ document.addEventListener("click",function(event){
   if(!target || target.disabled) return;
   if(target.closest("#omni-radio-player, .omni-game-panel, #wheel-modal")) return;
   if(target.matches("#pizza-gigante, #rave-btn, #crt-toggle-btn, .booster-pack, .card-item, .bubble-item")) return;
-  if(target.closest(".omni-game-card, [onclick^='switchTab'], #shop-container")) return;
+  if(target.closest("[onclick^='switchTab'], #shop-container")) return;
   jouerEffetSonore("click");
 },false);
 
