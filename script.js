@@ -1260,7 +1260,10 @@ function ouvrirMiniJeu(nom) {
   if (nom === "pong") dessinerPong();
   if (nom === "2048" && !jeu2048Initialise) demarrer2048();
   if (nom === "morpion") initialiserMorpion();
-  if (nom === "space") dessinerSpaceDodger();
+  if (nom === "space") {
+    actualiserScoreSpace();
+    dessinerSpaceDodger(false);
+  }
   if (nom === "quiz") initialiserQuiz();
 }
 
@@ -2395,6 +2398,8 @@ function demarrerPong() {
   lancerBallePong(Math.random() > 0.5 ? 1 : -1);
   mettreAJourScorePong();
   pongEnCours = true;
+  const boutonJouer = document.getElementById("pong-start");
+  if (boutonJouer) boutonJouer.disabled = true;
   pongDerniereImage = 0;
   const statut = document.getElementById("pong-status");
   if (statut) statut.textContent = "À toi de renvoyer la balle ! Flèches gauche/droite ou boutons.";
@@ -2427,7 +2432,7 @@ function bouclePong(timestamp) {
 
   const cibleCpu = Math.max(0, Math.min(PONG_LARGEUR - PONG_RAQUETTE_L, pongBalle.x - PONG_RAQUETTE_L / 2));
   const ecartCpu = cibleCpu - pongCpuX;
-  pongCpuX += Math.max(-4.2 * facteur, Math.min(4.2 * facteur, ecartCpu));
+  pongCpuX += Math.max(-2.6 * facteur, Math.min(2.6 * facteur, ecartCpu));
 
   const yJoueur = PONG_HAUTEUR - 30;
   if (pongBalle.vy > 0 &&
@@ -2471,6 +2476,8 @@ function bouclePong(timestamp) {
 
 function terminerPong(message) {
   pongEnCours = false;
+  const boutonJouer = document.getElementById("pong-start");
+  if (boutonJouer) boutonJouer.disabled = false;
   if (pongAnimation !== null) cancelAnimationFrame(pongAnimation);
   pongAnimation = null;
   const statut = document.getElementById("pong-status");
@@ -2479,9 +2486,14 @@ function terminerPong(message) {
 }
 
 function arreterPong() {
+  const etaitEnCours = pongEnCours;
   pongEnCours = false;
   if (pongAnimation !== null) cancelAnimationFrame(pongAnimation);
   pongAnimation = null;
+  const boutonJouer = document.getElementById("pong-start");
+  if (boutonJouer) boutonJouer.disabled = false;
+  const statut = document.getElementById("pong-status");
+  if (etaitEnCours && statut) statut.textContent = "Partie interrompue. Clique sur JOUER pour recommencer.";
 }
 
 /* 2048 CYBER */
@@ -2796,7 +2808,7 @@ function demarrerSpaceDodger() {
 
 function deplacerVaisseau(direction) {
   const pas = Number(direction) * 34;
-  if (!Number.isFinite(pas)) return;
+  if (!Number.isFinite(pas) || !spaceEnCours) return;
   spaceJoueurX = Math.max(22, Math.min(398, spaceJoueurX + pas));
   dessinerSpaceDodger(false);
 }
@@ -2864,9 +2876,12 @@ function terminerSpaceDodger() {
 }
 
 function arreterSpaceDodger() {
+  const etaitEnCours = spaceEnCours;
   spaceEnCours = false;
   if (spaceAnimation !== null) cancelAnimationFrame(spaceAnimation);
   spaceAnimation = null;
+  const statut = document.getElementById("space-status");
+  if (etaitEnCours && statut) statut.textContent = "Mission mise en pause. Tu pourras repartir avec DÉCOLLER.";
 }
 
 /* QUIZ CYBER — 10 QUESTIONS PAR PARTIE */
