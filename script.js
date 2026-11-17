@@ -6,12 +6,15 @@ const state = {
   secrets: [], capsules: [], titleClicks: 0, matrixMode: false, raveMode: false, crtMode: false
 };
 
+let bonusHorsLigne = 0;
+
 function chargerDonnees() {
   const save = localStorage.getItem("omni_app_full_save");
 
   if (save) {
     try {
       const donnees = JSON.parse(save);
+      const derniereSauvegarde = Number(donnees.lastSavedAt);
       const { offresBoutique, ...donneesEtat } = donnees;
 
       Object.assign(state, donneesEtat);
@@ -39,6 +42,21 @@ function chargerDonnees() {
         )
         .slice(0, 50);
 
+      // Production hors ligne plafonnée à 8 heures.
+      if (
+        Number.isFinite(derniereSauvegarde) &&
+        derniereSauvegarde > 0 &&
+        Date.now() > derniereSauvegarde &&
+        state.pizzasPerSec > 0
+      ) {
+        const secondesAbsence = Math.min(
+          (Date.now() - derniereSauvegarde) / 1000,
+          8 * 60 * 60
+        );
+        bonusHorsLigne = Math.floor(state.pizzasPerSec * secondesAbsence);
+        state.pizzas += bonusHorsLigne;
+      }
+
       // Récupère les prix sauvegardés de la boutique
       if (Array.isArray(offresBoutique)) {
         offresBoutique.forEach(offreSauvee => {
@@ -60,6 +78,7 @@ function chargerDonnees() {
 
 function sauvegarderDonnees() {
   try {
+    state.lastSavedAt = Date.now();
     const donnees = {
       ...state,
       offresBoutique: OFFRES_BOUTIQUE.map(item => ({
@@ -1405,6 +1424,14 @@ window.onload = () => {
   afficherSecrets();
   actualiserRoueQuotidienne();
   rafraichirAffichagePizza();
+
+  const annonceHorsLigne = document.getElementById("offline-reward-banner");
+  if (annonceHorsLigne && bonusHorsLigne > 0) {
+    annonceHorsLigne.hidden = false;
+    annonceHorsLigne.textContent = "🚀 Bon retour ! Ta production a généré " +
+      bonusHorsLigne.toLocaleString("fr-FR") +
+      " pizzas pendant ton absence (maximum 8 heures).";
+  }
   
   const pizzaEl = document.getElementById("pizza-gigante");
   if(pizzaEl) pizzaEl.innerText = state.activeSkin;
