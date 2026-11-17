@@ -4217,3 +4217,92 @@ textarea, input[type="text"] {
   border: 0;
   border-radius: 0;
 }
+
+
+/* ==========================================
+   OMNI-APP — FINITIONS ARCADE & RESPONSIVE
+========================================== */
+
+/* Une carte indisponible reste visible comme aperçu, sans faux bouton. */
+#page-arcade .omni-game-card:disabled {
+  cursor: not-allowed;
+  opacity: .62;
+  filter: saturate(.72);
+  transform: none;
+  box-shadow: 0 8px 20px #0004;
+}
+
+#page-arcade .omni-game-card:disabled::before {
+  display: none;
+}
+
+#page-arcade .omni-game-card:disabled .omni-game-icon {
+  animation: none;
+}
+
+#page-arcade .omni-game-card:disabled small {
+  color: var(--game-color);
+  letter-spacing: 1.2px;
+}
+
+#page-arcade .omni-game-card:not(:disabled) {
+  cursor: pointer;
+}
+
+#page-arcade .omni-game-card:not(:disabled):focus-visible,
+#page-arcade .omni-back-button:focus-visible,
+#page-arcade .omni-game-panel button:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 4px;
+}
+
+@media (max-width: 760px) {
+  #page-arcade .omni-game-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  #page-arcade .omni-game-card {
+    min-height: 195px;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  #page-arcade .omni-game-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #page-arcade .omni-game-card {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    column-gap: 14px;
+    align-items: center;
+  }
+
+  #page-arcade .omni-game-card .omni-game-icon {
+    grid-row: 1 / 4;
+    width: 52px;
+    height: 52px;
+    margin: 0;
+    font-size: 27px;
+  }
+
+  #page-arcade .omni-game-card strong,
+  #page-arcade .omni-game-card > span:not(.omni-game-icon),
+  #page-arcade .omni-game-card small {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #page-arcade .omni-game-card,
+  #page-arcade .omni-game-card::before,
+  #page-arcade .omni-game-card .omni-game-icon {
+    animation: none !important;
+    transition: none !important;
+  }
+}
