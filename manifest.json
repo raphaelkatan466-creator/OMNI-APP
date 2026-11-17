@@ -1,17 +1,16 @@
 {
   "short_name": "OMNI-APP",
-  "name": "OMNI-APP - Cyberpunk Social",
-  "description": "L'application cyberpunk ultime avec mini-jeux, pizza clicker et modules sociaux.",
+  "name": "OMNI-APP — Ton univers de jeux et de créativité",
+  "description": "Un univers ludique avec mini-jeux, créativité, collections et surprises.",
   "icons": [
     {
-     "src": "omni-app-icon-transparent.png",
-    
+      "src": "omni-app-icon-transparent.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
   "start_url": "./index.html",
-  "background_color": "#0f172a",
-  "theme_color": "#38bdf8",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
   "display": "standalone"
 }
