@@ -4461,3 +4461,481 @@ textarea, input[type="text"] {
 .omni-offline-reward[hidden] {
   display: none !important;
 }
+
+
+/* =========================================================
+   OMNI VISUAL PASS — FLÈCHES, BOUTONS ET NAVIGATION
+   Harmonisation de toutes les pages
+========================================================= */
+
+/* BARRE DE NAVIGATION : FINI LE PANNEAU BLANC */
+.bottom-nav {
+  background: linear-gradient(145deg, rgba(9, 17, 36, .96), rgba(14, 20, 44, .94));
+  border: 1px solid rgba(56, 189, 248, .32);
+  box-shadow:
+    0 14px 40px rgba(0, 0, 0, .48),
+    0 0 28px rgba(56, 189, 248, .10),
+    inset 0 1px 0 rgba(255, 255, 255, .06);
+}
+
+.bottom-nav .nav-item {
+  position: relative;
+  color: #94a9c7;
+  border: 1px solid transparent;
+  border-radius: 15px;
+  font-weight: 800;
+  letter-spacing: .25px;
+  transition: color .2s ease, background .2s ease, border-color .2s ease,
+    transform .2s ease, box-shadow .2s ease;
+}
+
+.bottom-nav .nav-item:hover {
+  color: #e8f8ff;
+  background: rgba(56, 189, 248, .08);
+  border-color: rgba(56, 189, 248, .18);
+}
+
+.bottom-nav .nav-item.active {
+  color: #f4fbff;
+  border-color: rgba(56, 189, 248, .48);
+  background: linear-gradient(135deg, rgba(14, 165, 233, .23), rgba(124, 58, 237, .24));
+  box-shadow:
+    0 0 18px rgba(56, 189, 248, .13),
+    inset 0 0 16px rgba(56, 189, 248, .06);
+}
+
+.bottom-nav .nav-item.active .nav-icon {
+  color: #7deaff;
+  filter: drop-shadow(0 0 8px rgba(56, 189, 248, .65));
+}
+
+.bottom-nav .nav-icon {
+  transition: transform .2s ease, filter .2s ease;
+}
+
+.bottom-nav .nav-item:hover .nav-icon {
+  transform: translateY(-2px) scale(1.06);
+}
+
+.more-nav {
+  min-width: 0;
+}
+
+.more-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.more-toggle::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin: -4px 0 0 2px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform .2s ease, margin .2s ease;
+}
+
+.more-nav[open] .more-toggle::after {
+  margin-top: 4px;
+  transform: rotate(225deg);
+}
+
+.more-menu {
+  background: linear-gradient(145deg, rgba(12, 22, 43, .99), rgba(16, 18, 40, .99));
+  border: 1px solid rgba(56, 189, 248, .28);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, .55), 0 0 25px rgba(56, 189, 248, .08);
+  backdrop-filter: blur(20px);
+}
+
+.bottom-nav .more-menu-item {
+  color: #b8c9e0;
+  border: 1px solid transparent;
+  font-size: 12px;
+  font-weight: 800;
+  transition: background .18s ease, color .18s ease, border-color .18s ease,
+    transform .18s ease;
+}
+
+.bottom-nav .more-menu-item:hover,
+.bottom-nav .more-menu-item.active {
+  color: #eafaff;
+  background: linear-gradient(100deg, rgba(14, 165, 233, .18), rgba(124, 58, 237, .14));
+  border-color: rgba(56, 189, 248, .24);
+  transform: translateX(3px);
+}
+
+/* BOUTONS GÉNÉRAUX : VOLUME ET RETOUR VISUEL COHÉRENTS */
+.music-btn,
+.btn,
+.page .menu-btn:not(.nav-item):not(.more-menu-item) {
+  border-radius: 12px;
+  font-weight: 850;
+  letter-spacing: .35px;
+  transition: transform .18s ease, box-shadow .18s ease,
+    border-color .18s ease, filter .18s ease;
+}
+
+.music-btn {
+  border: 1px solid rgba(148, 163, 184, .28);
+  background: linear-gradient(135deg, #1b2a45, #111a30);
+  color: #dcecff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05), 0 5px 16px rgba(0, 0, 0, .18);
+}
+
+.music-btn:hover {
+  border-color: rgba(56, 189, 248, .55);
+  background: linear-gradient(135deg, #183d5d, #241b4c);
+  color: #ffffff;
+  box-shadow: 0 0 17px rgba(56, 189, 248, .18);
+  transform: translateY(-2px);
+}
+
+.btn:not(:disabled):hover {
+  filter: brightness(1.08) saturate(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(56, 189, 248, .23), 0 0 17px rgba(56, 189, 248, .16);
+}
+
+.btn:not(:disabled):active,
+.music-btn:active {
+  transform: translateY(1px) scale(.985);
+}
+
+.btn:disabled,
+.music-btn:disabled {
+  cursor: not-allowed;
+  opacity: .48;
+  filter: grayscale(.35);
+  transform: none;
+  box-shadow: none;
+}
+
+/* PETITES FLÈCHES DES CARTES D'ACCUEIL */
+.omni-play-btn {
+  gap: 12px;
+}
+
+.omni-play-btn .omni-play-label {
+  flex: 1;
+}
+
+.omni-play-btn .omni-launch-arrow {
+  display: grid;
+  place-items: center;
+  flex: 0 0 31px;
+  width: 31px;
+  height: 31px;
+  border: 1px solid rgba(255, 255, 255, .30);
+  border-radius: 10px;
+  background: rgba(5, 14, 35, .24);
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 1;
+  transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+.omni-play-btn:hover .omni-launch-arrow {
+  transform: translate(2px, -2px);
+  background: rgba(255, 255, 255, .17);
+  box-shadow: 0 0 14px rgba(255, 255, 255, .18);
+}
+
+/* FLÈCHE DE RETOUR DE L'ARCADE */
+#page-arcade .omni-back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  min-height: 45px;
+  padding: 10px 16px;
+  border: 1px solid rgba(168, 85, 247, .42);
+  border-radius: 14px;
+  background: linear-gradient(110deg, rgba(30, 41, 75, .96), rgba(44, 25, 75, .95));
+  color: #e9ddff;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 1.1px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 5px 17px rgba(0, 0, 0, .18);
+}
+
+#page-arcade .omni-back-button:hover {
+  border-color: #c084fc;
+  background: linear-gradient(110deg, #193c64, #43226b);
+  color: #ffffff;
+  transform: translateX(-3px);
+  box-shadow: 0 0 20px rgba(168, 85, 247, .2);
+}
+
+#page-arcade .omni-back-arrow {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(192, 132, 252, .4);
+  border-radius: 9px;
+  background: rgba(168, 85, 247, .16);
+  color: #e9b8ff;
+  font-size: 18px;
+  line-height: 1;
+  transition: transform .2s ease;
+}
+
+#page-arcade .omni-back-button:hover .omni-back-arrow {
+  transform: translateX(-3px);
+}
+
+/* COMMANDES DIRECTIONNELLES : PONG, 2048, SPACE DODGER */
+#page-arcade .omni-direction-pad .omni-control-arrow,
+#page-arcade .omni-pong-controls .omni-control-arrow {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  min-width: 54px;
+  height: 50px;
+  min-height: 50px;
+  padding: 0;
+  border: 1px solid rgba(56, 189, 248, .42);
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(56, 189, 248, .17), transparent 72%),
+    linear-gradient(145deg, #172d4b, #10172d);
+  color: #c4f4ff;
+  font-size: 27px;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .08),
+    0 5px 15px rgba(0, 0, 0, .24),
+    0 0 13px rgba(56, 189, 248, .09);
+  transition: transform .16s ease, border-color .16s ease,
+    background .16s ease, box-shadow .16s ease, color .16s ease;
+  touch-action: manipulation;
+}
+
+#page-arcade .omni-direction-pad .omni-control-arrow span,
+#page-arcade .omni-pong-controls .omni-control-arrow span {
+  display: block;
+  text-shadow: 0 0 12px rgba(56, 189, 248, .65);
+  pointer-events: none;
+}
+
+#page-arcade .omni-direction-pad .omni-control-arrow:hover,
+#page-arcade .omni-pong-controls .omni-control-arrow:hover {
+  border-color: #77eaff;
+  background: linear-gradient(145deg, #075985, #342060);
+  color: #ffffff;
+  transform: translateY(-3px);
+  box-shadow: 0 0 22px rgba(56, 189, 248, .27);
+}
+
+#page-arcade .omni-direction-pad .omni-control-arrow:active,
+#page-arcade .omni-pong-controls .omni-control-arrow:active {
+  transform: scale(.92);
+  box-shadow: 0 0 25px rgba(56, 189, 248, .35);
+}
+
+#page-arcade .omni-pong-controls {
+  flex-direction: row;
+  justify-content: center;
+  gap: 14px;
+}
+
+#page-arcade .omni-direction-pad {
+  gap: 9px;
+}
+
+#page-arcade .omni-direction-pad > div {
+  gap: 9px;
+}
+
+/* PETITE FLÈCHE DANS LE BOUTON DU PROCHAIN DILEMME */
+.omni-inline-arrow {
+  display: inline-grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  margin-left: 6px;
+  border: 1px solid rgba(255, 255, 255, .26);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .12);
+  font-size: 17px;
+  transition: transform .2s ease;
+}
+
+.dilemme-giant-btn:hover .omni-inline-arrow {
+  transform: translateX(4px);
+}
+
+/* MENUS DÉROULANTS : FLÈCHE CYBER AU LIEU DU STYLE NAVIGATEUR */
+.page select,
+#page-capsule select {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 46px;
+  padding: 11px 46px 11px 14px;
+  border: 1px solid rgba(168, 85, 247, .5);
+  border-radius: 13px;
+  background-color: #0b1427;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%237deaff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  color: #eef7ff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05), 0 4px 14px rgba(0, 0, 0, .16);
+}
+
+.page select:hover,
+#page-capsule select:hover {
+  border-color: #c084fc;
+  box-shadow: 0 0 16px rgba(168, 85, 247, .13);
+}
+
+.page select:focus-visible,
+#page-capsule select:focus-visible {
+  outline: 2px solid #7deaff;
+  outline-offset: 3px;
+}
+
+.page select option {
+  background: #0d1830;
+  color: #eef7ff;
+}
+
+/* CHAMPS DE SAISIE PLUS PROPRES SUR TOUTES LES PAGES */
+.page input[type="text"],
+.page textarea,
+.page input:not([type]),
+.page select {
+  border-color: rgba(100, 126, 166, .42);
+  background-color: rgba(7, 14, 29, .92);
+  color: #f3f8ff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035);
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.page input[type="text"]:focus,
+.page textarea:focus,
+.page input:not([type]):focus,
+.page select:focus {
+  border-color: rgba(56, 189, 248, .78);
+  background-color: #0b1730;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, .10), 0 0 17px rgba(56, 189, 248, .09);
+}
+
+.page input::placeholder,
+.page textarea::placeholder {
+  color: #7085a5;
+  opacity: 1;
+}
+
+/* BOUTON RADIO : LE POINT DE LECTURE PREND LA COULEUR OMNI */
+.omni-radio-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+
+.omni-radio-pulse {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #38e8ff;
+  box-shadow: 0 0 10px #38e8ff, 0 0 18px #38e8ff66;
+}
+
+.omni-radio-pulse::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border: 1px solid rgba(56, 232, 255, .55);
+  border-radius: 50%;
+  animation: omniRadioPulse 1.8s ease-out infinite;
+}
+
+@keyframes omniRadioPulse {
+  0% { transform: scale(.55); opacity: .95; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* CONTRÔLES EN HAUT DE L'ÉCRAN */
+#crt-toggle-btn,
+#rave-btn {
+  border: 1px solid rgba(56, 189, 248, .3);
+  background: linear-gradient(130deg, rgba(18, 37, 65, .96), rgba(31, 23, 59, .96));
+  color: #d7edff;
+  border-radius: 12px;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, .24);
+  backdrop-filter: blur(12px);
+}
+
+#crt-toggle-btn:hover,
+#rave-btn:hover {
+  border-color: rgba(56, 189, 248, .7);
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(56, 189, 248, .2);
+  transform: translateY(-2px);
+}
+
+/* BOUTONS ET LIENS CLAVIER : CONTOUR ACCESSIBLE */
+button:focus-visible,
+summary:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #7deaff;
+  outline-offset: 3px;
+}
+
+@media (max-width: 520px) {
+  .bottom-nav {
+    bottom: 8px;
+    width: calc(100% - 16px);
+    padding: 6px;
+    border-radius: 19px;
+  }
+
+  .bottom-nav .nav-item {
+    font-size: 9px;
+    padding: 8px 2px;
+  }
+
+  .bottom-nav .nav-icon {
+    font-size: 19px;
+  }
+
+  #page-arcade .omni-direction-pad .omni-control-arrow,
+  #page-arcade .omni-pong-controls .omni-control-arrow {
+    width: 51px;
+    min-width: 51px;
+    height: 48px;
+    min-height: 48px;
+  }
+
+  #page-capsule select {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .omni-radio-pulse::after {
+    animation: none;
+  }
+
+  .bottom-nav .nav-item,
+  .bottom-nav .nav-icon,
+  #page-arcade .omni-back-arrow,
+  .omni-inline-arrow,
+  .omni-launch-arrow {
+    transition: none !important;
+  }
+}
