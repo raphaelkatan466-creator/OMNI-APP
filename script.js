@@ -783,26 +783,31 @@ function cliquerSimon(id) {
 initialiserScoresSimon();
 
 
-// ROBOT IA
+// ROBOT IA — DÉMO LOCALE SANS ENVOI DE DONNÉES
 function envoyerMessageIA() {
   const input = document.getElementById("ai-user-input");
-  const text = input.value.trim();
-  if (!text) return;
   const chatBox = document.getElementById("ai-chat-box");
+  if (!input || !chatBox) return;
+
+  const text = input.value.trim().slice(0, 500);
+  if (!text) return;
+
   const userMsg = document.createElement("div");
-  userMsg.style.cssText = "background:var(--neon-blue); color:#0f172a; font-weight:bold; padding:8px 12px; border-radius:8px; align-self:flex-end; max-width:80%; font-size:13px;";
-  userMsg.innerText = text;
+  userMsg.style.cssText = "background:var(--neon-blue); color:#0f172a; font-weight:bold; padding:8px 12px; border-radius:8px; align-self:flex-end; max-width:80%; font-size:13px; overflow-wrap:anywhere;";
+  userMsg.textContent = text;
   chatBox.appendChild(userMsg);
   input.value = "";
 
   setTimeout(() => {
     const aiMsg = document.createElement("div");
-    aiMsg.style.cssText = "background:#1e293b; padding:8px 12px; border-radius:8px; align-self:flex-start; max-width:80%; font-size:13px;";
-    aiMsg.innerHTML = `🤖 <strong>Cyber-Bot :</strong> J'ai bien analysé "${text}". Tu gères !`;
+    aiMsg.style.cssText = "background:#1e293b; padding:8px 12px; border-radius:8px; align-self:flex-start; max-width:80%; font-size:13px; overflow-wrap:anywhere;";
+    aiMsg.textContent = "🤖 Cyber-Bot (démo) : J’ai reçu ton message. Cette version fonctionne localement et ne contacte pas un service d’IA.";
     chatBox.appendChild(aiMsg);
     chatBox.scrollTop = chatBox.scrollHeight;
-  }, 500);
+  }, 350);
 }
+
+// PAPIER BULLE & PIXEL ART
 
 // PAPIER BULLE & PIXEL ART
 let isSwipingBubble = false;
@@ -868,7 +873,7 @@ function initPixelArtPro() {
   }
 }
 
-// GRAFFITI & CHAT
+// GRAFFITI & CHAT — CHAT DE DÉMONSTRATION LOCALE
 let gCanvas, gCtx, isDrawing = false;
 function initGraffiti() {
   gCanvas = document.getElementById("graffiti-canvas");
@@ -878,37 +883,66 @@ function initGraffiti() {
   gCtx.lineWidth = 3;
   gCtx.lineCap = "round";
 
-  const startDraw = (e) => { isDrawing = true; draw(e); };
-  const stopDraw = () => { isDrawing = false; gCtx.beginPath(); };
+  const startDraw = (e) => {
+    isDrawing = true;
+    const rect = gCanvas.getBoundingClientRect();
+    const point = e.touches ? e.touches[0] : e;
+    gCtx.beginPath();
+    gCtx.moveTo(point.clientX - rect.left, point.clientY - rect.top);
+  };
+  const stopDraw = () => { isDrawing = false; if (gCtx) gCtx.beginPath(); };
   const draw = (e) => {
     if (!isDrawing) return;
     const rect = gCanvas.getBoundingClientRect();
-    const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
-    const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+    const point = e.touches ? e.touches[0] : e;
+    const x = (point.clientX - rect.left) * (gCanvas.width / rect.width);
+    const y = (point.clientY - rect.top) * (gCanvas.height / rect.height);
     gCtx.lineTo(x, y);
     gCtx.stroke();
     gCtx.beginPath();
     gCtx.moveTo(x, y);
   };
 
-  gCanvas.onmousedown = startDraw; gCanvas.onmouseup = stopDraw; gCanvas.onmousemove = draw;
-  gCanvas.ontouchstart = startDraw; gCanvas.ontouchend = stopDraw; gCanvas.ontouchmove = draw;
+  gCanvas.onmousedown = startDraw;
+  gCanvas.onmouseup = stopDraw;
+  gCanvas.onmouseleave = stopDraw;
+  gCanvas.onmousemove = draw;
+  gCanvas.ontouchstart = startDraw;
+  gCanvas.ontouchend = stopDraw;
+  gCanvas.ontouchcancel = stopDraw;
+  gCanvas.ontouchmove = draw;
 }
-function effacerGraffiti() { if (gCtx) gCtx.clearRect(0, 0, gCanvas.width, gCanvas.height); }
+function effacerGraffiti() {
+  if (gCtx && gCanvas) gCtx.clearRect(0, 0, gCanvas.width, gCanvas.height);
+}
 
 function envoyerChatCommunautaire() {
   const input = document.getElementById("community-input");
-  const text = input.value.trim();
-  if (!text) return;
   const chatBox = document.getElementById("community-chat-box");
+  if (!input || !chatBox) return;
+
+  const text = input.value.trim().slice(0, 250);
+  if (!text) return;
+
   const msg = document.createElement("div");
-  msg.style.cssText = "background:#1e293b; padding:6px 10px; border-radius:6px; font-size:13px;";
-  msg.innerHTML = `<strong style="color:#22c55e;">Moi :</strong> ${text}`;
+  msg.style.cssText = "background:#1e293b; padding:8px 10px; border-radius:8px; font-size:13px; overflow-wrap:anywhere;";
+  const auteur = document.createElement("strong");
+  auteur.style.color = "#22c55e";
+  auteur.textContent = "Moi : ";
+  const contenu = document.createElement("span");
+  contenu.textContent = text;
+  msg.append(auteur, contenu);
   chatBox.appendChild(msg);
   input.value = "";
   chatBox.scrollTop = chatBox.scrollHeight;
 }
-function voterHumeur(humeur) { alert(`Humeur enregistrée : ${humeur} !`); }
+
+function voterHumeur(humeur) {
+  const statut = document.getElementById("mood-status");
+  if (statut) statut.textContent = "Humeur choisie sur cet appareil : " + humeur + " (démo locale).";
+}
+
+// CITATIONS & DILEMMES
 
 // CITATIONS & DILEMMES
 const aiSubjects = ["L'intelligence artificielle", "La matrice néon", "Le réseau quantique", "La pizza sacrée"];
@@ -948,61 +982,141 @@ function prochainDilemmeIA() {
   chargerDilemmeIA();
 }
 
-// CAPSULES & SECRETS
+// CAPSULES & NOTES PERSONNELLES — AFFICHAGE SÉCURISÉ
+let capsulesRefreshTimer = null;
+
 function creerCapsule() {
-  const txt = document.getElementById("capsule-text").value.trim();
+  const input = document.getElementById("capsule-text");
+  const select = document.getElementById("capsule-delay");
+  if (!input || !select) return;
+
+  const txt = input.value.trim().slice(0, 500);
   if (!txt) return;
-  const delay = parseInt(document.getElementById("capsule-delay").value);
+
+  const delaisAutorises = [1, 5, 60];
+  const delaiDemande = Number(select.value);
+  const delay = delaisAutorises.includes(delaiDemande) ? delaiDemande : 1;
   const unlockTime = Date.now() + delay * 60000;
-  state.capsules.push({ text: txt, unlockTime });
-  document.getElementById("capsule-text").value = "";
+
+  if (!Array.isArray(state.capsules)) state.capsules = [];
+  state.capsules.unshift({ text: txt, unlockTime });
+  state.capsules = state.capsules.slice(0, 50);
+
+  input.value = "";
   afficherCapsules();
   sauvegarderDonnees();
-  alert("📦 Capsule verrouillée avec succès !");
+
+  const statut = document.getElementById("capsule-status");
+  if (statut) statut.textContent = "📦 Capsule créée. Elle se déverrouillera automatiquement à la fin du délai.";
 }
+
+function supprimerCapsule(index) {
+  if (!Array.isArray(state.capsules) || !Number.isInteger(index)) return;
+  if (index < 0 || index >= state.capsules.length) return;
+  state.capsules.splice(index, 1);
+  afficherCapsules();
+  sauvegarderDonnees();
+}
+
 function afficherCapsules() {
   const container = document.getElementById("capsules-list");
-  if(!container) return;
-  container.innerHTML = state.capsules.map((c) => {
-    const locked = Date.now() < c.unlockTime;
-    return `<div class="card" style="border-color:${locked ? '#ef4444' : 'var(--neon-green)'};">
-      <h4 style="color:${locked ? '#ef4444' : 'var(--neon-green)'};">${locked ? '🔒 Capsule Verrouillée' : '🔓 Capsule Déverrouillée !'}</h4>
-      <p>${locked ? '<i>Message scellé... Revenez plus tard !</i>' : c.text}</p>
-    </div>`;
-  }).join("");
+  if (!container) return;
+
+  if (capsulesRefreshTimer !== null) {
+    clearTimeout(capsulesRefreshTimer);
+    capsulesRefreshTimer = null;
+  }
+
+  if (!Array.isArray(state.capsules)) state.capsules = [];
+  container.replaceChildren();
+
+  let prochainDeblocage = Infinity;
+
+  state.capsules.forEach((capsule, index) => {
+    if (!capsule || typeof capsule.text !== "string" || !Number.isFinite(capsule.unlockTime)) return;
+
+    const locked = Date.now() < capsule.unlockTime;
+    if (locked) prochainDeblocage = Math.min(prochainDeblocage, capsule.unlockTime);
+
+    const card = document.createElement("article");
+    card.className = "card omni-private-entry";
+    card.style.borderColor = locked ? "#ef4444" : "var(--neon-green)";
+
+    const titre = document.createElement("h4");
+    titre.style.color = locked ? "#ef4444" : "var(--neon-green)";
+    titre.textContent = locked ? "🔒 Capsule verrouillée" : "🔓 Capsule déverrouillée !";
+
+    const message = document.createElement("p");
+    message.textContent = locked ? "Message scellé… Reviens à la fin du compte à rebours." : capsule.text;
+
+    const suppression = document.createElement("button");
+    suppression.type = "button";
+    suppression.className = "music-btn";
+    suppression.textContent = "🗑️ Supprimer";
+    suppression.addEventListener("click", () => supprimerCapsule(index));
+
+    card.append(titre, message, suppression);
+    container.appendChild(card);
+  });
+
+  if (Number.isFinite(prochainDeblocage)) {
+    const attente = Math.max(50, Math.min(prochainDeblocage - Date.now() + 50, 2147483000));
+    capsulesRefreshTimer = setTimeout(afficherCapsules, attente);
+  }
 }
 
 function publierSecret() {
-  const txt = document.getElementById("secret-input").value.trim();
+  const input = document.getElementById("secret-input");
+  if (!input) return;
+  const txt = input.value.trim().slice(0, 500);
   if (!txt) return;
+
+  if (!Array.isArray(state.secrets)) state.secrets = [];
   state.secrets.unshift(txt);
-  document.getElementById("secret-input").value = "";
+  state.secrets = state.secrets.slice(0, 50);
+  input.value = "";
   afficherSecrets();
   sauvegarderDonnees();
 }
+
 function afficherSecrets() {
   const container = document.getElementById("secrets-list");
-  if(!container) return;
-  container.innerHTML = state.secrets.map(s => `
-    <div class="card" style="border-color:var(--neon-blue);">
-      <p style="font-size:16px; margin:0;">🤫 "${s}"</p>
-    </div>
-  `).join("");
+  if (!container) return;
+
+  if (!Array.isArray(state.secrets)) state.secrets = [];
+  container.replaceChildren();
+
+  state.secrets.forEach((secret, index) => {
+    if (typeof secret !== "string") return;
+
+    const card = document.createElement("article");
+    card.className = "card omni-private-entry";
+    card.style.borderColor = "var(--neon-blue)";
+
+    const message = document.createElement("p");
+    message.style.cssText = "font-size:16px; margin:0; overflow-wrap:anywhere;";
+    message.textContent = "🤫 “" + secret + "”";
+
+    const suppression = document.createElement("button");
+    suppression.type = "button";
+    suppression.className = "music-btn";
+    suppression.textContent = "🗑️ Supprimer";
+    suppression.addEventListener("click", () => supprimerSecret(index));
+
+    card.append(message, suppression);
+    container.appendChild(card);
+  });
 }
 
-function detruireSouciGeant() {
-  const textarea = document.getElementById("vent-input");
-  if (!textarea || !textarea.value.trim()) return;
-  textarea.style.transition = "transform 0.8s ease, opacity 0.8s ease";
-  textarea.style.transform = "scale(0) rotate(720deg)";
-  textarea.style.opacity = "0";
-  setTimeout(() => {
-    textarea.value = "";
-    textarea.style.transform = "none";
-    textarea.style.opacity = "1";
-    alert("🌌 Ton souci a été définitivement anéanti dans le néant cosmique !");
-  }, 800);
+function supprimerSecret(index) {
+  if (!Array.isArray(state.secrets) || !Number.isInteger(index)) return;
+  if (index < 0 || index >= state.secrets.length) return;
+  state.secrets.splice(index, 1);
+  afficherSecrets();
+  sauvegarderDonnees();
 }
+
+// BOUTIQUE COSMÉTIQUE
 
 // BOUTIQUE COSMÉTIQUE
 const SKINS_LIST = [
@@ -1050,10 +1164,12 @@ function equiperSkin(id) {
 }
 
 
-// ROUE OMNI
+// ROUE OMNI — UNE TENTATIVE PAR JOUR CALENDAIRE
 let wheelCanvas, wheelCtx;
 let isSpinning = false;
 let wheelRotation = 0;
+let wheelSpinTimeout = null;
+const OMNI_WHEEL_DATE_KEY = "omni_wheel_last_spin_date";
 
 // Chaque segment possède sa propre récompense
 const rewards = [
@@ -1065,13 +1181,56 @@ const rewards = [
   { label: "Rien !", type: "nothing", amount: 0 }
 ];
 
+function dateLocaleActuelle() {
+  const maintenant = new Date();
+  const annee = maintenant.getFullYear();
+  const mois = String(maintenant.getMonth() + 1).padStart(2, "0");
+  const jour = String(maintenant.getDate()).padStart(2, "0");
+  return annee + "-" + mois + "-" + jour;
+}
+
+function roueDejaUtiliseeAujourdHui() {
+  try {
+    return localStorage.getItem(OMNI_WHEEL_DATE_KEY) === dateLocaleActuelle();
+  } catch (erreur) {
+    console.warn("Impossible de lire la date de la roue :", erreur);
+    return false;
+  }
+}
+
+function actualiserRoueQuotidienne() {
+  const dejaUtilisee = roueDejaUtiliseeAujourdHui();
+  const boutonOuvrir = document.getElementById("wheel-open-btn");
+  const boutonTourner = document.getElementById("spin-wheel-btn");
+  const statut = document.getElementById("wheel-status");
+  const disponible = !dejaUtilisee && !isSpinning;
+
+  if (boutonOuvrir) {
+    boutonOuvrir.disabled = !disponible;
+    boutonOuvrir.textContent = dejaUtilisee ? "✅ Reviens demain !" : "🎡 Lancer la Grande Roue !";
+  }
+  if (boutonTourner) {
+    boutonTourner.disabled = !disponible;
+    boutonTourner.textContent = dejaUtilisee ? "✅ Déjà utilisée aujourd’hui" : "🎰 TOURNER !";
+  }
+  if (statut) {
+    statut.textContent = dejaUtilisee
+      ? "Tu as déjà utilisé ta roue aujourd’hui. Reviens demain pour une nouvelle tentative."
+      : "Une tentative gratuite par jour. Les récompenses sont virtuelles et restent sur cet appareil.";
+  }
+}
+
 function ouvrirGrandeRoue() {
-  document.getElementById("wheel-modal").style.display = "flex";
+  const modal = document.getElementById("wheel-modal");
+  if (!modal) return;
+  modal.style.display = "flex";
   dessinerRoue();
+  actualiserRoueQuotidienne();
 }
 
 function fermerGrandeRoue() {
-  document.getElementById("wheel-modal").style.display = "none";
+  const modal = document.getElementById("wheel-modal");
+  if (modal && !isSpinning) modal.style.display = "none";
 }
 
 function dessinerRoue() {
@@ -1079,14 +1238,11 @@ function dessinerRoue() {
   if (!wheelCanvas) return;
 
   wheelCtx = wheelCanvas.getContext("2d");
+  if (!wheelCtx) return;
 
   const numOptions = rewards.length;
   const arcSize = (2 * Math.PI) / numOptions;
-
-  const colors = [
-    "#ef4444", "#38bdf8", "#a855f7",
-    "#eab308", "#22c55e", "#ec4899"
-  ];
+  const colors = ["#ef4444", "#38bdf8", "#a855f7", "#eab308", "#22c55e", "#ec4899"];
 
   wheelCtx.clearRect(0, 0, 320, 320);
 
@@ -1095,6 +1251,7 @@ function dessinerRoue() {
     wheelCtx.fillStyle = colors[i];
     wheelCtx.moveTo(160, 160);
     wheelCtx.arc(160, 160, 150, i * arcSize, (i + 1) * arcSize);
+    wheelCtx.closePath();
     wheelCtx.fill();
 
     wheelCtx.save();
@@ -1102,35 +1259,44 @@ function dessinerRoue() {
     wheelCtx.rotate(i * arcSize + arcSize / 2);
     wheelCtx.fillStyle = "white";
     wheelCtx.font = "bold 12px sans-serif";
+    wheelCtx.textAlign = "left";
     wheelCtx.fillText(rewards[i].label, 50, 5);
     wheelCtx.restore();
   }
 }
 
 function tournerLaGrandeRoue() {
-  if (isSpinning || !wheelCanvas) return;
+  if (isSpinning || !wheelCanvas || roueDejaUtiliseeAujourdHui()) {
+    actualiserRoueQuotidienne();
+    return;
+  }
 
   isSpinning = true;
+  try {
+    localStorage.setItem(OMNI_WHEEL_DATE_KEY, dateLocaleActuelle());
+  } catch (erreur) {
+    console.warn("La roue ne peut pas enregistrer sa date :", erreur);
+    isSpinning = false;
+    actualiserRoueQuotidienne();
+    return;
+  }
 
-  // Choisir le segment gagnant
   const rewardIndex = Math.floor(Math.random() * rewards.length);
   const reward = rewards[rewardIndex];
-
-  // Calculer l'angle pour placer le segment choisi sous
-  // le pointeur situé en haut de la roue
   const segmentAngle = 360 / rewards.length;
   const centerAngle = rewardIndex * segmentAngle + segmentAngle / 2;
   const targetAngle = (270 - centerAngle + 360) % 360;
-
   const currentAngle = wheelRotation % 360;
   const extraAngle = (targetAngle - currentAngle + 360) % 360;
 
   wheelRotation += 360 * 8 + extraAngle;
+  wheelCanvas.style.transition = "transform 4.2s cubic-bezier(.12,.72,.18,1)";
+  wheelCanvas.style.transform = "rotate(" + wheelRotation + "deg)";
+  actualiserRoueQuotidienne();
 
-  wheelCanvas.style.transform = `rotate(${wheelRotation}deg)`;
+  wheelSpinTimeout = setTimeout(() => {
+    wheelSpinTimeout = null;
 
-  setTimeout(() => {
-    // Attribuer exactement la récompense sélectionnée
     if (reward.type === "omni") {
       state.omniPoints += reward.amount;
     } else if (reward.type === "pizza") {
@@ -1139,21 +1305,23 @@ function tournerLaGrandeRoue() {
 
     rafraichirAffichagePizza();
     sauvegarderDonnees();
-
     isSpinning = false;
+    actualiserRoueQuotidienne();
 
     if (reward.type === "omni") {
-      alert(`🎉 Bravo ! Tu remportes ${reward.amount} Points OMNI ⭐ !`);
+      alert("🎉 Bravo ! Tu remportes " + reward.amount + " Points OMNI ⭐ !");
     } else if (reward.type === "pizza") {
-      alert(`🍕 Super ! Tu remportes ${reward.amount} pizzas !`);
+      alert("🍕 Super ! Tu remportes " + reward.amount + " pizzas !");
     } else {
-      alert("😢 Pas de récompense cette fois-ci !");
+      alert("😢 Pas de récompense cette fois-ci. Reviens demain !");
     }
 
-    fermerGrandeRoue();
+    const modal = document.getElementById("wheel-modal");
+    if (modal) modal.style.display = "none";
   }, 4200);
 }
 
+function switchTab(tabId)
 
 function switchTab(tabId) {
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
