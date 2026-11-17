@@ -1208,7 +1208,7 @@ setInterval(() => {
 ========================================== */
 
 // Jeux actuellement programmés
-const omniJeuxDisponibles = ["simon", "snake", "memory"];
+const omniJeuxDisponibles = ["simon", "snake", "memory", "reflex", "pong", "2048", "morpion", "space", "quiz"];
 
 
 
@@ -1255,6 +1255,13 @@ function ouvrirMiniJeu(nom) {
   if (nom === "snake") {
     chargerRecordSnake();
   }
+
+  if (nom === "reflex") initialiserReflexe();
+  if (nom === "pong") dessinerPong();
+  if (nom === "2048" && !jeu2048Initialise) demarrer2048();
+  if (nom === "morpion") initialiserMorpion();
+  if (nom === "space") dessinerSpaceDodger();
+  if (nom === "quiz") initialiserQuiz();
 }
 
 
@@ -1292,6 +1299,12 @@ function arreterMiniJeuActif() {
   if (typeof arreterMemory === "function") {
     arreterMemory();
   }
+
+  // Couper les animations et minuteries des autres mini-jeux
+  if (typeof arreterReflexe === "function") arreterReflexe();
+  if (typeof arreterPong === "function") arreterPong();
+  if (typeof arreterSpaceDodger === "function") arreterSpaceDodger();
+  if (typeof arreterQuiz === "function") arreterQuiz();
 }
 
 
@@ -2172,5 +2185,887 @@ document.addEventListener("click", function(event) {
     boutonNavigation.id !== "btn-arcade"
   ) {
     arreterMiniJeuActif();
+  }
+});
+
+
+/* =========================================================
+   MINI-JEUX OMNI-APP — RÉFLEXE, PONG, 2048, MORPION,
+   SPACE DODGER ET QUIZ
+========================================================= */
+
+/* RÉFLEXE NÉON */
+let reflexTimer = null;
+let reflexEtat = "idle";
+let reflexDebut = 0;
+let reflexRecord = Number(localStorage.getItem("omni_reflex_best")) || 0;
+
+function actualiserReflexe() {
+  const best = document.getElementById("reflex-best");
+  if (best) best.textContent = reflexRecord ? reflexRecord + " ms" : "--";
+}
+
+function initialiserReflexe() {
+  if (reflexTimer !== null) clearTimeout(reflexTimer);
+  reflexTimer = null;
+  reflexEtat = "idle";
+  const cible = document.getElementById("reflex-target");
+  const statut = document.getElementById("reflex-status");
+  const temps = document.getElementById("reflex-time");
+  const bouton = document.getElementById("reflex-start");
+  if (cible) cible.classList.remove("ready", "waiting");
+  if (statut) statut.textContent = "APPUIE SUR DÉMARRER";
+  if (temps) temps.textContent = "--";
+  if (bouton) bouton.disabled = false;
+  actualiserReflexe();
+}
+
+function demarrerReflexe() {
+  if (reflexTimer !== null) clearTimeout(reflexTimer);
+  const cible = document.getElementById("reflex-target");
+  const statut = document.getElementById("reflex-status");
+  const bouton = document.getElementById("reflex-start");
+  const temps = document.getElementById("reflex-time");
+  if (!cible || !statut) return;
+
+  reflexEtat = "waiting";
+  cible.classList.remove("ready");
+  cible.classList.add("waiting");
+  statut.textContent = "ATTENDS LE SIGNAL VERT…";
+  if (temps) temps.textContent = "--";
+  if (bouton) bouton.disabled = true;
+
+  const delai = 1300 + Math.random() * 2200;
+  reflexTimer = setTimeout(() => {
+    if (reflexEtat !== "waiting") return;
+    reflexEtat = "ready";
+    reflexDebut = performance.now();
+    cible.classList.remove("waiting");
+    cible.classList.add("ready");
+    statut.textContent = "MAINTENANT ! CLIQUE !";
+  }, delai);
+}
+
+function cliquerReflexe() {
+  const cible = document.getElementById("reflex-target");
+  const statut = document.getElementById("reflex-status");
+  const temps = document.getElementById("reflex-time");
+  const bouton = document.getElementById("reflex-start");
+  if (!cible || !statut) return;
+
+  if (reflexEtat === "waiting") {
+    if (reflexTimer !== null) clearTimeout(reflexTimer);
+    reflexTimer = null;
+    reflexEtat = "idle";
+    cible.classList.remove("waiting", "ready");
+    statut.textContent = "TROP TÔT ! Recommence.";
+    if (bouton) bouton.disabled = false;
+    return;
+  }
+
+  if (reflexEtat !== "ready") {
+    statut.textContent = "Clique d'abord sur DÉMARRER.";
+    return;
+  }
+
+  const reaction = Math.max(0, Math.round(performance.now() - reflexDebut));
+  reflexEtat = "idle";
+  reflexTimer = null;
+  cible.classList.remove("ready", "waiting");
+  if (temps) temps.textContent = reaction + " ms";
+
+  if (reflexRecord === 0 || reaction < reflexRecord) {
+    reflexRecord = reaction;
+    localStorage.setItem("omni_reflex_best", String(reflexRecord));
+    statut.textContent = "🏆 NOUVEAU RECORD ! " + reaction + " ms";
+  } else {
+    statut.textContent = reaction < 250 ? "⚡ ÉCLAIR ! " + reaction + " ms" : "Bien joué ! " + reaction + " ms";
+  }
+
+  if (bouton) bouton.disabled = false;
+  actualiserReflexe();
+}
+
+function arreterReflexe() {
+  if (reflexTimer !== null) clearTimeout(reflexTimer);
+  reflexTimer = null;
+  if (reflexEtat === "waiting" || reflexEtat === "ready") {
+    reflexEtat = "idle";
+    const cible = document.getElementById("reflex-target");
+    const statut = document.getElementById("reflex-status");
+    const bouton = document.getElementById("reflex-start");
+    if (cible) cible.classList.remove("ready", "waiting");
+    if (statut) statut.textContent = "Partie arrêtée. Tu peux recommencer.";
+    if (bouton) bouton.disabled = false;
+  }
+}
+
+/* PONG NÉON — RAQUETTES HORIZONTALES ET ADVERSAIRE AUTOMATIQUE */
+const PONG_LARGEUR = 480;
+const PONG_HAUTEUR = 320;
+const PONG_RAQUETTE_L = 88;
+const PONG_RAQUETTE_H = 12;
+let pongCanvas = null;
+let pongCtx = null;
+let pongAnimation = null;
+let pongEnCours = false;
+let pongDerniereImage = 0;
+let pongJoueurX = 196;
+let pongCpuX = 196;
+let pongScoreJoueur = 0;
+let pongScoreCpu = 0;
+let pongBalle = { x: 240, y: 160, vx: 3.1, vy: 3.4, r: 7 };
+
+function obtenirCanvasPong() {
+  if (!pongCanvas) {
+    pongCanvas = document.getElementById("pong-canvas");
+    if (pongCanvas) pongCtx = pongCanvas.getContext("2d");
+  }
+  return pongCanvas && pongCtx;
+}
+
+function mettreAJourScorePong() {
+  const joueur = document.getElementById("pong-player-score");
+  const cpu = document.getElementById("pong-cpu-score");
+  if (joueur) joueur.textContent = String(pongScoreJoueur);
+  if (cpu) cpu.textContent = String(pongScoreCpu);
+}
+
+function dessinerPong() {
+  if (!obtenirCanvasPong()) return;
+  const ctx = pongCtx;
+  ctx.clearRect(0, 0, PONG_LARGEUR, PONG_HAUTEUR);
+  const fond = ctx.createLinearGradient(0, 0, PONG_LARGEUR, PONG_HAUTEUR);
+  fond.addColorStop(0, "#101d38");
+  fond.addColorStop(1, "#070b18");
+  ctx.fillStyle = fond;
+  ctx.fillRect(0, 0, PONG_LARGEUR, PONG_HAUTEUR);
+
+  ctx.strokeStyle = "#38e8ff55";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([9, 10]);
+  ctx.beginPath();
+  ctx.moveTo(0, PONG_HAUTEUR / 2);
+  ctx.lineTo(PONG_LARGEUR, PONG_HAUTEUR / 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.shadowBlur = 18;
+  ctx.shadowColor = "#c084fc";
+  ctx.fillStyle = "#c084fc";
+  ctx.fillRect(pongCpuX, 18, PONG_RAQUETTE_L, PONG_RAQUETTE_H);
+  ctx.shadowColor = "#38e8ff";
+  ctx.shadowBlur = 18;
+  ctx.fillStyle = "#38e8ff";
+  ctx.fillRect(pongJoueurX, PONG_HAUTEUR - 30, PONG_RAQUETTE_L, PONG_RAQUETTE_H);
+
+  ctx.beginPath();
+  ctx.arc(pongBalle.x, pongBalle.y, pongBalle.r, 0, Math.PI * 2);
+  ctx.fillStyle = "#ffffff";
+  ctx.shadowColor = "#ffffff";
+  ctx.shadowBlur = 20;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  if (!pongEnCours) {
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.font = "bold 17px Arial";
+    ctx.fillText("PREMIER À 5 POINTS", PONG_LARGEUR / 2, 155);
+  }
+}
+
+function lancerBallePong(direction) {
+  pongBalle = {
+    x: PONG_LARGEUR / 2,
+    y: PONG_HAUTEUR / 2,
+    vx: (Math.random() > 0.5 ? 1 : -1) * (2.8 + Math.random() * 0.8),
+    vy: direction * 3.4,
+    r: 7
+  };
+}
+
+function demarrerPong() {
+  if (!obtenirCanvasPong() || pongEnCours) return;
+  if (pongAnimation !== null) cancelAnimationFrame(pongAnimation);
+  pongScoreJoueur = 0;
+  pongScoreCpu = 0;
+  pongJoueurX = (PONG_LARGEUR - PONG_RAQUETTE_L) / 2;
+  pongCpuX = pongJoueurX;
+  lancerBallePong(Math.random() > 0.5 ? 1 : -1);
+  mettreAJourScorePong();
+  pongEnCours = true;
+  pongDerniereImage = 0;
+  const statut = document.getElementById("pong-status");
+  if (statut) statut.textContent = "À toi de renvoyer la balle ! Flèches gauche/droite ou boutons.";
+  pongAnimation = requestAnimationFrame(bouclePong);
+  dessinerPong();
+}
+
+function deplacerRaquettePong(direction) {
+  const pas = 34;
+  pongJoueurX += direction === "left" ? -pas : pas;
+  pongJoueurX = Math.max(0, Math.min(PONG_LARGEUR - PONG_RAQUETTE_L, pongJoueurX));
+  dessinerPong();
+}
+
+function bouclePong(timestamp) {
+  if (!pongEnCours) return;
+  const facteur = pongDerniereImage ? Math.min((timestamp - pongDerniereImage) / 16.67, 2) : 1;
+  pongDerniereImage = timestamp;
+
+  pongBalle.x += pongBalle.vx * facteur;
+  pongBalle.y += pongBalle.vy * facteur;
+
+  if (pongBalle.x - pongBalle.r <= 0) {
+    pongBalle.x = pongBalle.r;
+    pongBalle.vx = Math.abs(pongBalle.vx);
+  } else if (pongBalle.x + pongBalle.r >= PONG_LARGEUR) {
+    pongBalle.x = PONG_LARGEUR - pongBalle.r;
+    pongBalle.vx = -Math.abs(pongBalle.vx);
+  }
+
+  const cibleCpu = Math.max(0, Math.min(PONG_LARGEUR - PONG_RAQUETTE_L, pongBalle.x - PONG_RAQUETTE_L / 2));
+  const ecartCpu = cibleCpu - pongCpuX;
+  pongCpuX += Math.max(-4.2 * facteur, Math.min(4.2 * facteur, ecartCpu));
+
+  const yJoueur = PONG_HAUTEUR - 30;
+  if (pongBalle.vy > 0 &&
+      pongBalle.y + pongBalle.r >= yJoueur &&
+      pongBalle.y - pongBalle.r <= yJoueur + PONG_RAQUETTE_H &&
+      pongBalle.x >= pongJoueurX - pongBalle.r &&
+      pongBalle.x <= pongJoueurX + PONG_RAQUETTE_L + pongBalle.r) {
+    pongBalle.y = yJoueur - pongBalle.r;
+    pongBalle.vy = -Math.abs(pongBalle.vy) * 1.025;
+    const decalage = (pongBalle.x - (pongJoueurX + PONG_RAQUETTE_L / 2)) / (PONG_RAQUETTE_L / 2);
+    pongBalle.vx += decalage * 1.05;
+  }
+
+  const yCpu = 18 + PONG_RAQUETTE_H;
+  if (pongBalle.vy < 0 &&
+      pongBalle.y - pongBalle.r <= yCpu &&
+      pongBalle.y + pongBalle.r >= yCpu - PONG_RAQUETTE_H &&
+      pongBalle.x >= pongCpuX - pongBalle.r &&
+      pongBalle.x <= pongCpuX + PONG_RAQUETTE_L + pongBalle.r) {
+    pongBalle.y = yCpu + pongBalle.r;
+    pongBalle.vy = Math.abs(pongBalle.vy) * 1.015;
+    const decalageCpu = (pongBalle.x - (pongCpuX + PONG_RAQUETTE_L / 2)) / (PONG_RAQUETTE_L / 2);
+    pongBalle.vx += decalageCpu * 0.75;
+  }
+
+  if (pongBalle.y < -pongBalle.r) {
+    pongScoreJoueur++;
+    mettreAJourScorePong();
+    if (pongScoreJoueur >= 5) return terminerPong("🏆 Victoire ! Tu as battu l'ordinateur.");
+    lancerBallePong(1);
+  } else if (pongBalle.y > PONG_HAUTEUR + pongBalle.r) {
+    pongScoreCpu++;
+    mettreAJourScorePong();
+    if (pongScoreCpu >= 5) return terminerPong("🤖 L'ordinateur gagne cette manche. Retente ta chance !");
+    lancerBallePong(-1);
+  }
+
+  dessinerPong();
+  pongAnimation = requestAnimationFrame(bouclePong);
+}
+
+function terminerPong(message) {
+  pongEnCours = false;
+  if (pongAnimation !== null) cancelAnimationFrame(pongAnimation);
+  pongAnimation = null;
+  const statut = document.getElementById("pong-status");
+  if (statut) statut.textContent = message + " Clique sur JOUER pour une revanche.";
+  dessinerPong();
+}
+
+function arreterPong() {
+  pongEnCours = false;
+  if (pongAnimation !== null) cancelAnimationFrame(pongAnimation);
+  pongAnimation = null;
+}
+
+/* 2048 CYBER */
+let grille2048 = Array(16).fill(0);
+let score2048 = 0;
+let meilleur2048 = Number(localStorage.getItem("omni_2048_best")) || 0;
+let jeu2048Initialise = false;
+let jeu2048Actif = false;
+let victoire2048 = false;
+
+function statut2048(message) {
+  const element = document.getElementById("2048-status");
+  if (element) element.textContent = message;
+}
+
+function ajouterTuile2048() {
+  const casesVides = [];
+  grille2048.forEach((valeur, index) => {
+    if (valeur === 0) casesVides.push(index);
+  });
+  if (!casesVides.length) return;
+  const index = casesVides[Math.floor(Math.random() * casesVides.length)];
+  grille2048[index] = Math.random() < 0.9 ? 2 : 4;
+}
+
+function afficher2048() {
+  const grille = document.getElementById("2048-grid");
+  const score = document.getElementById("2048-score");
+  const record = document.getElementById("2048-best");
+  if (!grille) return;
+  grille.replaceChildren();
+  grille2048.forEach((valeur, index) => {
+    const tuile = document.createElement("div");
+    tuile.dataset.value = String(valeur);
+    tuile.textContent = valeur ? String(valeur) : "";
+    tuile.setAttribute("aria-label", valeur ? "Case " + (index + 1) + " : " + valeur : "Case vide");
+    grille.appendChild(tuile);
+  });
+  if (score) score.textContent = score2048.toLocaleString("fr-FR");
+  if (record) record.textContent = meilleur2048.toLocaleString("fr-FR");
+}
+
+function demarrer2048() {
+  grille2048 = Array(16).fill(0);
+  score2048 = 0;
+  victoire2048 = false;
+  jeu2048Actif = true;
+  jeu2048Initialise = true;
+  ajouterTuile2048();
+  ajouterTuile2048();
+  afficher2048();
+  statut2048("Fusionne deux tuiles identiques. Utilise les flèches ou les boutons.");
+}
+
+function lignes2048(direction) {
+  const lignes = [];
+  for (let i = 0; i < 4; i++) {
+    let indices;
+    if (direction === "left" || direction === "right") {
+      indices = [i * 4, i * 4 + 1, i * 4 + 2, i * 4 + 3];
+    } else {
+      indices = [i, i + 4, i + 8, i + 12];
+    }
+    if (direction === "right" || direction === "down") indices.reverse();
+    lignes.push(indices);
+  }
+  return lignes;
+}
+
+function aDesCoups2048() {
+  if (grille2048.some(valeur => valeur === 0)) return true;
+  for (let y = 0; y < 4; y++) {
+    for (let x = 0; x < 4; x++) {
+      const index = y * 4 + x;
+      if (x < 3 && grille2048[index] === grille2048[index + 1]) return true;
+      if (y < 3 && grille2048[index] === grille2048[index + 4]) return true;
+    }
+  }
+  return false;
+}
+
+function deplacer2048(direction) {
+  if (!jeu2048Actif) return;
+  const avant = grille2048.join(",");
+  let pointsGagnes = 0;
+
+  lignes2048(direction).forEach(indices => {
+    const valeurs = indices.map(index => grille2048[index]).filter(valeur => valeur !== 0);
+    const fusion = [];
+    for (let i = 0; i < valeurs.length; i++) {
+      if (valeurs[i] === valeurs[i + 1]) {
+        const nouvelleValeur = valeurs[i] * 2;
+        fusion.push(nouvelleValeur);
+        pointsGagnes += nouvelleValeur;
+        i++;
+      } else {
+        fusion.push(valeurs[i]);
+      }
+    }
+    while (fusion.length < 4) fusion.push(0);
+    indices.forEach((index, position) => {
+      grille2048[index] = fusion[position];
+    });
+  });
+
+  if (avant === grille2048.join(",")) return;
+  score2048 += pointsGagnes;
+  if (score2048 > meilleur2048) {
+    meilleur2048 = score2048;
+    localStorage.setItem("omni_2048_best", String(meilleur2048));
+  }
+  ajouterTuile2048();
+  afficher2048();
+
+  if (!victoire2048 && grille2048.some(valeur => valeur >= 2048)) {
+    victoire2048 = true;
+    statut2048("🏆 2048 atteint ! Tu peux continuer à jouer pour battre ton record.");
+  } else if (!aDesCoups2048()) {
+    jeu2048Actif = false;
+    statut2048("Fin de partie ! Score : " + score2048 + ". Clique sur RECOMMENCER.");
+  } else if (!victoire2048) {
+    statut2048("Bien joué ! Continue à fusionner les tuiles.");
+  }
+}
+
+/* MORPION CYBER — DEUX JOUEURS SUR LE MÊME ÉCRAN */
+let morpionPlateau = Array(9).fill("");
+let morpionJoueur = "X";
+let morpionTermine = false;
+const MORPION_LIGNES_GAGNANTES = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8],
+  [0, 3, 6], [1, 4, 7], [2, 5, 8],
+  [0, 4, 8], [2, 4, 6]
+];
+
+function afficherMorpion(ligneGagnante) {
+  const grille = document.getElementById("morpion-grid");
+  if (!grille) return;
+  const boutons = grille.querySelectorAll("button");
+  boutons.forEach((bouton, index) => {
+    const valeur = morpionPlateau[index];
+    bouton.textContent = valeur;
+    bouton.disabled = morpionTermine || Boolean(valeur);
+    bouton.classList.toggle("morpion-x", valeur === "X");
+    bouton.classList.toggle("morpion-o", valeur === "O");
+    bouton.classList.toggle("is-winner", Boolean(ligneGagnante && ligneGagnante.includes(index)));
+    bouton.setAttribute("aria-label", "Case " + (index + 1) + (valeur ? " : " + valeur : " vide"));
+  });
+}
+
+function initialiserMorpion() {
+  morpionPlateau = Array(9).fill("");
+  morpionJoueur = "X";
+  morpionTermine = false;
+  const statut = document.getElementById("morpion-status");
+  if (statut) statut.textContent = "À toi de jouer, joueur X !";
+  afficherMorpion(null);
+}
+
+function jouerMorpion(index) {
+  if (!Number.isInteger(index) || index < 0 || index > 8) return;
+  if (morpionTermine || morpionPlateau[index]) return;
+  morpionPlateau[index] = morpionJoueur;
+
+  const ligneGagnante = MORPION_LIGNES_GAGNANTES.find(ligne =>
+    ligne.every(position => morpionPlateau[position] === morpionJoueur)
+  );
+  const statut = document.getElementById("morpion-status");
+
+  if (ligneGagnante) {
+    morpionTermine = true;
+    if (statut) statut.textContent = "🏆 Joueur " + morpionJoueur + " remporte la partie !";
+    afficherMorpion(ligneGagnante);
+    return;
+  }
+
+  if (morpionPlateau.every(Boolean)) {
+    morpionTermine = true;
+    if (statut) statut.textContent = "🤝 Égalité ! Bien joué à tous les deux.";
+    afficherMorpion(null);
+    return;
+  }
+
+  morpionJoueur = morpionJoueur === "X" ? "O" : "X";
+  if (statut) statut.textContent = "À toi de jouer, joueur " + morpionJoueur + " !";
+  afficherMorpion(null);
+}
+
+function recommencerMorpion() {
+  initialiserMorpion();
+}
+
+/* SPACE DODGER — ESQUIVE D'ASTÉROÏDES */
+let spaceCanvas = null;
+let spaceCtx = null;
+let spaceAnimation = null;
+let spaceEnCours = false;
+let spaceDerniereImage = 0;
+let spaceTemps = 0;
+let spaceScore = 0;
+let spaceRecord = Number(localStorage.getItem("omni_space_best")) || 0;
+let spaceJoueurX = 210;
+let spaceObstacles = [];
+let spaceTempsSpawn = 0;
+let spaceEtoiles = Array.from({ length: 42 }, () => ({
+  x: Math.random() * 420,
+  y: Math.random() * 420,
+  taille: 1 + Math.random() * 2,
+  vitesse: 12 + Math.random() * 30
+}));
+
+function obtenirCanvasSpace() {
+  if (!spaceCanvas) {
+    spaceCanvas = document.getElementById("space-canvas");
+    if (spaceCanvas) spaceCtx = spaceCanvas.getContext("2d");
+  }
+  return Boolean(spaceCanvas && spaceCtx);
+}
+
+function actualiserScoreSpace() {
+  const score = document.getElementById("space-score");
+  const record = document.getElementById("space-best");
+  if (score) score.textContent = String(spaceScore);
+  if (record) record.textContent = String(spaceRecord);
+}
+
+function dessinerSpaceDodger(fin) {
+  if (!obtenirCanvasSpace()) return;
+  const ctx = spaceCtx;
+  ctx.clearRect(0, 0, 420, 420);
+  const fond = ctx.createLinearGradient(0, 0, 420, 420);
+  fond.addColorStop(0, "#101b3c");
+  fond.addColorStop(1, "#070a18");
+  ctx.fillStyle = fond;
+  ctx.fillRect(0, 0, 420, 420);
+
+  spaceEtoiles.forEach(etoile => {
+    ctx.globalAlpha = 0.35 + (etoile.taille / 4);
+    ctx.fillStyle = "#dbeafe";
+    ctx.fillRect(etoile.x, etoile.y, etoile.taille, etoile.taille);
+  });
+  ctx.globalAlpha = 1;
+
+  spaceObstacles.forEach(obstacle => {
+    ctx.save();
+    ctx.shadowColor = "#fb923c";
+    ctx.shadowBlur = 13;
+    ctx.fillStyle = "#b45309";
+    ctx.beginPath();
+    ctx.arc(obstacle.x + obstacle.w / 2, obstacle.y + obstacle.h / 2,
+      Math.max(obstacle.w, obstacle.h) / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#fdba74";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+  });
+
+  const joueurY = 360;
+  ctx.save();
+  ctx.translate(spaceJoueurX, joueurY);
+  ctx.shadowColor = "#38e8ff";
+  ctx.shadowBlur = 22;
+  ctx.fillStyle = "#38e8ff";
+  ctx.beginPath();
+  ctx.moveTo(0, -20);
+  ctx.lineTo(17, 16);
+  ctx.lineTo(0, 10);
+  ctx.lineTo(-17, 16);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(0, 2, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.fillStyle = "#dbeafe";
+  ctx.font = "bold 13px Arial";
+  ctx.textAlign = "left";
+  ctx.fillText("SCORE " + spaceScore, 14, 22);
+
+  if (fin) {
+    ctx.fillStyle = "#050816cc";
+    ctx.fillRect(0, 0, 420, 420);
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#fb7185";
+    ctx.font = "bold 27px Arial";
+    ctx.fillText("MISSION TERMINÉE", 210, 190);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 18px Arial";
+    ctx.fillText("Score : " + spaceScore, 210, 225);
+  }
+}
+
+function demarrerSpaceDodger() {
+  if (!obtenirCanvasSpace()) return;
+  if (spaceAnimation !== null) cancelAnimationFrame(spaceAnimation);
+  spaceEnCours = true;
+  spaceDerniereImage = 0;
+  spaceTemps = 0;
+  spaceScore = 0;
+  spaceTempsSpawn = 0;
+  spaceJoueurX = 210;
+  spaceObstacles = [];
+  actualiserScoreSpace();
+  const statut = document.getElementById("space-status");
+  if (statut) statut.textContent = "Mission lancée ! Évite les astéroïdes.";
+  spaceAnimation = requestAnimationFrame(boucleSpaceDodger);
+  dessinerSpaceDodger(false);
+}
+
+function deplacerVaisseau(direction) {
+  const pas = Number(direction) * 34;
+  if (!Number.isFinite(pas)) return;
+  spaceJoueurX = Math.max(22, Math.min(398, spaceJoueurX + pas));
+  dessinerSpaceDodger(false);
+}
+
+function boucleSpaceDodger(timestamp) {
+  if (!spaceEnCours) return;
+  const delta = spaceDerniereImage ? Math.min((timestamp - spaceDerniereImage) / 1000, 0.035) : 0.016;
+  spaceDerniereImage = timestamp;
+  spaceTemps += delta;
+  spaceTempsSpawn += delta * 1000;
+  spaceScore = Math.floor(spaceTemps * 10);
+
+  const intervalleSpawn = Math.max(300, 850 - spaceTemps * 9);
+  if (spaceTempsSpawn >= intervalleSpawn) {
+    spaceTempsSpawn = 0;
+    const largeur = 20 + Math.random() * 34;
+    spaceObstacles.push({
+      x: Math.random() * (420 - largeur),
+      y: -36,
+      w: largeur,
+      h: largeur * (0.7 + Math.random() * 0.5),
+      speed: 105 + Math.min(spaceTemps * 2.2, 100) + Math.random() * 35
+    });
+  }
+
+  spaceObstacles.forEach(obstacle => {
+    obstacle.y += obstacle.speed * delta;
+  });
+  spaceObstacles = spaceObstacles.filter(obstacle => obstacle.y < 450);
+
+  const joueur = { x: spaceJoueurX - 13, y: 345, w: 26, h: 30 };
+  const collision = spaceObstacles.some(obstacle =>
+    joueur.x < obstacle.x + obstacle.w - 5 &&
+    joueur.x + joueur.w > obstacle.x + 5 &&
+    joueur.y < obstacle.y + obstacle.h - 5 &&
+    joueur.y + joueur.h > obstacle.y + 5
+  );
+
+  if (collision) return terminerSpaceDodger();
+  spaceEtoiles.forEach(etoile => {
+    etoile.y += etoile.vitesse * delta;
+    if (etoile.y > 420) {
+      etoile.y = -3;
+      etoile.x = Math.random() * 420;
+    }
+  });
+
+  actualiserScoreSpace();
+  dessinerSpaceDodger(false);
+  spaceAnimation = requestAnimationFrame(boucleSpaceDodger);
+}
+
+function terminerSpaceDodger() {
+  spaceEnCours = false;
+  if (spaceAnimation !== null) cancelAnimationFrame(spaceAnimation);
+  spaceAnimation = null;
+  if (spaceScore > spaceRecord) {
+    spaceRecord = spaceScore;
+    localStorage.setItem("omni_space_best", String(spaceRecord));
+  }
+  actualiserScoreSpace();
+  const statut = document.getElementById("space-status");
+  if (statut) statut.textContent = "Fin de mission ! Clique sur DÉCOLLER pour retenter le record.";
+  dessinerSpaceDodger(true);
+}
+
+function arreterSpaceDodger() {
+  spaceEnCours = false;
+  if (spaceAnimation !== null) cancelAnimationFrame(spaceAnimation);
+  spaceAnimation = null;
+}
+
+/* QUIZ CYBER — 10 QUESTIONS PAR PARTIE */
+const BANQUE_QUESTIONS_QUIZ = [
+  { q: "Quel langage structure le contenu d'une page web ?", a: ["HTML", "CSS", "SQL", "Python"], c: 0 },
+  { q: "Quelle planète est surnommée la planète rouge ?", a: ["Vénus", "Mars", "Jupiter", "Mercure"], c: 1 },
+  { q: "Combien font 8 × 7 ?", a: ["48", "54", "56", "64"], c: 2 },
+  { q: "Quel animal est le plus grand parmi ces choix ?", a: ["L'éléphant d'Afrique", "Le loup", "Le panda", "Le renard"], c: 0 },
+  { q: "Quelle touche sert généralement à faire un espace ?", a: ["Échap", "Entrée", "Majuscule", "Barre d'espace"], c: 3 },
+  { q: "Quel est le symbole chimique de l'eau ?", a: ["CO2", "H2O", "O2", "NaCl"], c: 1 },
+  { q: "Combien de côtés possède un hexagone ?", a: ["5", "6", "7", "8"], c: 1 },
+  { q: "Quel océan est le plus vaste ?", a: ["Atlantique", "Indien", "Pacifique", "Arctique"], c: 2 },
+  { q: "Quel composant exécute les instructions d'un ordinateur ?", a: ["Le processeur", "L'écran", "Le clavier", "La souris"], c: 0 },
+  { q: "Quelle est la valeur binaire de 1 + 1 ?", a: ["10", "11", "01", "100"], c: 0 },
+  { q: "Quel gaz les plantes absorbent-elles principalement pour la photosynthèse ?", a: ["Oxygène", "Dioxyde de carbone", "Hélium", "Azote"], c: 1 },
+  { q: "Combien de minutes y a-t-il dans deux heures ?", a: ["90", "100", "120", "180"], c: 2 },
+  { q: "Quel instrument mesure la température ?", a: ["Baromètre", "Thermomètre", "Chronomètre", "Boussole"], c: 1 },
+  { q: "Quelle couleur obtient-on en mélangeant du bleu et du jaune ?", a: ["Vert", "Violet", "Orange", "Rose"], c: 0 },
+  { q: "Quel est le résultat de 9 au carré ?", a: ["18", "72", "81", "99"], c: 2 }
+];
+let quizQuestionsPartie = [];
+let quizIndex = 0;
+let quizScoreValeur = 0;
+let quizRecord = Number(localStorage.getItem("omni_quiz_best")) || 0;
+let quizEnCours = false;
+let quizRepondu = false;
+let quizTimerSuivant = null;
+
+function initialiserQuiz() {
+  if (quizTimerSuivant !== null) clearTimeout(quizTimerSuivant);
+  quizTimerSuivant = null;
+  quizEnCours = false;
+  quizRepondu = false;
+  const question = document.getElementById("quiz-question");
+  const reponses = document.getElementById("quiz-answers");
+  const statut = document.getElementById("quiz-status");
+  const bouton = document.getElementById("quiz-start");
+  const score = document.getElementById("quiz-score");
+  const record = document.getElementById("quiz-best");
+  if (question) question.textContent = "Prêt à relever le défi ?";
+  if (reponses) reponses.replaceChildren();
+  if (statut) statut.textContent = "10 questions • 10 points par bonne réponse.";
+  if (bouton) {
+    bouton.hidden = false;
+    bouton.textContent = "▶ COMMENCER LE QUIZ";
+  }
+  if (score) score.textContent = "0";
+  if (record) record.textContent = String(quizRecord);
+}
+
+function demarrerQuiz() {
+  if (quizTimerSuivant !== null) clearTimeout(quizTimerSuivant);
+  quizTimerSuivant = null;
+  quizQuestionsPartie = BANQUE_QUESTIONS_QUIZ.slice();
+  for (let i = quizQuestionsPartie.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [quizQuestionsPartie[i], quizQuestionsPartie[j]] = [quizQuestionsPartie[j], quizQuestionsPartie[i]];
+  }
+  quizQuestionsPartie = quizQuestionsPartie.slice(0, 10);
+  quizIndex = 0;
+  quizScoreValeur = 0;
+  quizEnCours = true;
+  quizRepondu = false;
+  const bouton = document.getElementById("quiz-start");
+  if (bouton) bouton.hidden = true;
+  afficherQuestionQuiz();
+}
+
+function afficherQuestionQuiz() {
+  if (!quizEnCours) return;
+  if (quizIndex >= quizQuestionsPartie.length) return terminerQuiz();
+
+  const item = quizQuestionsPartie[quizIndex];
+  const question = document.getElementById("quiz-question");
+  const reponses = document.getElementById("quiz-answers");
+  const statut = document.getElementById("quiz-status");
+  const score = document.getElementById("quiz-score");
+  if (!question || !reponses) return;
+
+  quizRepondu = false;
+  question.textContent = "QUESTION " + (quizIndex + 1) + "/10 — " + item.q;
+  if (statut) statut.textContent = "Choisis la bonne réponse.";
+  if (score) score.textContent = String(quizScoreValeur);
+  reponses.replaceChildren();
+
+  item.a.forEach((texte, index) => {
+    const bouton = document.createElement("button");
+    bouton.type = "button";
+    bouton.textContent = texte;
+    bouton.addEventListener("click", () => repondreQuiz(index));
+    reponses.appendChild(bouton);
+  });
+}
+
+function repondreQuiz(choix) {
+  if (!quizEnCours || quizRepondu) return;
+  const item = quizQuestionsPartie[quizIndex];
+  const boutons = document.querySelectorAll("#quiz-answers button");
+  if (!item || !boutons.length) return;
+  quizRepondu = true;
+
+  boutons.forEach((bouton, index) => {
+    bouton.disabled = true;
+    if (index === item.c) bouton.classList.add("is-correct");
+    if (index === choix && choix !== item.c) bouton.classList.add("is-wrong");
+  });
+
+  const statut = document.getElementById("quiz-status");
+  if (choix === item.c) {
+    quizScoreValeur += 10;
+    if (statut) statut.textContent = "✅ Bonne réponse ! +10 points";
+  } else if (statut) {
+    statut.textContent = "❌ Pas tout à fait. La bonne réponse est : " + item.a[item.c];
+  }
+
+  const score = document.getElementById("quiz-score");
+  if (score) score.textContent = String(quizScoreValeur);
+
+  quizTimerSuivant = setTimeout(() => {
+    quizTimerSuivant = null;
+    quizIndex++;
+    afficherQuestionQuiz();
+  }, 950);
+}
+
+function terminerQuiz() {
+  quizEnCours = false;
+  const question = document.getElementById("quiz-question");
+  const statut = document.getElementById("quiz-status");
+  const bouton = document.getElementById("quiz-start");
+  const record = document.getElementById("quiz-best");
+
+  if (quizScoreValeur > quizRecord) {
+    quizRecord = quizScoreValeur;
+    localStorage.setItem("omni_quiz_best", String(quizRecord));
+    if (statut) statut.textContent = "🏆 Nouveau record ! " + quizScoreValeur + "/100 points.";
+  } else if (statut) {
+    statut.textContent = "Défi terminé : " + quizScoreValeur + "/100 points. Tu peux retenter ta chance !";
+  }
+
+  if (question) question.textContent = "🎉 Quiz terminé !";
+  if (bouton) {
+    bouton.hidden = false;
+    bouton.textContent = "🔄 REJOUER";
+  }
+  if (record) record.textContent = String(quizRecord);
+}
+
+function arreterQuiz() {
+  if (quizTimerSuivant !== null) clearTimeout(quizTimerSuivant);
+  quizTimerSuivant = null;
+  if (quizEnCours) {
+    quizEnCours = false;
+    quizRepondu = false;
+    const bouton = document.getElementById("quiz-start");
+    const statut = document.getElementById("quiz-status");
+    if (bouton) {
+      bouton.hidden = false;
+      bouton.textContent = "▶ REPRENDRE UN QUIZ";
+    }
+    if (statut) statut.textContent = "Partie interrompue. Tu peux relancer un quiz.";
+  }
+}
+
+/* COMMANDES AU CLAVIER — ACTIVES UNIQUEMENT DANS LE JEU AFFICHÉ */
+document.addEventListener("keydown", function(event) {
+  const stage = document.getElementById("omni-game-stage");
+  if (!stage || stage.hidden) return;
+
+  const target = event.target;
+  if (target && target.closest && target.closest("input, textarea, select, [contenteditable='true']")) return;
+
+  const panneau = document.querySelector("#omni-game-stage .omni-game-panel:not([hidden])");
+  if (!panneau) return;
+
+  const touche = event.key.toLowerCase();
+  if (panneau.id === "omni-game-2048") {
+    const directions = {
+      arrowup: "up", arrowdown: "down", arrowleft: "left", arrowright: "right"
+    };
+    if (directions[touche]) {
+      event.preventDefault();
+      deplacer2048(directions[touche]);
+    }
+  } else if (panneau.id === "omni-game-pong") {
+    if (touche === "arrowleft" || touche === "a" || touche === "q") {
+      event.preventDefault();
+      deplacerRaquettePong("left");
+    } else if (touche === "arrowright" || touche === "d") {
+      event.preventDefault();
+      deplacerRaquettePong("right");
+    }
+  } else if (panneau.id === "omni-game-space") {
+    if (touche === "arrowleft" || touche === "a" || touche === "q") {
+      event.preventDefault();
+      deplacerVaisseau(-1);
+    } else if (touche === "arrowright" || touche === "d") {
+      event.preventDefault();
+      deplacerVaisseau(1);
+    }
   }
 });
