@@ -246,14 +246,14 @@
 
 <!-- FIN DU NOUVEL ACCUEIL -->
 
-        <div class="card" style="display:flex; align-items:center; gap:20px;">
+        <div class="card omni-profile-panel" style="display:flex; align-items:center; gap:20px;">
           <div id="profile-avatar" style="font-size:55px; cursor:pointer;" onclick="changerAvatar()">🤖</div>
           <div style="flex-grow:1;">
             <input type="text" id="username-input" value="Joueur Cyber" onchange="sauvegarderProfil()">
             <p id="profile-title-display" style="margin:8px 0 0 0; color:var(--neon-gold); font-weight:bold;">👑 Titre : Débutant Cyber | ⭐ Points OMNI : <span id="omni-points-display">100</span> pts</p>
           </div>
         </div>
-        <div class="card" style="text-align:center;">
+        <div class="card omni-profile-reset-panel" style="text-align:center;">
           <button class="btn" style="background:#ef4444; color:white; width:auto; max-width:350px;" onclick="reinitialiserTout()">🗑️ Réinitialiser ma partie</button>
         </div>
 
@@ -466,8 +466,18 @@
 
 
       <!-- 3. CARTES RARES (BOOSTER) -->
-      <section id="page-cards" class="page">
-        <h2>🎴 Cartes Rares (Ouverture de Booster)</h2>
+      <section id="page-cards" class="page omni-subpage omni-theme-cards">
+        <div class="omni-subpage-banner">
+  <div class="omni-subpage-banner-copy">
+   <span class="omni-eyebrow">OMNI COLLECTION SYSTEM</span>
+   <h2>CARTES <span>RARES</span></h2>
+   <p>Ouvre tes boosters cosmiques, découvre de nouvelles cartes et construis ta collection.</p>
+   <span class="omni-banner-tag">COLLECTION COSMIQUE</span>
+  </div>
+  <div class="omni-subpage-banner-art" aria-hidden="true">
+   <span class="omni-subpage-orbit"></span><span class="omni-subpage-icon">🎴</span><span class="omni-subpage-spark">✦</span>
+  </div>
+ </div>
         <div class="card" style="text-align:center;">
           <p style="color:#94a3b8;">Ouvre un booster cosmique et choisis une carte dans le paquet !</p>
           <div id="booster-container">
@@ -826,8 +836,18 @@
 
 
       <!-- 5. ROBOT IA -->
-      <section id="page-pets" class="page">
-        <h2>🤖 Cyber-Bot (mode démo)</h2>
+      <section id="page-pets" class="page omni-subpage omni-theme-pets">
+        <div class="omni-subpage-banner">
+  <div class="omni-subpage-banner-copy">
+   <span class="omni-eyebrow">OMNI AI LAB</span>
+   <h2>CYBER-BOT <span>ASSISTANT</span></h2>
+   <p>Discute avec ton compagnon numérique dans cette expérience de démonstration locale.</p>
+   <span class="omni-banner-tag">ASSISTANT EN MODE DÉMO</span>
+  </div>
+  <div class="omni-subpage-banner-art" aria-hidden="true">
+   <span class="omni-subpage-orbit"></span><span class="omni-subpage-icon">🤖</span><span class="omni-subpage-spark">✦</span>
+  </div>
+ </div>
         <div class="card" style="display:flex; flex-direction:column; gap:12px;">
           <div style="display:flex; align-items:center; gap:15px;">
             <span style="font-size:50px;">🤖</span>
@@ -849,8 +869,18 @@
       </section>
 
       <!-- 6. CRÉATIF & CHILL -->
-      <section id="page-sandbox" class="page">
-        <h2>🎨 Zone Créative & Chill</h2>
+      <section id="page-sandbox" class="page omni-subpage omni-theme-sandbox">
+        <div class="omni-subpage-banner">
+  <div class="omni-subpage-banner-copy">
+   <span class="omni-eyebrow">OMNI CREATIVE STUDIO</span>
+   <h2>ZONE <span>CRÉATIVE</span></h2>
+   <p>Détends-toi, expérimente et laisse libre cours à ton imagination avec les outils créatifs.</p>
+   <span class="omni-banner-tag">CRÉE À TA FAÇON</span>
+  </div>
+  <div class="omni-subpage-banner-art" aria-hidden="true">
+   <span class="omni-subpage-orbit"></span><span class="omni-subpage-icon">🎨</span><span class="omni-subpage-spark">✦</span>
+  </div>
+ </div>
         <div class="card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h3 style="margin:0; color:var(--neon-blue);">💥 Papier Bulle (Glisse ton doigt/souris)</h3>
@@ -878,8 +908,18 @@
       </section>
 
       <!-- 7. COMMUNAUTÉ -->
-      <section id="page-community" class="page">
-        <h2>🌐 Espace communautaire (mode démo)</h2>
+      <section id="page-community" class="page omni-subpage omni-theme-community">
+        <div class="omni-subpage-banner">
+  <div class="omni-subpage-banner-copy">
+   <span class="omni-eyebrow">OMNI SOCIAL HUB</span>
+   <h2>ESPACE <span>COMMUNAUTAIRE</span></h2>
+   <p>Choisis ton humeur, écris dans le salon de démonstration et dessine sur le mur de graffiti local.</p>
+   <span class="omni-banner-tag">ESPACE LOCAL • MODE DÉMO</span>
+  </div>
+  <div class="omni-subpage-banner-art" aria-hidden="true">
+   <span class="omni-subpage-orbit"></span><span class="omni-subpage-icon">🌐</span><span class="omni-subpage-spark">✦</span>
+  </div>
+ </div>
         <div class="card">
           <h3 style="color:var(--neon-gold);">📊 Météo d'humeur & salon de discussion</h3>
           <p class="omni-local-notice">Mode démo : les messages et les choix d'humeur sont visibles uniquement dans cette session sur cet appareil. Ils ne sont pas transmis aux autres joueurs.</p>
@@ -913,8 +953,18 @@
       </section>
 
       <!-- 8. DILEMMES XL -->
-      <section id="page-dilemme" class="page">
-        <h2>⚖️ Le Tribunal des Dilemmes (XL)</h2>
+      <section id="page-dilemme" class="page omni-subpage omni-theme-dilemme">
+        <div class="omni-subpage-banner">
+  <div class="omni-subpage-banner-copy">
+   <span class="omni-eyebrow">OMNI DECISION SYSTEM</span>
+   <h2>TRIBUNAL DES <span>DILEMMES</span></h2>
+   <p>Fais ton choix, assume-le et découvre ce que les autres options auraient pu changer.</p>
+   <span class="omni-banner-tag">À TOI DE TRANCHER</span>
+  </div>
+  <div class="omni-subpage-banner-art" aria-hidden="true">
+   <span class="omni-subpage-orbit"></span><span class="omni-subpage-icon">⚖️</span><span class="omni-subpage-spark">✦</span>
+  </div>
+ </div>
         <div class="card" style="padding:40px 25px;">
           <p class="dilemme-giant-title" id="dilemme-question">Chargement du dilemme IA...</p>
           <div id="dilemme-options" style="display: flex; flex-direction: column; gap: 20px;">
@@ -929,8 +979,18 @@
       </section>
 
       <!-- 9. CAPSULE XL -->
-      <section id="page-capsule" class="page">
-        <h2>⏳ Capsule Temporelle XL 📦</h2>
+      <section id="page-capsule" class="page omni-subpage omni-theme-capsule">
+        <div class="omni-subpage-banner">
+  <div class="omni-subpage-banner-copy">
+   <span class="omni-eyebrow">OMNI TIME CAPSULE</span>
+   <h2>CAPSULE <span>TEMPORELLE</span></h2>
+   <p>Écris un message pour ton futur toi et choisis quand tu souhaites le retrouver.</p>
+   <span class="omni-banner-tag">UN MESSAGE POUR PLUS TARD</span>
+  </div>
+  <div class="omni-subpage-banner-art" aria-hidden="true">
+   <span class="omni-subpage-orbit"></span><span class="omni-subpage-icon">⏳</span><span class="omni-subpage-spark">✦</span>
+  </div>
+ </div>
         <div class="card">
           <p style="color:#94a3b8; font-size:15px;">Crée une capsule qui se déverrouille après le délai choisi. Les textes restent dans le stockage de ce navigateur et ne sont pas chiffrés : évite les informations très personnelles.</p>
           <textarea id="capsule-text" class="xl-textarea" maxlength="500" placeholder="✍️ Écris ton message pour le futur ici..."></textarea>
@@ -950,8 +1010,18 @@
       </section>
 
       <!-- 10. SECRETS XL -->
-      <section id="page-secrets" class="page">
-        <h2>🏝️ Carnet de notes personnelles 📜</h2>
+      <section id="page-secrets" class="page omni-subpage omni-theme-secrets">
+        <div class="omni-subpage-banner">
+  <div class="omni-subpage-banner-copy">
+   <span class="omni-eyebrow">OMNI PERSONAL SPACE</span>
+   <h2>CARNET <span>PERSONNEL</span></h2>
+   <p>Garde tes petites notes dans ton espace personnel sur cet appareil.</p>
+   <span class="omni-banner-tag">TES NOTES • TON ESPACE</span>
+  </div>
+  <div class="omni-subpage-banner-art" aria-hidden="true">
+   <span class="omni-subpage-orbit"></span><span class="omni-subpage-icon">📓</span><span class="omni-subpage-spark">✦</span>
+  </div>
+ </div>
         <div class="card">
           <p class="omni-local-notice">Ces notes sont enregistrées dans le navigateur de cet appareil. Elles ne sont ni anonymisées sur un serveur ni partagées avec d'autres joueurs. Évite d'y écrire des informations sensibles sur un appareil partagé.</p>
           <textarea id="secret-input" class="xl-textarea" maxlength="500" style="border-color:var(--neon-blue);" placeholder="🤫 Écris une note personnelle..."></textarea>
@@ -963,8 +1033,18 @@
       </section>
 
       <!-- 11. ANTI-STRESS -->
-      <section id="page-vent" class="page">
-        <h2>🔥 Le Destructeur de Soucis (Anti-Stress)</h2>
+      <section id="page-vent" class="page omni-subpage omni-theme-vent">
+        <div class="omni-subpage-banner">
+  <div class="omni-subpage-banner-copy">
+   <span class="omni-eyebrow">OMNI RESET ZONE</span>
+   <h2>ESPACE <span>ANTI-STRESS</span></h2>
+   <p>Dépose ce qui t'encombre sur la page, puis efface-le avec une animation.</p>
+   <span class="omni-banner-tag">FAIS PLACE AU CALME</span>
+  </div>
+  <div class="omni-subpage-banner-art" aria-hidden="true">
+   <span class="omni-subpage-orbit"></span><span class="omni-subpage-icon">🔥</span><span class="omni-subpage-spark">✦</span>
+  </div>
+ </div>
         <div class="card" style="text-align: center; padding:30px;">
           <p style="font-size:16px; color:#94a3b8; margin-bottom:20px;">Écris ce que tu souhaites poser sur papier, puis efface-le avec une animation. Le texte n'est pas envoyé, mais évite les informations très personnelles sur un appareil partagé.</p>
           <textarea id="vent-input" class="vent-giant-textarea" maxlength="2000" placeholder="Écris ce que tu souhaites ensuite effacer..."></textarea>
@@ -974,8 +1054,18 @@
       </section>
 
       <!-- 12. BOUTIQUE NÉON -->
-      <section id="page-shop" class="page">
-        <h2>🛍️ Boutique Cosmétique Néon ✨</h2>
+      <section id="page-shop" class="page omni-subpage omni-theme-shop">
+        <div class="omni-subpage-banner">
+  <div class="omni-subpage-banner-copy">
+   <span class="omni-eyebrow">OMNI CUSTOMIZATION LAB</span>
+   <h2>BOUTIQUE <span>OMNI</span></h2>
+   <p>Utilise tes Points OMNI pour personnaliser ta pizza et tes effets de clic.</p>
+   <span class="omni-banner-tag">PERSONNALISE TON UNIVERS</span>
+  </div>
+  <div class="omni-subpage-banner-art" aria-hidden="true">
+   <span class="omni-subpage-orbit"></span><span class="omni-subpage-icon">🛍️</span><span class="omni-subpage-spark">✦</span>
+  </div>
+ </div>
         <p style="color:#94a3b8;">Dépense tes Points OMNI ⭐ débloqués en jouant pour personnaliser ton expérience cybernétique !</p>
         <h3 style="color:var(--neon-gold); margin-top:20px;">🍕 Skins de Pizza</h3>
         <div id="pizza-skins-grid" class="shop-cosmetic-grid"></div>
@@ -984,8 +1074,18 @@
       </section>
 
       <!-- 13. ROUE XL -->
-      <section id="page-wheel" class="page">
-        <h2>🎡 Quêtes Quotidiennes & Roue OMNI XL 🎁</h2>
+      <section id="page-wheel" class="page omni-subpage omni-theme-wheel">
+        <div class="omni-subpage-banner">
+  <div class="omni-subpage-banner-copy">
+   <span class="omni-eyebrow">OMNI DAILY REWARDS</span>
+   <h2>ROUE <span>OMNI</span></h2>
+   <p>Découvre les récompenses virtuelles de la roue et tente ta chance une fois par jour.</p>
+   <span class="omni-banner-tag">UNE TENTATIVE PAR JOUR</span>
+  </div>
+  <div class="omni-subpage-banner-art" aria-hidden="true">
+   <span class="omni-subpage-orbit"></span><span class="omni-subpage-icon">🎡</span><span class="omni-subpage-spark">✦</span>
+  </div>
+ </div>
         <div class="card" style="text-align:center; padding:30px;">
           <h3 style="font-size:26px; color:var(--neon-gold);">🎰 La Grande Roue de la Fortune</h3>
           <p style="color:#94a3b8; margin-bottom:12px; font-size:15px;">Une tentative gratuite par jour. Les récompenses sont virtuelles et restent sur cet appareil.</p>
