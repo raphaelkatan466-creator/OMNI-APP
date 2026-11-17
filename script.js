@@ -73,6 +73,10 @@ function chargerDonnees() {
       console.error("Erreur de chargement :", erreur);
     }
   }
+
+  // Enregistrer immédiatement l'heure de reprise pour éviter de compter deux fois le bonus.
+  state.lastSavedAt = Date.now();
+  sauvegarderDonnees();
 }
 
 
