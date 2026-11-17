@@ -4,10 +4,12 @@
   <link rel="manifest" href="./manifest.json">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#38bdf8">
+  <meta name="theme-color" content="#0b1020">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>OMNI-APP - Cyberpunk Ultimate Mega Edition</title>
+  <meta name="description" content="OMNI-APP : un univers de mini-jeux, de créativité, de collections et de surprises. Entre dans ton univers !">
+  <meta name="color-scheme" content="dark">
+  <title>OMNI-APP — Ton univers de jeux et de créativité</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,7 +19,7 @@
   <div id="rave-emoji-container"></div>
   <div id="matrix-canvas-container"><canvas id="matrix-canvas"></canvas></div>
 
-  <div style="position: fixed; top: 15px; right: 15px; z-index: 1000; display:flex; gap:8px;">
+  <div class="omni-utility-bar" aria-label="Effets visuels">
     <button id="crt-toggle-btn" class="music-btn" onclick="toggleCRTMode()">📺 Filtre CRT</button>
     <button id="rave-btn" class="music-btn" onclick="toggleRaveMode()">🔴 Mode Rave : OFF</button>
   </div>
