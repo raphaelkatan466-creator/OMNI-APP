@@ -30,6 +30,48 @@
       <p id="user-title-tag" style="color:var(--neon-blue); font-weight:bold;">🌌 Cyberpunk Ultimate Mega Edition — 👑 Débutant Cyber</p>
     </header>
 
+  <section id="omni-radio-player" class="omni-radio-player" aria-label="Cyber Radio et effets sonores">
+    <div class="omni-radio-main">
+      <div class="omni-radio-brand">
+        <span class="omni-radio-icon" aria-hidden="true">📻</span>
+        <div class="omni-radio-brand-copy">
+          <span class="omni-radio-eyebrow">OMNI AUDIO SYSTEM</span>
+          <strong id="radio-current-station">NEON DRIVE</strong>
+          <small id="radio-current-style">Synthwave originale • En pause</small>
+        </div>
+      </div>
+      <div class="omni-radio-actions">
+        <button id="radio-play-btn" class="omni-radio-play" type="button" onclick="toggleCyberRadioPlayback()" aria-label="Lancer la radio">▶</button>
+        <button id="omni-sfx-toggle-btn" class="omni-radio-tool" type="button" onclick="toggleSoundEffects()" aria-pressed="true" aria-label="Activer ou couper les effets sonores">🔊 SONS ON</button>
+        <button id="omni-radio-settings-btn" class="omni-radio-tool omni-radio-settings-toggle" type="button" onclick="toggleCyberRadioPanel()" aria-expanded="false" aria-controls="omni-radio-settings">⚙️</button>
+      </div>
+    </div>
+    <div class="omni-radio-visualizer" id="omni-radio-visualizer" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="omni-radio-bottomline">
+      <span id="radio-status" role="status" aria-live="polite">RADIO EN VEILLE — Choisis une ambiance et appuie sur lecture.</span>
+      <span class="omni-radio-original-tag">MUSIQUE ORIGINALE GÉNÉRÉE EN DIRECT</span>
+    </div>
+    <div id="omni-radio-settings" class="omni-radio-settings" hidden>
+      <label class="omni-radio-field">
+        <span>STATION</span>
+        <select id="radio-station-select" onchange="changerStationRadio(this.value)">
+          <option value="0">🌃 Neon Drive — Synthwave</option>
+          <option value="1">🌌 Space Dreams — Ambient</option>
+          <option value="2">🕹️ Arcade Rush — Chiptune</option>
+          <option value="3">💜 Rave Circuit — Electro</option>
+        </select>
+      </label>
+      <label class="omni-radio-field omni-radio-volume">
+        <span>VOLUME MUSIQUE <strong id="radio-volume-value">28%</strong></span>
+        <input id="radio-volume" type="range" min="0" max="60" step="1" value="28" oninput="modifierVolumeRadio(this.value)">
+      </label>
+      <p class="omni-radio-note">La radio crée ses propres boucles électroniques dans ton navigateur. Rien ne démarre automatiquement : tu gardes le contrôle du son.</p>
+    </div>
+  </section>
+
+
     
 <nav class="bottom-nav" aria-label="Navigation principale">
 
@@ -470,37 +512,91 @@
       <!-- 3. CARTES RARES (BOOSTER) -->
       <section id="page-cards" class="page omni-subpage omni-theme-cards">
         <div class="omni-subpage-banner">
-  <div class="omni-subpage-banner-copy">
-   <span class="omni-eyebrow">OMNI COLLECTION SYSTEM</span>
-   <h2>CARTES <span>RARES</span></h2>
-   <p>Ouvre tes boosters cosmiques, découvre de nouvelles cartes et construis ta collection.</p>
-   <span class="omni-banner-tag">COLLECTION COSMIQUE</span>
-  </div>
-  <div class="omni-subpage-banner-art" aria-hidden="true">
-   <span class="omni-subpage-orbit"></span><span class="omni-subpage-icon">🎴</span><span class="omni-subpage-spark">✦</span>
-  </div>
- </div>
-        <div class="card" style="text-align:center;">
-          <p style="color:#94a3b8;">Ouvre un booster cosmique et choisis une carte dans le paquet !</p>
-          <div id="booster-container">
-            <div class="booster-pack" onclick="ouvrirBooster()">
-              <span style="font-size:50px;">📦</span>
-              <span style="font-weight:bold; margin-top:10px; color:white;">OUVRIR LE BOOSTER</span>
-            </div>
+          <div class="omni-subpage-banner-copy">
+            <span class="omni-eyebrow">OMNI COLLECTION SYSTEM</span>
+            <h2>CARTES <span>RARES</span></h2>
+            <p>Ouvre tes boosters cosmiques, découvre de nouvelles cartes et construis ta collection.</p>
+            <span class="omni-banner-tag">COLLECTION COSMIQUE • 3 CARTES À CHOISIR</span>
           </div>
-          <div id="cards-selection-container" style="display:none;">
-            <h3 style="color:var(--neon-gold);">👉 Choisis une carte dans le paquet :</h3>
-            <div class="card-reveal-grid">
-              <div class="card-item" onclick="revelerCarte(1)"><span style="font-size:40px;">❓</span></div>
-              <div class="card-item" onclick="revelerCarte(2)"><span style="font-size:40px;">❓</span></div>
-              <div class="card-item" onclick="revelerCarte(3)"><span style="font-size:40px;">❓</span></div>
-            </div>
-          </div>
-          <div id="card-result" style="display:none; margin-top:20px;">
-            <h3 id="card-result-name" style="color:var(--neon-blue); font-size:24px;"></h3>
-            <button class="btn" style="width:auto;" onclick="reinitialiserBooster()">🔄 Rouvrir un autre paquet</button>
+          <div class="omni-subpage-banner-art" aria-hidden="true">
+            <span class="omni-subpage-orbit"></span><span class="omni-subpage-icon">🎴</span><span class="omni-subpage-spark">✦</span>
           </div>
         </div>
+
+        <div class="omni-booster-layout">
+          <div class="omni-booster-main card">
+            <div class="omni-booster-topline">
+              <div>
+                <span class="omni-eyebrow">COSMIC DROP SYSTEM</span>
+                <h3>Le booster mystère</h3>
+                <p>Chaque paquet contient trois cartes aléatoires. Choisis celle que tu veux révéler !</p>
+              </div>
+              <span class="omni-booster-stamp">✦ OMNI<br>PACK</span>
+            </div>
+            <div id="booster-container">
+              <button type="button" class="booster-pack" onclick="ouvrirBooster()">
+                <span class="booster-pack-orbit" aria-hidden="true"></span>
+                <span class="booster-pack-icon" aria-hidden="true">📦</span>
+                <strong>OUVRIR LE BOOSTER</strong>
+                <small>3 CARTES MYSTÈRES • 1 CHOIX</small>
+              </button>
+            </div>
+            <div id="cards-selection-container" style="display:none;">
+              <div class="omni-booster-select-heading">
+                <span class="omni-eyebrow">CHOISIS TON DESTIN</span>
+                <h3>Quelle carte se cache ici ?</h3>
+                <p>Chaque carte a sa propre rareté. La surprise t'attend !</p>
+              </div>
+              <div class="card-reveal-grid">
+                <button type="button" class="card-item" data-card-choice="1" aria-label="Révéler la carte mystère 1" onclick="revelerCarte(1)">
+                  <span class="card-back-glow"></span><span class="card-back-symbol">✦</span><small>OMNI • 01</small>
+                </button>
+                <button type="button" class="card-item" data-card-choice="2" aria-label="Révéler la carte mystère 2" onclick="revelerCarte(2)">
+                  <span class="card-back-glow"></span><span class="card-back-symbol">✧</span><small>OMNI • 02</small>
+                </button>
+                <button type="button" class="card-item" data-card-choice="3" aria-label="Révéler la carte mystère 3" onclick="revelerCarte(3)">
+                  <span class="card-back-glow"></span><span class="card-back-symbol">✦</span><small>OMNI • 03</small>
+                </button>
+              </div>
+            </div>
+            <div id="card-result" class="omni-card-result" style="display:none;">
+              <div id="card-result-icon" class="omni-card-result-icon">✨</div>
+              <span class="omni-eyebrow">NOUVELLE DÉCOUVERTE</span>
+              <h3 id="card-result-name"></h3>
+              <p id="card-result-rarity" class="omni-card-result-rarity"></p>
+              <button class="btn" type="button" onclick="reinitialiserBooster()">🔄 OUVRIR UN AUTRE BOOSTER</button>
+            </div>
+          </div>
+
+          <aside class="omni-booster-side">
+            <div class="omni-booster-side-card">
+              <span class="omni-booster-side-icon">💎</span>
+              <span class="omni-eyebrow">TA PROGRESSION</span>
+              <strong id="card-collection-count">0 / 6</strong>
+              <p>Cartes différentes découvertes</p>
+              <div class="omni-collection-progress"><span id="card-collection-progress"></span></div>
+            </div>
+            <div class="omni-booster-side-card omni-rarity-guide">
+              <span class="omni-eyebrow">ÉCHELLE DE RARETÉ</span>
+              <div><i class="rarity-dot rarity-common"></i> Commune <b>Fréquente</b></div>
+              <div><i class="rarity-dot rarity-rare"></i> Rare <b>Spéciale</b></div>
+              <div><i class="rarity-dot rarity-epic"></i> Épique <b>Précieuse</b></div>
+              <div><i class="rarity-dot rarity-legendary"></i> Légendaire <b>Très rare</b></div>
+              <div><i class="rarity-dot rarity-mythic"></i> Mythique <b>Exceptionnelle</b></div>
+            </div>
+          </aside>
+        </div>
+
+        <section class="omni-collection-panel">
+          <div class="omni-collection-heading">
+            <div>
+              <span class="omni-eyebrow">YOUR COSMIC INVENTORY</span>
+              <h3>Ma collection</h3>
+            </div>
+            <span class="omni-collection-badge">🎴 CARTES OBTENUES</span>
+          </div>
+          <div id="card-collection-grid" class="omni-collection-grid" aria-live="polite"></div>
+        </section>
       </section>
 
       
@@ -1108,12 +1204,7 @@
     <button id="wheel-close-btn" class="music-btn" style="margin-top:15px;" onclick="fermerGrandeRoue()">❌ Fermer</button>
   </div>
 
-  <div id="sticky-audio-bar">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <span style="color:var(--neon-blue); font-size:13px; font-weight:bold;">📻 Cyber Radio Station</span>
-      <button class="music-btn omni-radio-button" onclick="alert('Radio Cyber active !')"><span class="omni-radio-pulse" aria-hidden="true"></span> Play Radio</button>
-    </div>
-  </div>
+
 
   <script src="script.js"></script>
 </body>
