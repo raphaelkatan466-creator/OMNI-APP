@@ -503,7 +503,7 @@
     </div>
     <h2 class="omni-arcade-title">ARCADE <span>HUB</span></h2>
     <p class="omni-arcade-subtitle">
-  3 mini-jeux disponibles. Des défis. Des records. À toi de jouer !
+  9 mini-jeux disponibles. Des défis. Des records. À toi de jouer !
 </p>
   </div>
 
@@ -512,7 +512,7 @@
 
     <div class="omni-arcade-menu-heading">
       <h3>🎮 CHOISIS TON MINI-JEU</h3>
-      <span>3 JEUX DISPONIBLES</span>
+      <span>9 JEUX DISPONIBLES</span>
     </div>
 
     <div class="omni-game-grid">
@@ -709,26 +709,55 @@
 
 
 
-    <!-- 4. RÉFLEXE NÉON -->
+    <!-- 4. RÉFLEXE NÉON — DEUX MODES -->
     <div id="omni-game-reflex" class="omni-game-panel" hidden>
       <h3>⚡ RÉFLEXE NÉON</h3>
-      <p>Attends le signal vert, puis clique le plus vite possible.</p>
-      <div class="omni-game-stats">
-        TEMPS : <strong id="reflex-time">--</strong>
-        RECORD : <strong id="reflex-best">--</strong>
+      <p>Deux défis, deux records : vise juste ou tape plus vite que l'éclair.</p>
+
+      <div class="omni-reflex-mode-switch" role="group" aria-label="Choisir le mode de jeu">
+        <button id="reflex-mode-cible" class="is-active" type="button"
+          aria-pressed="true" onclick="choisirModeReflexe('cible')">🎯 MODE CIBLE</button>
+        <button id="reflex-mode-clavier" type="button"
+          aria-pressed="false" onclick="choisirModeReflexe('clavier')">⌨️ MODE CLAVIER</button>
       </div>
-      <div id="reflex-target" class="omni-reflex-target"
-        onclick="cliquerReflexe()">
-        <span id="reflex-status">APPUIE SUR DÉMARRER</span>
-      </div>
-      <button id="reflex-start" class="btn" onclick="demarrerReflexe()">
-        ▶ DÉMARRER
-      </button>
+
+      <section id="reflex-cible-mode" class="omni-reflex-mode">
+        <div class="omni-game-stats">
+          TEMPS : <strong id="reflex-cible-time">--</strong>
+          RECORD : <strong id="reflex-cible-best">--</strong>
+        </div>
+        <p id="reflex-cible-status" class="omni-game-feedback" aria-live="polite">
+          Lance une manche, attends le signal, puis touche la cible !
+        </p>
+        <div id="reflex-arena" class="omni-reflex-arena"
+          aria-label="Zone d'apparition de la cible" onclick="cliquerZoneReflexe(event)">
+          <span class="omni-reflex-arena-hint">ZONE DE TEST</span>
+        </div>
+        <button id="reflex-cible-start" class="btn" type="button"
+          onclick="demarrerReflexe()">▶ LANCER LE DÉFI CIBLE</button>
+      </section>
+
+      <section id="reflex-clavier-mode" class="omni-reflex-mode" hidden>
+        <div class="omni-game-stats">
+          TEMPS : <strong id="reflex-clavier-time">--</strong>
+          RECORD : <strong id="reflex-clavier-best">--</strong>
+        </div>
+        <p id="reflex-clavier-status" class="omni-game-feedback" aria-live="polite">
+          Lance une manche, attends la lettre, puis tape-la au clavier !
+        </p>
+        <div class="omni-reflex-key-arena">
+          <span class="omni-reflex-key-label">TOUCHE À TAPER</span>
+          <strong id="reflex-key-display" class="omni-reflex-key">?</strong>
+          <span class="omni-reflex-key-help">Utilise ton clavier physique.</span>
+        </div>
+        <button id="reflex-clavier-start" class="btn" type="button"
+          onclick="demarrerReflexe()">▶ LANCER LE DÉFI CLAVIER</button>
+      </section>
     </div>
 
     <!-- 5. PONG NEON -->
     <div id="omni-game-pong" class="omni-game-panel" hidden>
-      <h3>🏓 PONG NEON</h3>
+      <h3>🏓 PONG NÉON</h3>
       <p>Renvoie la balle et bats l'ordinateur !</p>
       <div class="omni-game-stats">
         TOI : <strong id="pong-player-score">0</strong>
@@ -736,9 +765,9 @@
       </div>
       <canvas id="pong-canvas" width="480" height="320"></canvas>
       <button class="btn" onclick="demarrerPong()">▶ JOUER</button>
-      <div class="omni-pong-controls">
-        <button onclick="deplacerRaquettePong('left')">⬅️</button>
-        <button onclick="deplacerRaquettePong('right')">➡️</button>
+      <div class="omni-pong-controls" aria-label="Commandes de la raquette">
+        <button type="button" aria-label="Monter" onclick="deplacerRaquettePong('up')">⬆️</button>
+        <button type="button" aria-label="Descendre" onclick="deplacerRaquettePong('down')">⬇️</button>
       </div>
     </div>
 
@@ -790,9 +819,9 @@
       </div>
       <canvas id="space-canvas" width="420" height="420"></canvas>
       <button class="btn" onclick="demarrerSpaceDodger()">▶ DÉCOLLER</button>
-      <div class="omni-pong-controls">
-        <button onclick="deplacerVaisseau(-1)">⬅️</button>
-        <button onclick="deplacerVaisseau(1)">➡️</button>
+      <div class="omni-pong-controls" aria-label="Commandes du vaisseau">
+        <button type="button" aria-label="Aller à gauche" onclick="deplacerVaisseau(-1)">⬅️</button>
+        <button type="button" aria-label="Aller à droite" onclick="deplacerVaisseau(1)">➡️</button>
       </div>
     </div>
 
@@ -802,10 +831,11 @@
       <p>Teste tes connaissances et cumule des points.</p>
       <div class="omni-game-stats">
         SCORE : <strong id="quiz-score">0</strong>
+        RECORD : <strong id="quiz-best">0</strong>
       </div>
       <h4 id="quiz-question">Prêt à relever le défi ?</h4>
       <div id="quiz-answers" class="omni-quiz-answers"></div>
-      <button class="btn" onclick="demarrerQuiz()">▶ COMMENCER LE QUIZ</button>
+      <button id="quiz-start" class="btn" type="button" onclick="demarrerQuiz()">▶ COMMENCER LE QUIZ</button>
     </div>
 
   </div>

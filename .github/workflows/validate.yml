@@ -1,0 +1,32 @@
+name: Validate OMNI-APP
+
+on:
+  push:
+    branches:
+      - main
+      - fix/omni-app-audit
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Vérifications statiques
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Vérifier la syntaxe JavaScript
+        run: node --check script.js
+
+      - name: Vérifier la cohérence HTML, JavaScript et CSS
+        run: node scripts/validate-static.cjs

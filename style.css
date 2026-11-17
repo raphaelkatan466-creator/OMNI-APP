@@ -4217,3 +4217,324 @@ textarea, input[type="text"] {
   border: 0;
   border-radius: 0;
 }
+
+
+
+/* =========================================================
+   OMNI ARCADE — FINITIONS NÉON, LISIBILITÉ ET ACCESSIBILITÉ
+========================================================= */
+
+#page-arcade .omni-arcade-heading,
+#page-arcade .omni-arcade-menu,
+#page-arcade .omni-game-stage {
+  color: #f4f8ff;
+}
+
+#page-arcade .omni-arcade-subtitle {
+  color: #c5d3e8;
+  line-height: 1.7;
+}
+
+#page-arcade .omni-game-card:focus-visible,
+#page-arcade .omni-game-panel button:focus-visible {
+  outline: 3px solid #a5f3fc;
+  outline-offset: 4px;
+}
+
+#page-arcade .omni-game-card {
+  background-color: #0b1428;
+  will-change: transform;
+}
+
+#page-arcade .omni-game-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 38px #0008, 0 0 22px #38e8ff30;
+}
+
+#page-arcade .omni-game-feedback {
+  min-height: 24px;
+  margin: 12px auto;
+  color: #d7eaff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.6;
+  text-align: center;
+}
+
+#page-arcade .omni-reflex-mode-switch {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 22px auto;
+}
+
+#page-arcade .omni-reflex-mode-switch button {
+  min-width: 150px;
+  padding: 12px 18px;
+  border: 1px solid #38e8ff66;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #142b49, #15102c);
+  color: #eaf7ff;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .7px;
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+#page-arcade .omni-reflex-mode-switch button:hover,
+#page-arcade .omni-reflex-mode-switch button.is-active {
+  border-color: #67e8f9;
+  background: linear-gradient(110deg, #075985, #4c1d95);
+  box-shadow: 0 0 20px #38e8ff40;
+  transform: translateY(-2px);
+}
+
+#page-arcade .omni-reflex-mode[hidden] {
+  display: none !important;
+}
+
+#page-arcade .omni-reflex-arena {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 600px);
+  min-height: 265px;
+  margin: 18px auto;
+  overflow: hidden;
+  border: 1px solid #38e8ff55;
+  border-radius: 22px;
+  background:
+    linear-gradient(#38e8ff0b 1px, transparent 1px),
+    linear-gradient(90deg, #38e8ff0b 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 50%, #172e50, #080e1e 75%);
+  background-size: 28px 28px, 28px 28px, auto;
+  box-shadow: inset 0 0 35px #0008, 0 0 20px #38e8ff18;
+}
+
+#page-arcade .omni-reflex-arena.is-ready {
+  border-color: #4ade80;
+  box-shadow: inset 0 0 35px #22c55e16, 0 0 24px #22c55e44;
+}
+
+#page-arcade .omni-reflex-arena-hint {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #95abc7;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  pointer-events: none;
+}
+
+#page-arcade .omni-reflex-live-target {
+  position: absolute;
+  z-index: 2;
+  min-width: 88px;
+  min-height: 62px;
+  padding: 14px 17px;
+  border: 2px solid #bbf7d0;
+  border-radius: 16px;
+  background: radial-gradient(circle at 35% 25%, #86efac, #059669 70%);
+  color: #03251a;
+  font-size: 14px;
+  font-weight: 1000;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 0 16px #22c55e, 0 0 38px #22c55e88;
+  transform: translate(-50%, -50%);
+  animation: omniReflexTargetSpawn .32s cubic-bezier(.2, .9, .25, 1) both,
+    omniReflexTargetPulse 1.1s ease-in-out .32s infinite;
+}
+
+#page-arcade .omni-reflex-live-target:hover {
+  filter: brightness(1.14);
+}
+
+#page-arcade .omni-reflex-result-mark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #86efac;
+  font-size: 90px;
+  font-weight: 900;
+  text-shadow: 0 0 24px #22c55e;
+  animation: omniReflexSuccess .35s ease both;
+}
+
+#page-arcade .omni-reflex-key-arena {
+  display: grid;
+  place-items: center;
+  gap: 12px;
+  width: min(100%, 420px);
+  min-height: 265px;
+  margin: 18px auto;
+  padding: 22px;
+  border: 1px solid #a855f766;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 45%, #7c3aed25, transparent 60%),
+    linear-gradient(145deg, #131b36, #090d1c);
+  box-shadow: inset 0 0 28px #a855f716, 0 0 20px #a855f722;
+}
+
+#page-arcade .omni-reflex-key-label,
+#page-arcade .omni-reflex-key-help {
+  color: #c7d6ec;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-align: center;
+}
+
+#page-arcade .omni-reflex-key {
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  border: 2px solid #a78bfa;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #312e81, #1e1b4b);
+  color: #ffffff;
+  font-size: 56px;
+  font-weight: 1000;
+  text-shadow: 0 0 16px #c4b5fd;
+  box-shadow: 0 0 18px #8b5cf688, inset 0 0 20px #a78bfa22;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+#page-arcade .omni-reflex-key.is-ready {
+  border-color: #67e8f9;
+  background: linear-gradient(145deg, #075985, #164e63);
+  box-shadow: 0 0 22px #22d3ee99, 0 0 50px #22d3ee44;
+  animation: omniReflexKeyFlash .45s ease both;
+}
+
+#page-arcade .omni-game-panel .omni-game-feedback {
+  color: #e2edff;
+}
+
+#page-arcade .omni-game-panel .btn {
+  min-height: 46px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 900;
+}
+
+#page-arcade #pong-canvas,
+#page-arcade #space-canvas {
+  border-color: #5ee7ff88;
+  box-shadow: 0 0 28px #38e8ff24, inset 0 0 24px #38e8ff10;
+}
+
+#page-arcade .omni-2048-grid > .omni-2048-tile {
+  min-height: 0;
+  aspect-ratio: 1;
+  border-color: #64748b44;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 3px #0008;
+  transition: transform .12s ease, background .16s ease, box-shadow .16s ease;
+}
+
+#page-arcade .omni-2048-grid > .tile-empty { background: #111c30; }
+#page-arcade .omni-2048-grid > .tile-2 { background: linear-gradient(145deg, #263c5c, #1b2941); color: #f8fbff; }
+#page-arcade .omni-2048-grid > .tile-4 { background: linear-gradient(145deg, #164e63, #12344b); color: #ecfeff; }
+#page-arcade .omni-2048-grid > .tile-8 { background: linear-gradient(145deg, #075985, #164e63); color: #ffffff; box-shadow: 0 0 12px #38bdf855; }
+#page-arcade .omni-2048-grid > .tile-16 { background: linear-gradient(145deg, #5b21b6, #312e81); color: #ffffff; box-shadow: 0 0 12px #a78bfa66; }
+#page-arcade .omni-2048-grid > .tile-32 { background: linear-gradient(145deg, #9d174d, #701a75); color: #ffffff; box-shadow: 0 0 12px #ec489966; }
+#page-arcade .omni-2048-grid > .tile-64 { background: linear-gradient(145deg, #9a3412, #7c2d12); color: #ffffff; box-shadow: 0 0 12px #fb923c66; }
+#page-arcade .omni-2048-grid > .tile-128,
+#page-arcade .omni-2048-grid > .tile-256,
+#page-arcade .omni-2048-grid > .tile-512,
+#page-arcade .omni-2048-grid > .tile-1024,
+#page-arcade .omni-2048-grid > .tile-2048 {
+  background: linear-gradient(145deg, #047857, #064e3b);
+  border-color: #86efac;
+  color: #ffffff;
+  box-shadow: 0 0 15px #22c55e88;
+}
+
+#page-arcade .omni-morpion-grid button.is-winning {
+  border-color: #86efac;
+  background: linear-gradient(145deg, #065f46, #064e3b);
+  color: #ffffff;
+  box-shadow: 0 0 24px #22c55e88;
+  animation: omniMorpionWin .55s ease-in-out infinite alternate;
+}
+
+#page-arcade .omni-morpion-grid button:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+#page-arcade .omni-quiz-answers button.is-correct {
+  border-color: #4ade80;
+  background: linear-gradient(145deg, #166534, #064e3b);
+  color: #ffffff;
+}
+
+#page-arcade .omni-quiz-answers button.is-wrong {
+  border-color: #fb7185;
+  background: linear-gradient(145deg, #9f1239, #4c0519);
+  color: #ffffff;
+}
+
+#page-arcade .omni-quiz-answers button:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+@keyframes omniReflexTargetSpawn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(.35) rotate(-12deg); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
+}
+
+@keyframes omniReflexTargetPulse {
+  50% { box-shadow: 0 0 24px #22c55e, 0 0 52px #22c55eaa; }
+}
+
+@keyframes omniReflexKeyFlash {
+  0% { transform: scale(.78) rotate(-4deg); opacity: .55; }
+  70% { transform: scale(1.08) rotate(2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); }
+}
+
+@keyframes omniReflexSuccess {
+  from { opacity: 0; transform: scale(.45); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes omniMorpionWin {
+  to { box-shadow: 0 0 32px #22c55eaa; }
+}
+
+@media (max-width: 600px) {
+  #page-arcade .omni-reflex-arena,
+  #page-arcade .omni-reflex-key-arena {
+    min-height: 220px;
+  }
+
+  #page-arcade .omni-reflex-mode-switch button {
+    flex: 1 1 140px;
+  }
+
+  #page-arcade .omni-2048-grid {
+    gap: 5px;
+    padding: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #page-arcade .omni-game-card,
+  #page-arcade .omni-game-card::before,
+  #page-arcade .omni-reflex-live-target,
+  #page-arcade .omni-reflex-key,
+  #page-arcade .omni-morpion-grid button.is-winning {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
