@@ -20,8 +20,8 @@
   <div id="matrix-canvas-container"><canvas id="matrix-canvas"></canvas></div>
 
   <div class="omni-utility-bar" aria-label="Effets visuels">
-    <button id="crt-toggle-btn" class="music-btn" onclick="toggleCRTMode()">📺 Filtre CRT</button>
-    <button id="rave-btn" class="music-btn" onclick="toggleRaveMode()">🔴 Mode Rave : OFF</button>
+    <button id="crt-toggle-btn" class="music-btn" aria-pressed="false" onclick="toggleCRTMode()">📺 Filtre CRT</button>
+    <button id="rave-btn" class="music-btn" aria-pressed="false" onclick="toggleRaveMode()">🔴 Mode Rave : OFF</button>
   </div>
 
   <div class="app-container">
@@ -66,6 +66,10 @@
       <label class="omni-radio-field omni-radio-volume">
         <span>VOLUME MUSIQUE <strong id="radio-volume-value">28%</strong></span>
         <input id="radio-volume" type="range" min="0" max="60" step="1" value="28" oninput="modifierVolumeRadio(this.value)">
+      </label>
+      <label class="omni-radio-field omni-radio-volume">
+        <span>VOLUME DES EFFETS <strong id="radio-sfx-volume-value">78%</strong></span>
+        <input id="radio-sfx-volume" type="range" min="0" max="100" step="1" value="78" oninput="modifierVolumeEffets(this.value)">
       </label>
       <p class="omni-radio-note">La radio crée ses propres boucles électroniques dans ton navigateur. Rien ne démarre automatiquement : tu gardes le contrôle du son.</p>
     </div>
