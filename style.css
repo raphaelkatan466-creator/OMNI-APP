@@ -5809,3 +5809,765 @@ textarea {
 }
 
 /* FIN GLOBAL FINISHING PASS */
+
+
+/* ==========================================================
+   OMNI AUDIO EXPERIENCE — RADIO, SFX ET BOOSTER COSMIQUE
+========================================================== */
+
+/* Radio intégrée au flux de la page : elle ne recouvre plus les contenus */
+.omni-radio-player {
+  position:relative;
+  z-index:5;
+  width:min(720px,100%);
+  box-sizing:border-box;
+  margin:-7px auto 26px;
+  padding:13px 16px 11px;
+  overflow:hidden;
+  border:1px solid rgba(104,174,255,.25);
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 90% 0%,rgba(139,92,246,.16),transparent 37%),
+    linear-gradient(120deg,rgba(14,27,52,.96),rgba(19,19,44,.96));
+  box-shadow:0 13px 34px rgba(0,0,0,.27),inset 0 1px 0 rgba(255,255,255,.055),0 0 22px rgba(55,145,231,.055);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+.omni-radio-player::before {
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:3px;
+  background:linear-gradient(180deg,#45d3ff,#8c73f5,#cf7eff);
+  opacity:.9;
+}
+.omni-radio-main {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+}
+.omni-radio-brand {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+.omni-radio-icon {
+  flex:0 0 45px;
+  width:45px;
+  height:45px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(125,180,255,.28);
+  border-radius:14px;
+  background:linear-gradient(145deg,rgba(51,126,204,.28),rgba(121,74,177,.24));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 18px rgba(72,168,255,.12);
+  font-size:23px;
+}
+.omni-radio-brand-copy {
+  min-width:0;
+  display:grid;
+  gap:3px;
+}
+.omni-radio-eyebrow {
+  color:#78cfff;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1.8px;
+}
+.omni-radio-brand-copy strong {
+  color:#f5f7ff;
+  font-size:13px;
+  font-weight:950;
+  letter-spacing:1.1px;
+}
+.omni-radio-brand-copy small {
+  color:#91a5c4;
+  font-size:10px;
+}
+.omni-radio-actions {
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:7px;
+  flex-wrap:wrap;
+}
+.omni-radio-player button {
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.omni-radio-play {
+  flex:0 0 39px;
+  width:39px;
+  height:39px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(130,205,255,.62);
+  border-radius:13px;
+  color:#06162b;
+  background:linear-gradient(135deg,#72dcff,#9d9aff);
+  box-shadow:0 5px 16px rgba(79,176,255,.19);
+  font-size:15px;
+  font-weight:950;
+  transition:transform .2s ease,filter .2s ease,box-shadow .2s ease;
+}
+.omni-radio-play:hover {
+  transform:translateY(-2px) scale(1.03);
+  filter:brightness(1.08);
+  box-shadow:0 8px 22px rgba(79,176,255,.27);
+}
+.omni-radio-tool {
+  min-height:37px;
+  padding:8px 11px;
+  border:1px solid rgba(124,158,218,.24);
+  border-radius:11px;
+  color:#dbe9ff;
+  background:rgba(255,255,255,.055);
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.3px;
+  transition:background .2s ease,border-color .2s ease,transform .2s ease;
+}
+.omni-radio-tool:hover {
+  border-color:rgba(125,190,255,.55);
+  background:rgba(90,145,220,.16);
+  transform:translateY(-1px);
+}
+#omni-sfx-toggle-btn[aria-pressed="false"] {
+  color:#9ba8be;
+  background:rgba(255,255,255,.025);
+}
+.omni-radio-visualizer {
+  display:flex;
+  align-items:center;
+  gap:4px;
+  height:16px;
+  margin:10px 0 5px 57px;
+  opacity:.75;
+}
+.omni-radio-visualizer span {
+  display:block;
+  width:3px;
+  height:3px;
+  border-radius:5px;
+  background:linear-gradient(180deg,#6fe0ff,#a78bfa);
+  transform-origin:center;
+}
+.omni-radio-visualizer.is-playing span {
+  animation:omniAudioBars .8s ease-in-out infinite alternate;
+}
+.omni-radio-visualizer.is-playing span:nth-child(3n) { animation-duration:.56s; }
+.omni-radio-visualizer.is-playing span:nth-child(3n + 1) { animation-duration:.97s; }
+.omni-radio-visualizer.is-playing span:nth-child(4n) { animation-delay:-.35s; }
+@keyframes omniAudioBars {
+  from { height:3px; opacity:.48; }
+  to { height:15px; opacity:1; }
+}
+.omni-radio-bottomline {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  padding-top:7px;
+  border-top:1px solid rgba(148,163,184,.11);
+}
+#radio-status {
+  color:#9fb2d0;
+  font-size:9px;
+  font-weight:750;
+  letter-spacing:.35px;
+}
+.omni-radio-original-tag {
+  color:#6f83a8;
+  font-size:7px;
+  font-weight:850;
+  letter-spacing:1.1px;
+}
+.omni-radio-settings {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(180px,.75fr);
+  gap:13px;
+  padding:14px 2px 2px;
+  margin-top:11px;
+  border-top:1px solid rgba(148,163,184,.14);
+}
+.omni-radio-settings[hidden] { display:none !important; }
+.omni-radio-field {
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  color:#8fa5c7;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1.25px;
+}
+.omni-radio-field select {
+  width:100%;
+  min-height:39px;
+  padding:8px 11px;
+  border:1px solid rgba(120,164,233,.27);
+  border-radius:10px;
+  color:#e4edff;
+  background:#101a30;
+  font-size:11px;
+  font-weight:750;
+}
+.omni-radio-volume span {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.omni-radio-volume strong {
+  color:#8edcff;
+  font-size:10px;
+}
+.omni-radio-volume input[type="range"] {
+  width:100%;
+  accent-color:#70d7ff;
+  cursor:pointer;
+}
+.omni-radio-note {
+  grid-column:1/-1;
+  margin:0;
+  color:#7184a5;
+  font-size:9px;
+  line-height:1.6;
+}
+#omni-radio-settings-btn[aria-expanded="true"] {
+  color:#fff;
+  border-color:rgba(136,162,255,.5);
+  background:rgba(106,112,220,.18);
+}
+
+/* Rave : mouvement fluide et lumineux, sans flash rapide */
+#rave-background-layer {
+  background:
+    radial-gradient(ellipse at 12% 18%,rgba(39,202,255,.17),transparent 40%),
+    radial-gradient(ellipse at 85% 20%,rgba(191,81,255,.18),transparent 42%),
+    radial-gradient(ellipse at 55% 90%,rgba(51,224,171,.13),transparent 44%),
+    linear-gradient(135deg,#10182f,#1d1434,#102c3c);
+  background-size:180% 180%;
+}
+body.rave-active #rave-background-layer {
+  opacity:.65;
+  animation:omniRaveFlow 14s ease-in-out infinite alternate;
+}
+@keyframes omniRaveFlow {
+  0% { background-position:0% 40%; filter:hue-rotate(0deg); }
+  50% { background-position:100% 65%; filter:hue-rotate(28deg); }
+  100% { background-position:35% 100%; filter:hue-rotate(55deg); }
+}
+.rave-emoji {
+  z-index:4;
+  color:#c6a7ff;
+  font-size:clamp(16px,2.5vw,26px);
+  text-shadow:0 0 12px currentColor,0 0 24px rgba(86,193,255,.35);
+  animation:fallEmoji 4s ease-in-out forwards;
+}
+@keyframes fallEmoji {
+  0% { transform:translateY(-35px) rotate(0deg) scale(.7); opacity:0; }
+  12% { opacity:.8; }
+  80% { opacity:.55; }
+  100% { transform:translateY(105vh) rotate(170deg) scale(1.1); opacity:0; }
+}
+#rave-btn[aria-pressed="true"] {
+  color:#fff;
+  border-color:rgba(193,130,255,.68);
+  background:linear-gradient(120deg,rgba(65,43,120,.96),rgba(23,91,109,.96));
+  box-shadow:0 0 19px rgba(154,106,255,.2);
+}
+
+/* Booster de cartes : ouverture théâtrale et véritables cartes à collectionner */
+.omni-booster-layout {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(215px,.36fr);
+  align-items:stretch;
+  gap:17px;
+}
+.omni-booster-main.card {
+  min-width:0;
+  padding:clamp(18px,3vw,28px);
+  border:1px solid rgba(183,138,255,.28);
+  background:
+    radial-gradient(circle at 50% 0%,rgba(144,91,232,.12),transparent 48%),
+    linear-gradient(145deg,#1b2140,#11182d);
+  text-align:center;
+}
+.omni-booster-topline {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  text-align:left;
+}
+.omni-booster-topline h3 {
+  margin:7px 0 5px;
+  color:#fff;
+  font-size:22px;
+  font-weight:950;
+}
+.omni-booster-topline p,
+.omni-booster-select-heading p {
+  margin:0;
+  color:#9aabc7;
+  font-size:11px;
+  line-height:1.7;
+}
+.omni-booster-stamp {
+  flex:0 0 auto;
+  display:grid;
+  place-items:center;
+  width:58px;
+  height:58px;
+  border:1px solid rgba(203,167,255,.45);
+  border-radius:15px;
+  color:#e6d4ff;
+  background:linear-gradient(145deg,rgba(145,89,220,.28),rgba(43,83,155,.22));
+  font-size:10px;
+  font-weight:950;
+  line-height:1.5;
+  text-align:center;
+  box-shadow:0 0 22px rgba(168,85,247,.12);
+}
+#booster-container {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:12px 0 4px;
+}
+#booster-container .booster-pack {
+  position:relative;
+  isolation:isolate;
+  width:clamp(178px,26vw,220px);
+  height:290px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:13px;
+  padding:22px 15px;
+  overflow:hidden;
+  border:1px solid rgba(236,213,255,.72);
+  border-radius:22px;
+  color:#fff;
+  background:
+    radial-gradient(circle at 50% 26%,rgba(255,255,255,.22),transparent 25%),
+    radial-gradient(circle at 85% 85%,rgba(42,211,255,.38),transparent 40%),
+    linear-gradient(145deg,#7b43ca,#382a7e 53%,#1c3c78);
+  box-shadow:0 18px 38px rgba(0,0,0,.34),0 0 32px rgba(161,98,255,.24),inset 0 1px 0 rgba(255,255,255,.3);
+  cursor:pointer;
+  transition:transform .28s ease,box-shadow .28s ease,filter .28s ease;
+}
+#booster-container .booster-pack::before {
+  content:"";
+  position:absolute;
+  inset:9px;
+  z-index:-1;
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:16px;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.08),transparent);
+}
+#booster-container .booster-pack:hover {
+  transform:translateY(-7px) rotate(-1deg) scale(1.025);
+  filter:brightness(1.08);
+  box-shadow:0 22px 44px rgba(0,0,0,.4),0 0 42px rgba(161,98,255,.34);
+}
+#booster-container .booster-pack.is-opening {
+  animation:omniBoosterOpen .36s ease-in both;
+  pointer-events:none;
+}
+@keyframes omniBoosterOpen {
+  0% { transform:scale(1) rotate(0); filter:brightness(1); }
+  45% { transform:scale(1.08) rotate(2deg); filter:brightness(1.5); }
+  100% { transform:scale(.82) rotate(-5deg); opacity:0; filter:brightness(1.9); }
+}
+.booster-pack-orbit {
+  position:absolute;
+  width:160px;
+  height:160px;
+  border:1px solid rgba(216,195,255,.42);
+  border-radius:50%;
+  box-shadow:0 0 28px rgba(199,155,255,.15),inset 0 0 20px rgba(199,155,255,.1);
+  animation:omniOrbit 18s linear infinite;
+}
+.booster-pack-icon {
+  position:relative;
+  z-index:1;
+  font-size:70px;
+  filter:drop-shadow(0 0 18px rgba(255,255,255,.5));
+  animation:omniFloat 2.8s ease-in-out infinite;
+}
+#booster-container .booster-pack strong {
+  position:relative;
+  z-index:1;
+  font-size:12px;
+  font-weight:1000;
+  letter-spacing:1px;
+  text-shadow:0 2px 8px #26154d;
+}
+#booster-container .booster-pack small {
+  position:relative;
+  z-index:1;
+  color:#e5ddff;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:1.1px;
+}
+.omni-booster-select-heading {
+  margin:14px 0 7px;
+}
+.omni-booster-select-heading h3 {
+  margin:6px 0 4px;
+  color:#f3eaff;
+  font-size:20px;
+}
+.card-reveal-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:clamp(9px,2vw,16px);
+  justify-content:center;
+  margin:17px auto 6px;
+  max-width:590px;
+}
+.card-reveal-grid .card-item {
+  position:relative;
+  isolation:isolate;
+  width:100%;
+  min-width:0;
+  height:clamp(150px,24vw,220px);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:15px;
+  padding:12px 7px;
+  overflow:hidden;
+  border:1px solid rgba(162,146,255,.58);
+  border-radius:17px;
+  color:#eae8ff;
+  background:
+    radial-gradient(circle at 50% 35%,rgba(112,111,240,.2),transparent 48%),
+    linear-gradient(150deg,#222650,#11182e 78%);
+  box-shadow:0 12px 25px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08);
+  cursor:pointer;
+  transition:transform .26s ease,border-color .26s ease,box-shadow .26s ease,filter .26s ease;
+}
+.card-reveal-grid .card-item::before {
+  content:"";
+  position:absolute;
+  inset:7px;
+  z-index:-1;
+  border:1px solid rgba(166,173,255,.16);
+  border-radius:12px;
+}
+.card-reveal-grid .card-item:hover:not(:disabled) {
+  transform:translateY(-8px) rotate(-1deg);
+  border-color:#d5c4ff;
+  filter:brightness(1.14);
+  box-shadow:0 18px 32px rgba(0,0,0,.34),0 0 24px rgba(145,113,255,.2);
+}
+.card-back-glow {
+  position:absolute;
+  inset:18%;
+  z-index:-1;
+  border-radius:50%;
+  background:rgba(93,171,255,.24);
+  filter:blur(24px);
+}
+.card-back-symbol {
+  font-size:clamp(36px,6vw,58px);
+  color:#c6b6ff;
+  text-shadow:0 0 20px rgba(155,124,255,.65);
+}
+.card-reveal-grid .card-item small {
+  color:#8196c3;
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1.5px;
+}
+.card-reveal-grid .card-item:disabled:not(.is-selected) {
+  opacity:.45;
+  cursor:default;
+  transform:scale(.97);
+}
+.card-reveal-grid .card-item.is-selected {
+  transform:translateY(-5px) scale(1.035);
+  border-color:#fff0a8;
+  box-shadow:0 0 0 2px rgba(255,232,158,.2),0 0 34px rgba(255,208,91,.25);
+}
+.card-reveal-grid .card-item.is-revealed .card-back-symbol {
+  animation:omniCardFlip .45s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes omniCardFlip {
+  0% { transform:rotateY(90deg) scale(.7); opacity:0; }
+  100% { transform:rotateY(0) scale(1); opacity:1; }
+}
+.rarity-commune { --card-rarity:#9ab0ca; }
+.rarity-rare { --card-rarity:#54d8ff; }
+.rarity-epique { --card-rarity:#b98aff; }
+.rarity-legendaire { --card-rarity:#ffc86f; }
+.rarity-mythique { --card-rarity:#ff83d4; }
+.card-reveal-grid .card-item[class*="rarity-"] {
+  border-color:var(--card-rarity);
+  background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--card-rarity) 27%,transparent),transparent 55%),linear-gradient(150deg,#242344,#11182e 78%);
+}
+.omni-card-result {
+  justify-items:center;
+  gap:8px;
+  padding:22px 14px 8px;
+}
+.omni-card-result.is-revealing {
+  animation:omniResultAppear .55s cubic-bezier(.18,.8,.25,1) both;
+}
+@keyframes omniResultAppear {
+  from { opacity:0; transform:translateY(14px) scale(.95); filter:blur(4px); }
+  to { opacity:1; transform:translateY(0) scale(1); filter:blur(0); }
+}
+.omni-card-result-icon {
+  width:100px;
+  height:100px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:26px;
+  color:#fff;
+  background:radial-gradient(circle,rgba(145,111,255,.2),rgba(24,34,62,.96));
+  box-shadow:0 0 32px rgba(145,111,255,.17);
+  font-size:57px;
+}
+.omni-card-result-icon[class*="rarity-"] {
+  border-color:var(--card-rarity);
+  box-shadow:0 0 34px color-mix(in srgb,var(--card-rarity) 35%,transparent);
+}
+.omni-card-result h3 {
+  margin:5px 0 0;
+  color:#fff;
+  font-size:23px;
+}
+.omni-card-result-rarity {
+  margin:0 0 9px;
+  color:#d8c5ff;
+  font-size:10px;
+  font-weight:950;
+  letter-spacing:1.3px;
+}
+.omni-card-result .btn {
+  width:auto;
+  max-width:100%;
+  padding:12px 17px;
+  border:1px solid rgba(167,139,250,.4);
+  color:#fff;
+  background:linear-gradient(110deg,#5846b4,#3768ba);
+  font-size:10px;
+}
+
+/* Progression et inventaire */
+.omni-booster-side {
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.omni-booster-side-card {
+  padding:18px;
+  border:1px solid rgba(145,128,218,.23);
+  border-radius:18px;
+  background:linear-gradient(145deg,#1a2340,#10182c);
+  box-shadow:0 10px 24px rgba(0,0,0,.2);
+}
+.omni-booster-side-icon {
+  display:block;
+  margin-bottom:10px;
+  font-size:29px;
+  filter:drop-shadow(0 0 13px #b48aff);
+}
+.omni-booster-side-card > strong {
+  display:block;
+  margin:8px 0 2px;
+  color:#f2eaff;
+  font-size:30px;
+  font-weight:1000;
+}
+.omni-booster-side-card > p {
+  margin:0;
+  color:#92a2c1;
+  font-size:10px;
+}
+.omni-collection-progress {
+  height:7px;
+  margin-top:14px;
+  overflow:hidden;
+  border-radius:99px;
+  background:#0b1224;
+}
+.omni-collection-progress span {
+  display:block;
+  width:0;
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,#45ceff,#a77cff,#f18bd2);
+  box-shadow:0 0 12px rgba(125,132,255,.38);
+  transition:width .5s ease;
+}
+.omni-rarity-guide {
+  display:grid;
+  gap:10px;
+}
+.omni-rarity-guide > div {
+  display:grid;
+  grid-template-columns:9px 1fr auto;
+  align-items:center;
+  gap:8px;
+  color:#c6d1e6;
+  font-size:10px;
+}
+.omni-rarity-guide b {
+  color:#7f91b1;
+  font-size:8px;
+  font-weight:750;
+}
+.rarity-dot {
+  display:block;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#9ab0ca;
+  box-shadow:0 0 9px currentColor;
+}
+.rarity-dot.rarity-rare { background:#54d8ff; }
+.rarity-dot.rarity-epic { background:#b98aff; }
+.rarity-dot.rarity-legendary { background:#ffc86f; }
+.rarity-dot.rarity-mythic { background:#ff83d4; }
+
+.omni-collection-panel {
+  margin-top:18px;
+  padding:22px;
+  border:1px solid rgba(140,122,220,.21);
+  border-radius:20px;
+  background:linear-gradient(145deg,#151f38,#0f172b);
+  box-shadow:0 12px 28px rgba(0,0,0,.2);
+}
+.omni-collection-heading {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:15px;
+}
+.omni-collection-heading h3 {
+  margin:5px 0 0;
+  color:#fff;
+  font-size:21px;
+  font-weight:950;
+}
+.omni-collection-badge {
+  padding:8px 10px;
+  border:1px solid rgba(169,133,255,.25);
+  border-radius:10px;
+  color:#cbb8ff;
+  background:rgba(139,92,246,.08);
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:.8px;
+}
+.omni-collection-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(135px,1fr));
+  gap:11px;
+}
+.omni-collection-card {
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:7px;
+  padding:14px 9px;
+  border:1px solid color-mix(in srgb,var(--card-rarity,#9ab0ca) 35%,transparent);
+  border-radius:15px;
+  text-align:center;
+  background:linear-gradient(150deg,#202944,#141c31);
+  transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;
+}
+.omni-collection-card:not(.is-locked):hover {
+  transform:translateY(-4px);
+  border-color:var(--card-rarity);
+  box-shadow:0 9px 22px color-mix(in srgb,var(--card-rarity) 13%,transparent);
+}
+.omni-collection-card.is-locked {
+  opacity:.62;
+  border-color:rgba(120,143,181,.16);
+  background:linear-gradient(150deg,#172036,#101729);
+}
+.omni-collection-icon {
+  display:grid;
+  place-items:center;
+  width:52px;
+  height:52px;
+  border:1px solid color-mix(in srgb,var(--card-rarity,#9ab0ca) 38%,transparent);
+  border-radius:15px;
+  background:rgba(255,255,255,.04);
+  font-size:30px;
+}
+.omni-collection-card strong {
+  color:#e7efff;
+  font-size:10px;
+  line-height:1.4;
+}
+.omni-collection-card small {
+  color:var(--card-rarity,#7d91b5);
+  font-size:8px;
+  font-weight:950;
+  letter-spacing:1px;
+}
+.omni-collection-count {
+  color:#7f91b1;
+  font-size:8px;
+  font-weight:850;
+}
+
+/* Responsive radio et boosters */
+@media(max-width:760px) {
+  .omni-booster-layout { grid-template-columns:1fr; }
+  .omni-booster-side { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .omni-radio-player { margin-top:0; }
+}
+@media(max-width:540px) {
+  .omni-radio-player { padding:11px 12px 9px; border-radius:16px; }
+  .omni-radio-main { align-items:flex-start; flex-direction:column; gap:10px; }
+  .omni-radio-actions { width:100%; justify-content:flex-start; }
+  .omni-radio-settings { grid-template-columns:1fr; }
+  .omni-radio-note { grid-column:auto; }
+  .omni-radio-bottomline { align-items:flex-start; flex-direction:column; gap:4px; }
+  .omni-radio-visualizer { margin-left:0; }
+  .omni-booster-side { grid-template-columns:1fr; }
+  .omni-booster-stamp { width:48px; height:48px; font-size:8px; }
+  .omni-collection-panel { padding:16px; }
+  .omni-collection-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .omni-collection-heading { align-items:flex-start; flex-direction:column; }
+  .omni-collection-badge { font-size:7px; }
+}
+@media(max-width:370px) {
+  .omni-radio-tool { padding:7px 9px; font-size:8px; }
+  .card-reveal-grid { gap:6px; }
+  .card-reveal-grid .card-item { height:140px; border-radius:13px; }
+  .card-back-symbol { font-size:32px; }
+  .card-reveal-grid .card-item small { font-size:7px; letter-spacing:.8px; }
+}
+
+/* Mode de compatibilité avec les utilisateurs réduisant les animations */
+@media(prefers-reduced-motion:reduce) {
+  .omni-radio-visualizer.is-playing span,
+  body.rave-active #rave-background-layer,
+  .rave-emoji,
+  .booster-pack-orbit,
+  .booster-pack-icon { animation:none!important; }
+  .omni-radio-player *,
+  .card-reveal-grid .card-item,
+  .omni-collection-card { transition:none!important; }
+}
+
+/* FIN OMNI AUDIO EXPERIENCE */
