@@ -168,7 +168,7 @@
           type="button"
           class="omni-play-btn"
           onclick="switchTab('arcade')">
-          ▶ JOUER <span>↗</span>
+          <span class="omni-play-label">▶ JOUER</span><span class="omni-launch-arrow" aria-hidden="true">↗</span>
         </button>
       </div>
 
@@ -587,7 +587,7 @@
   <div id="omni-game-stage" class="omni-game-stage" hidden>
 
     <button class="omni-back-button" onclick="retourMenuArcade()">
-      ← RETOUR À L'ARCADE
+      <span class="omni-back-arrow" aria-hidden="true">←</span><span>RETOUR À L'ARCADE</span>
     </button>
 
     <!-- 1. SIMON SAYS -->
@@ -739,8 +739,8 @@
       <canvas id="pong-canvas" width="480" height="320"></canvas>
       <button id="pong-start" class="btn" onclick="demarrerPong()">▶ JOUER</button>
       <div class="omni-pong-controls">
-        <button onclick="deplacerRaquettePong('left')">⬅️</button>
-        <button onclick="deplacerRaquettePong('right')">➡️</button>
+        <button class="omni-control-arrow" type="button" aria-label="Déplacer la raquette à gauche" onclick="deplacerRaquettePong('left')"><span aria-hidden="true">←</span></button>
+        <button class="omni-control-arrow" type="button" aria-label="Déplacer la raquette à droite" onclick="deplacerRaquettePong('right')"><span aria-hidden="true">→</span></button>
       </div>
     </div>
 
@@ -755,11 +755,11 @@
       <p id="2048-status" class="omni-game-status" aria-live="polite">Fusionne deux tuiles identiques.</p>
       <div id="2048-grid" class="omni-2048-grid"></div>
       <div class="omni-direction-pad">
-        <button onclick="deplacer2048('up')">⬆️</button>
+        <button class="omni-control-arrow" type="button" aria-label="Déplacer vers le haut" onclick="deplacer2048('up')"><span aria-hidden="true">↑</span></button>
         <div>
-          <button onclick="deplacer2048('left')">⬅️</button>
-          <button onclick="deplacer2048('down')">⬇️</button>
-          <button onclick="deplacer2048('right')">➡️</button>
+          <button class="omni-control-arrow" type="button" aria-label="Déplacer vers la gauche" onclick="deplacer2048('left')"><span aria-hidden="true">←</span></button>
+          <button class="omni-control-arrow" type="button" aria-label="Déplacer vers le bas" onclick="deplacer2048('down')"><span aria-hidden="true">↓</span></button>
+          <button class="omni-control-arrow" type="button" aria-label="Déplacer vers la droite" onclick="deplacer2048('right')"><span aria-hidden="true">→</span></button>
         </div>
       </div>
       <button class="btn" onclick="demarrer2048()">🔄 RECOMMENCER</button>
@@ -796,8 +796,8 @@
       <canvas id="space-canvas" width="420" height="420"></canvas>
       <button class="btn" onclick="demarrerSpaceDodger()">▶ DÉCOLLER</button>
       <div class="omni-pong-controls">
-        <button onclick="deplacerVaisseau(-1)">⬅️</button>
-        <button onclick="deplacerVaisseau(1)">➡️</button>
+        <button class="omni-control-arrow" type="button" aria-label="Déplacer le vaisseau à gauche" onclick="deplacerVaisseau(-1)"><span aria-hidden="true">←</span></button>
+        <button class="omni-control-arrow" type="button" aria-label="Déplacer le vaisseau à droite" onclick="deplacerVaisseau(1)"><span aria-hidden="true">→</span></button>
       </div>
     </div>
 
@@ -923,7 +923,7 @@
           </div>
           <div id="dilemme-resultats" style="display:none; text-align: center; margin-top: 30px;">
             <p id="res-texte" style="font-weight: bold; color: var(--neon-blue); font-size: 24px; line-height: 1.6;"></p>
-            <button class="btn" onclick="prochainDilemmeIA()" style="background: var(--neon-green); color: white; margin-top:20px; font-size:18px; padding:15px;">Prochain Dilemme IA ➡️</button>
+            <button class="btn" onclick="prochainDilemmeIA()" style="background: var(--neon-green); color: white; margin-top:20px; font-size:18px; padding:15px;">Prochain Dilemme IA <span class="omni-inline-arrow" aria-hidden="true">→</span></button>
           </div>
         </div>
       </section>
@@ -1009,7 +1009,7 @@
   <div id="sticky-audio-bar">
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <span style="color:var(--neon-blue); font-size:13px; font-weight:bold;">📻 Cyber Radio Station</span>
-      <button class="music-btn" onclick="alert('Radio Cyber active !')">▶️ Play Radio</button>
+      <button class="music-btn omni-radio-button" onclick="alert('Radio Cyber active !')"><span class="omni-radio-pulse" aria-hidden="true"></span> Play Radio</button>
     </div>
   </div>
 
