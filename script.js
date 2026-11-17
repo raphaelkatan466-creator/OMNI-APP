@@ -2568,6 +2568,9 @@ let pongAnimation = null;
 let pongEnCours = false;
 let pongDerniereImage = 0;
 let pongJoueurX = 196;
+let pongJoueurCibleX = 196;
+let pongRaquetteIdleAnimation = null;
+let pongRaquetteIdleDerniereImage = 0;
 let pongCpuX = 196;
 let pongScoreJoueur = 0;
 let pongScoreCpu = 0;
@@ -2647,7 +2650,13 @@ function demarrerPong() {
   if (pongAnimation !== null) cancelAnimationFrame(pongAnimation);
   pongScoreJoueur = 0;
   pongScoreCpu = 0;
+  if (pongRaquetteIdleAnimation !== null) {
+    cancelAnimationFrame(pongRaquetteIdleAnimation);
+  }
+  pongRaquetteIdleAnimation = null;
+  pongRaquetteIdleDerniereImage = 0;
   pongJoueurX = (PONG_LARGEUR - PONG_RAQUETTE_L) / 2;
+  pongJoueurCibleX = pongJoueurX;
   pongCpuX = pongJoueurX;
   lancerBallePong(Math.random() > 0.5 ? 1 : -1);
   mettreAJourScorePong();
@@ -2661,17 +2670,60 @@ function demarrerPong() {
   dessinerPong();
 }
 
-function deplacerRaquettePong(direction) {
-  const pas = 34;
-  pongJoueurX += direction === "left" ? -pas : pas;
-  pongJoueurX = Math.max(0, Math.min(PONG_LARGEUR - PONG_RAQUETTE_L, pongJoueurX));
+// Quand la partie est au repos, on anime aussi la raquette pour que les
+// boutons restent agréables à utiliser avant le lancement d'une manche.
+function animerRaquettePongHorsJeu(timestamp) {
+  if (pongEnCours) {
+    pongRaquetteIdleAnimation = null;
+    pongRaquetteIdleDerniereImage = 0;
+    return;
+  }
+
+  const facteur = pongRaquetteIdleDerniereImage
+    ? Math.min((timestamp - pongRaquetteIdleDerniereImage) / 16.67, 2)
+    : 1;
+  pongRaquetteIdleDerniereImage = timestamp;
+
+  const ecart = pongJoueurCibleX - pongJoueurX;
+  pongJoueurX += ecart * (1 - Math.pow(0.82, facteur));
+
+  if (Math.abs(pongJoueurCibleX - pongJoueurX) < 0.35) {
+    pongJoueurX = pongJoueurCibleX;
+    pongRaquetteIdleAnimation = null;
+    pongRaquetteIdleDerniereImage = 0;
+    dessinerPong();
+    return;
+  }
+
   dessinerPong();
+  pongRaquetteIdleAnimation = requestAnimationFrame(animerRaquettePongHorsJeu);
+}
+
+function deplacerRaquettePong(direction) {
+  const sens = direction === "left" ? -1 : 1;
+  // Un clic donne un vrai déplacement, mais la raquette glisse jusqu'à sa cible.
+  pongJoueurCibleX = Math.max(
+    0,
+    Math.min(PONG_LARGEUR - PONG_RAQUETTE_L, pongJoueurCibleX + sens * 90)
+  );
+
+  if (!pongEnCours && pongRaquetteIdleAnimation === null) {
+    pongRaquetteIdleDerniereImage = 0;
+    pongRaquetteIdleAnimation = requestAnimationFrame(animerRaquettePongHorsJeu);
+  }
 }
 
 function bouclePong(timestamp) {
   if (!pongEnCours) return;
   const facteur = pongDerniereImage ? Math.min((timestamp - pongDerniereImage) / 16.67, 2) : 1;
   pongDerniereImage = timestamp;
+
+  // La raquette suit sa position cible avec une accélération douce.
+  const ecartRaquette = pongJoueurCibleX - pongJoueurX;
+  pongJoueurX += ecartRaquette * (1 - Math.pow(0.82, facteur));
+  if (Math.abs(pongJoueurCibleX - pongJoueurX) < 0.35) {
+    pongJoueurX = pongJoueurCibleX;
+  }
 
   pongBalle.x += pongBalle.vx * facteur;
   pongBalle.y += pongBalle.vy * facteur;
@@ -2744,6 +2796,11 @@ function arreterPong() {
   pongEnCours = false;
   if (pongAnimation !== null) cancelAnimationFrame(pongAnimation);
   pongAnimation = null;
+  if (pongRaquetteIdleAnimation !== null) {
+    cancelAnimationFrame(pongRaquetteIdleAnimation);
+  }
+  pongRaquetteIdleAnimation = null;
+  pongRaquetteIdleDerniereImage = 0;
   const boutonJouer = document.getElementById("pong-start");
   if (boutonJouer) boutonJouer.disabled = false;
   const statut = document.getElementById("pong-status");
@@ -2950,6 +3007,7 @@ let spaceTemps = 0;
 let spaceScore = 0;
 let spaceRecord = Number(localStorage.getItem("omni_space_best")) || 0;
 let spaceJoueurX = 210;
+let spaceJoueurCibleX = 210;
 let spaceObstacles = [];
 let spaceTempsSpawn = 0;
 let spaceEtoiles = Array.from({ length: 42 }, () => ({
@@ -3052,6 +3110,7 @@ function demarrerSpaceDodger() {
   spaceScore = 0;
   spaceTempsSpawn = 0;
   spaceJoueurX = 210;
+  spaceJoueurCibleX = 210;
   spaceObstacles = [];
   actualiserScoreSpace();
   const statut = document.getElementById("space-status");
@@ -3061,10 +3120,10 @@ function demarrerSpaceDodger() {
 }
 
 function deplacerVaisseau(direction) {
-  const pas = Number(direction) * 34;
-  if (!Number.isFinite(pas) || !spaceEnCours) return;
-  spaceJoueurX = Math.max(22, Math.min(398, spaceJoueurX + pas));
-  dessinerSpaceDodger(false);
+  const sens = Number(direction);
+  if (!Number.isFinite(sens) || !spaceEnCours) return;
+  // Le vaisseau rejoint progressivement sa cible au lieu de sauter par à-coups.
+  spaceJoueurCibleX = Math.max(22, Math.min(398, spaceJoueurCibleX + sens * 68));
 }
 
 function boucleSpaceDodger(timestamp) {
@@ -3074,6 +3133,12 @@ function boucleSpaceDodger(timestamp) {
   spaceTemps += delta;
   spaceTempsSpawn += delta * 1000;
   spaceScore = Math.floor(spaceTemps * 10);
+
+  const ecartVaisseau = spaceJoueurCibleX - spaceJoueurX;
+  spaceJoueurX += ecartVaisseau * (1 - Math.exp(-delta / 0.085));
+  if (Math.abs(spaceJoueurCibleX - spaceJoueurX) < 0.25) {
+    spaceJoueurX = spaceJoueurCibleX;
+  }
 
   const intervalleSpawn = Math.max(300, 850 - spaceTemps * 9);
   if (spaceTempsSpawn >= intervalleSpawn) {
