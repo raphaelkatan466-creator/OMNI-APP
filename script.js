@@ -67,7 +67,11 @@ function reinitialiserTout() {
   "omni_simon_best_score",
   "omni_snake_best",
   "omni_memory_best_moves",
-  "omni_memory_last_back_motif"
+  "omni_memory_last_back_motif",
+  "omni_reflex_best",
+  "omni_2048_best",
+  "omni_space_best",
+  "omni_quiz_best"
 ].forEach(cle => localStorage.removeItem(cle));
 
     // Recharge l'application avec les valeurs de départ
