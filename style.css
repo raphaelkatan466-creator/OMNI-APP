@@ -5023,3 +5023,35 @@ summary:focus-visible,
     font-size: 18px;
   }
 }
+
+
+/* COMMANDES ARCADE — RETOUR VISUEL PLUS DOUX AU CLIC */
+#page-arcade .omni-direction-pad .omni-control-arrow,
+#page-arcade .omni-pong-controls .omni-control-arrow {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition:
+    transform 220ms cubic-bezier(.2, .8, .2, 1),
+    border-color 220ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease,
+    color 220ms ease;
+}
+
+#page-arcade .omni-direction-pad .omni-control-arrow:hover,
+#page-arcade .omni-pong-controls .omni-control-arrow:hover {
+  transform: translateY(-2px) scale(1.025);
+}
+
+#page-arcade .omni-direction-pad .omni-control-arrow:active,
+#page-arcade .omni-pong-controls .omni-control-arrow:active {
+  transform: translateY(0) scale(.96);
+  box-shadow: 0 0 28px rgba(56, 189, 248, .42);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #page-arcade .omni-direction-pad .omni-control-arrow,
+  #page-arcade .omni-pong-controls .omni-control-arrow {
+    transition: none;
+  }
+}
