@@ -4381,3 +4381,62 @@ textarea, input[type="text"] {
     animation: none;
   }
 }
+
+
+/* MODULES LOCAUX — INFORMATION ET LISIBILITÉ */
+.omni-local-notice {
+  margin: 10px 0 14px;
+  padding: 11px 13px;
+  border: 1px solid #38e8ff35;
+  border-radius: 11px;
+  background: linear-gradient(110deg, #38e8ff0b, #a855f70b);
+  color: #9fb2ce;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.omni-private-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+
+.omni-private-entry h4,
+.omni-private-entry p {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.omni-private-entry .music-btn {
+  align-self: flex-end;
+}
+
+#page-community #community-chat-box > div {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+#page-arcade .btn:disabled,
+#page-wheel .btn:disabled,
+#wheel-modal .btn:disabled,
+#wheel-modal .music-btn:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+  filter: grayscale(.35);
+  transform: none;
+  box-shadow: none;
+}
+
+#wheel-modal .omni-local-notice {
+  max-width: 380px;
+  margin: 8px auto 16px;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .omni-local-notice {
+    font-size: 11px;
+    padding: 10px;
+  }
+}
