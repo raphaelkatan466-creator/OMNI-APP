@@ -45,19 +45,11 @@ body.matrix-mode { background-color: #000 !important; }
 
 #rave-background-layer {
   position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-  pointer-events: none; z-index: -2; opacity: 0; transition: opacity 0.5s ease;
+  pointer-events: none; z-index: 0; opacity: 0; transition: opacity 0.5s ease;
 }
 body.rave-active #rave-background-layer {
-  opacity: 1; animation: raveRainbow 0.6s infinite alternate;
+  opacity: .65; animation: omniRaveFlow 14s ease-in-out infinite alternate;
 }
-@keyframes raveRainbow {
-  0% { background: #ef4444; }
-  25% { background: #eab308; }
-  50% { background: #38bdf8; }
-  75% { background: #a855f7; }
-  100% { background: #22c55e; }
-}
-
 .rave-emoji {
   position: fixed; font-size: 30px; pointer-events: none; z-index: 99;
   animation: fallEmoji 2.5s linear forwards;
@@ -201,10 +193,7 @@ header h1 {
 }
 .dilemme-giant-btn:hover { background: var(--neon-purple); transform: scale(1.02); box-shadow: 0 0 30px var(--neon-purple); }
 
-#sticky-audio-bar {
-  position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.95);
-  border-top: 2px solid var(--neon-purple); padding: 10px 20px; backdrop-filter: blur(10px); z-index: 900;
-}
+
 .music-btn {
   background: #334155; border: 1px solid #475569; color: white;
   padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold;
@@ -343,9 +332,7 @@ textarea, input[type="text"] {
 }
 
 /* La radio reste au-dessus de la navigation */
-#sticky-audio-bar {
-  bottom: 85px;
-}
+
 
 /* =================================================
    OMNI-APP — NOUVEL ACCUEIL NEXOR
@@ -4838,36 +4825,12 @@ textarea, input[type="text"] {
 }
 
 /* BOUTON RADIO : LE POINT DE LECTURE PREND LA COULEUR OMNI */
-.omni-radio-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-}
 
-.omni-radio-pulse {
-  position: relative;
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #38e8ff;
-  box-shadow: 0 0 10px #38e8ff, 0 0 18px #38e8ff66;
-}
 
-.omni-radio-pulse::after {
-  content: "";
-  position: absolute;
-  inset: -5px;
-  border: 1px solid rgba(56, 232, 255, .55);
-  border-radius: 50%;
-  animation: omniRadioPulse 1.8s ease-out infinite;
-}
 
-@keyframes omniRadioPulse {
-  0% { transform: scale(.55); opacity: .95; }
-  100% { transform: scale(1.8); opacity: 0; }
-}
+
+
+
 
 /* CONTRÔLES EN HAUT DE L'ÉCRAN */
 #crt-toggle-btn,
@@ -4927,9 +4890,7 @@ summary:focus-visible,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .omni-radio-pulse::after {
-    animation: none;
-  }
+  
 
   .bottom-nav .nav-item,
   .bottom-nav .nav-icon,
@@ -5642,15 +5603,7 @@ select {
 }
 
 /* Barre audio flottante */
-#sticky-audio-bar {
-  bottom: calc(86px + env(safe-area-inset-bottom));
-  border: 1px solid rgba(129, 149, 202, .22);
-  border-radius: 17px;
-  background: rgba(10, 17, 34, .92);
-  box-shadow: 0 12px 32px rgba(0,0,0,.33);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-}
+
 
 /* Fenêtre de la roue */
 #wheel-modal {
@@ -5791,10 +5744,7 @@ textarea {
     min-width: 0;
   }
 
-  #sticky-audio-bar {
-    bottom: calc(72px + env(safe-area-inset-bottom));
-    padding: 8px 11px;
-  }
+  
 }
 
 @media (prefers-reduced-motion: reduce) {
