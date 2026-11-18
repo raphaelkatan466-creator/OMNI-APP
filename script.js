@@ -25,14 +25,17 @@ function chargerDonnees() {
       if (!Array.isArray(state.capsules)) state.capsules = [];
       if (!Array.isArray(state.unlockedSkins)) state.unlockedSkins = ["🍕"];
       if (!Array.isArray(state.unlockedEffects)) state.unlockedEffects = ["cyan"];
-      if (!state.cardsCollection || typeof state.cardsCollection !== "object" || Array.isArray(state.cardsCollection)) {
-        state.cardsCollection = {};
-      }
-      Object.keys(state.cardsCollection).forEach(id => {
-        const count = Number(state.cardsCollection[id]);
-        if (!Number.isSafeInteger(count) || count < 0 || count > 1000000) delete state.cardsCollection[id];
-        else state.cardsCollection[id] = count;
+      const collectionSauvee = state.cardsCollection && typeof state.cardsCollection === "object" && !Array.isArray(state.cardsCollection)
+        ? state.cardsCollection
+        : {};
+      const collectionValide = {};
+      ["mini-bot-neon","renard-pixel","matrix-hacker","soucoupe-neon","dragon-cyber","pizza-quantique"].forEach(id => {
+        const count = Number(collectionSauvee[id]);
+        if (Number.isSafeInteger(count) && count > 0 && count <= 1000000) {
+          collectionValide[id] = count;
+        }
       });
+      state.cardsCollection = collectionValide;
 
       ["pizzas", "clickPower", "pizzasPerSec", "omniPoints"].forEach(cle => {
         if (!Number.isFinite(state[cle]) || state[cle] < 0) {
@@ -1445,7 +1448,8 @@ function initPixelArtPro() {
     cell.setAttribute("tabindex","0");
     cell.setAttribute("aria-label","Pixel "+(index+1));
     const paint=() => {
-      if (cell.style.background===currentColor) return;
+      if (cell.dataset.color===currentColor) return;
+      cell.dataset.color=currentColor;
       cell.style.background=currentColor;
       cell.setAttribute("aria-label","Pixel "+(index+1)+" peint");
       jouerSonPixelArt();
@@ -1467,6 +1471,11 @@ function initPixelArtPro() {
 }
 window.addEventListener("pointerup",() => { isSwipingBubble=false; isDrawingPixel=false; });
 window.addEventListener("pointercancel",() => { isSwipingBubble=false; isDrawingPixel=false; });
+window.addEventListener("blur",() => {
+  isSwipingBubble=false;
+  isDrawingPixel=false;
+  isDrawing=false;
+});
 
 // GRAFFITI & CHAT — CHAT DE DÉMONSTRATION LOCALE
 let gCanvas, gCtx, isDrawing = false;
@@ -1781,37 +1790,36 @@ function genererBoutiqueCosmetique() {
     }).join("");
   }
 }
-function acheterSkin(id, cost) {
-  if (!Number.isFinite(cost) || cost < 0 || state.omniPoints < cost) {
-    jouerEffetSonore("error");
-    alert("Points OMNI ⭐ insuffisants !");
-    return;
-  }
+function acheterSkin(id) {
+  const skin = SKINS_LIST.find(item => item.id === id);
+  if (!skin) return;
   if (state.unlockedSkins.includes(id)) {
     equiperSkin(id);
     return;
   }
-  state.omniPoints -= cost;
+  if (state.omniPoints < skin.cost) {
+    jouerEffetSonore("error");
+    alert("Points OMNI ⭐ insuffisants !");
+    return;
+  }
+  state.omniPoints -= skin.cost;
   state.unlockedSkins.push(id);
-  jouerEffetSonore("purchase");
-  equiperSkin(id);
-  genererBoutiqueCosmetique();
+  equiperSkin(id,true);
   rafraichirAffichagePizza();
-  sauvegarderDonnees();
 }
-function equiperSkin(id) {
+function equiperSkin(id, nouvelAchat = false) {
   if (!state.unlockedSkins.includes(id)) return;
   const changed = state.activeSkin !== id;
   state.activeSkin = id;
   const pizzaEl = document.getElementById("pizza-gigante");
   if (pizzaEl) {
     pizzaEl.innerText = id;
-    pizzaEl.classList.remove("clicked");
+    pizzaEl.classList.remove("clicked","skin-equipped");
     void pizzaEl.offsetWidth;
     pizzaEl.classList.add("skin-equipped");
     setTimeout(() => pizzaEl.classList.remove("skin-equipped"),500);
   }
-  if (changed) jouerEffetSonore("equip");
+  if (changed) jouerEffetSonore(nouvelAchat ? "purchase" : "equip");
   genererBoutiqueCosmetique();
   sauvegarderDonnees();
 }
