@@ -149,7 +149,7 @@ let omniSfxGain = null;
 let omniMusicGain = null;
 let omniSfxEnabled = true;
 let omniSfxVolume = 0.78;
-let omniMusicVolume = 0.28;
+let omniMusicVolume = 0.32;
 let audioPreferencesLoaded = false;
 let radioIsPlaying = false;
 let radioTimer = null;
@@ -288,7 +288,13 @@ function jouerEffetSonore(type="click") {
     crt:[[180,.07,.025,"square",0],[420,.09,.022,"triangle",.06]],
     matrix:[[900,.045,.02,"square",0],[1200,.055,.018,"square",.05]],
     whoosh:[[520,.18,.028,"sawtooth",0,120]],
-    open:[[460,.1,.03,"sine",0],[690,.13,.025,"triangle",.1]]
+    open:[[460,.1,.03,"sine",0],[690,.13,.025,"triangle",.1]],
+    paint:[[520,.045,.035,"triangle",0],[780,.055,.018,"sine",.025]],
+    brush:[[540,.11,.028,"sawtooth",0,260]],
+    message:[[660,.06,.025,"sine",0],[880,.075,.024,"triangle",.055]],
+    delete:[[340,.07,.03,"triangle",0,190],[210,.1,.02,"sine",.055]],
+    choice:[[490,.08,.025,"triangle",0],[620,.1,.03,"sine",.075]],
+    equip:[[540,.08,.03,"sine",0],[760,.11,.035,"triangle",.075],[980,.14,.025,"sine",.16]]
   };
   if (type.startsWith("simon-")) {
     const n = [392,494,587,784][(Number(type.split("-")[1]) || 0) % 4];
@@ -296,7 +302,7 @@ function jouerEffetSonore(type="click") {
     return;
   }
   (patterns[type] || patterns.click).forEach(note => {
-    jouerOscillateur(note[0],note[1],note[2],note[3],omniSfxGain,now+note[4],note[5]);
+    jouerOscillateur(note[0],note[1],Math.min(.12,note[2]*2.1),note[3],omniSfxGain,now+note[4],note[5]);
   });
 }
 
@@ -336,7 +342,7 @@ function actualiserInterfaceRadio() {
 
 function programmerNoteRadio(freq,duration,volume,wave,when,endFreq=null) {
   if (!audioCtx || !omniMusicGain) return;
-  jouerOscillateur(freq,duration,volume,wave,omniMusicGain,when,endFreq);
+  jouerOscillateur(freq,duration,Math.min(.085,volume*2.4),wave,omniMusicGain,when,endFreq);
 }
 
 function programmerPasRadio(station,step,when) {
@@ -565,8 +571,11 @@ function changerAvatar() {
   sauvegarderDonnees();
 }
 function sauvegarderProfil() {
-  state.username = document.getElementById("username-input").value || "Joueur Cyber";
+  const input=document.getElementById("username-input");
+  state.username=(input?.value||"Joueur Cyber").trim().slice(0,24)||"Joueur Cyber";
+  if (input) input.value=state.username;
   sauvegarderDonnees();
+  jouerEffetSonore("success");
 }
 
 
@@ -947,7 +956,8 @@ function acheterObjet(id) {
 
   const item = OFFRES_BOUTIQUE.find(i => i.id === id);
 
-  if (!item || state.pizzas < item.cost) return;
+  if (!item) return;
+  if (state.pizzas < item.cost) { jouerEffetSonore("error"); return; }
 
   // Payer le prix
   state.pizzas -= item.cost;
@@ -1280,6 +1290,7 @@ function cliquerSimon(id) {
 
   } else {
     // Mauvaise réponse : fin de partie
+    jouerEffetSonore("error");
     simonPlaying = false;
 
     if (simonInterval) {
@@ -1323,6 +1334,7 @@ function envoyerMessageIA() {
   userMsg.style.cssText = "background:var(--neon-blue); color:#0f172a; font-weight:bold; padding:8px 12px; border-radius:8px; align-self:flex-end; max-width:80%; font-size:13px; overflow-wrap:anywhere;";
   userMsg.textContent = text;
   chatBox.appendChild(userMsg);
+  jouerEffetSonore("message");
   input.value = "";
 
   setTimeout(() => {
@@ -1330,6 +1342,7 @@ function envoyerMessageIA() {
     aiMsg.style.cssText = "background:#1e293b; padding:8px 12px; border-radius:8px; align-self:flex-start; max-width:80%; font-size:13px; overflow-wrap:anywhere;";
     aiMsg.textContent = "🤖 Cyber-Bot (démo) : J’ai reçu ton message. Cette version fonctionne localement et ne contacte pas un service d’IA.";
     chatBox.appendChild(aiMsg);
+    jouerEffetSonore("open");
     chatBox.scrollTop = chatBox.scrollHeight;
   }, 350);
 }
@@ -1512,6 +1525,7 @@ function envoyerChatCommunautaire() {
   contenu.textContent = text;
   msg.append(auteur, contenu);
   chatBox.appendChild(msg);
+  jouerEffetSonore("message");
   input.value = "";
   chatBox.scrollTop = chatBox.scrollHeight;
 }
@@ -1551,12 +1565,14 @@ function chargerDilemmeIA() {
   }
 }
 function voterDilemme(choix) {
+  jouerEffetSonore("choice");
   const p1 = Math.floor(Math.random() * 40) + 30;
   document.getElementById("dilemme-options").style.display = "none";
   document.getElementById("dilemme-resultats").style.display = "block";
   document.getElementById("res-texte").textContent = `📊 Répartition simulée pour s'amuser : Choix 1 : ${p1}% | Choix 2 : ${100 - p1}%`;
 }
 function prochainDilemmeIA() {
+  jouerEffetSonore("open");
   currentDilemmeIndex++;
   document.getElementById("dilemme-options").style.display = "flex";
   document.getElementById("dilemme-resultats").style.display = "none";
@@ -1596,6 +1612,7 @@ function supprimerCapsule(index) {
   if (!Array.isArray(state.capsules) || !Number.isInteger(index)) return;
   if (index < 0 || index >= state.capsules.length) return;
   state.capsules.splice(index, 1);
+  jouerEffetSonore("delete");
   afficherCapsules();
   sauvegarderDonnees();
 }
@@ -1695,6 +1712,7 @@ function supprimerSecret(index) {
   if (!Array.isArray(state.secrets) || !Number.isInteger(index)) return;
   if (index < 0 || index >= state.secrets.length) return;
   state.secrets.splice(index, 1);
+  jouerEffetSonore("delete");
   afficherSecrets();
   sauvegarderDonnees();
 }
@@ -1748,19 +1766,36 @@ function genererBoutiqueCosmetique() {
   }
 }
 function acheterSkin(id, cost) {
-  if (state.omniPoints >= cost) {
-    state.omniPoints -= cost;
-    state.unlockedSkins.push(id);
+  if (!Number.isFinite(cost) || cost < 0 || state.omniPoints < cost) {
+    jouerEffetSonore("error");
+    alert("Points OMNI ⭐ insuffisants !");
+    return;
+  }
+  if (state.unlockedSkins.includes(id)) {
     equiperSkin(id);
-    genererBoutiqueCosmetique();
-    rafraichirAffichagePizza();
-    sauvegarderDonnees();
-  } else alert("Points OMNI ⭐ insuffisants !");
+    return;
+  }
+  state.omniPoints -= cost;
+  state.unlockedSkins.push(id);
+  jouerEffetSonore("purchase");
+  equiperSkin(id);
+  genererBoutiqueCosmetique();
+  rafraichirAffichagePizza();
+  sauvegarderDonnees();
 }
 function equiperSkin(id) {
+  if (!state.unlockedSkins.includes(id)) return;
+  const changed = state.activeSkin !== id;
   state.activeSkin = id;
   const pizzaEl = document.getElementById("pizza-gigante");
-  if(pizzaEl) pizzaEl.innerText = id;
+  if (pizzaEl) {
+    pizzaEl.innerText = id;
+    pizzaEl.classList.remove("clicked");
+    void pizzaEl.offsetWidth;
+    pizzaEl.classList.add("skin-equipped");
+    setTimeout(() => pizzaEl.classList.remove("skin-equipped"),500);
+  }
+  if (changed) jouerEffetSonore("equip");
   genererBoutiqueCosmetique();
   sauvegarderDonnees();
 }
@@ -2037,6 +2072,7 @@ function ouvrirMiniJeu(nom) {
   }
 
   // Arrêter le jeu précédent
+  jouerEffetSonore("open");
   arreterMiniJeuActif();
 
   const menu = document.getElementById("omni-arcade-menu");
@@ -3595,6 +3631,7 @@ function jouerMorpion(index) {
 }
 
 function recommencerMorpion() {
+  jouerEffetSonore("start");
   initialiserMorpion();
 }
 
@@ -3935,6 +3972,7 @@ function repondreQuiz(choix) {
 }
 
 function terminerQuiz() {
+  jouerEffetSonore("win");
   quizEnCours = false;
   const question = document.getElementById("quiz-question");
   const statut = document.getElementById("quiz-status");
@@ -3981,9 +4019,9 @@ document.addEventListener("click",function(event){
     : null;
   if(!target || target.disabled) return;
   if(target.closest("#omni-radio-player, .omni-game-panel, #omni-game-stage, #wheel-modal")) return;
-  if(target.matches("#pizza-gigante, #rave-btn, #crt-toggle-btn, .booster-pack, .card-item, .bubble-item")) return;
-  if(target.closest("[onclick^='switchTab'], #shop-container, #wheel-open-btn")) return;
-  if(target.closest('[onclick*="voterHumeur"], [onclick*="publierSecret"], [onclick*="creerCapsule"], [onclick*="detruireSouciGeant"], [onclick*="effacerGraffiti"], [onclick*="genererCitationIA"]')) return;
+  if(target.matches("#pizza-gigante, #rave-btn, #crt-toggle-btn, .booster-pack, .card-item, .bubble-item, .omni-pixel-cell")) return;
+  if(target.closest(".omni-game-card, [onclick^='switchTab'], #shop-container, #wheel-open-btn")) return;
+  if(target.closest('[onclick*="voterHumeur"], [onclick*="publierSecret"], [onclick*="creerCapsule"], [onclick*="supprimerSecret"], [onclick*="supprimerCapsule"], [onclick*="detruireSouciGeant"], [onclick*="effacerGraffiti"], [onclick*="genererCitationIA"], [onclick*="envoyerMessageIA"], [onclick*="envoyerChatCommunautaire"], [onclick*="voterDilemme"], [onclick*="prochainDilemmeIA"], [onclick*="acheterSkin"], [onclick*="equiperSkin"]')) return;
   jouerEffetSonore("click");
 },false);
 
