@@ -1334,114 +1334,165 @@ function envoyerMessageIA() {
   }, 350);
 }
 
-// PAPIER BULLE & PIXEL ART
-
-// PAPIER BULLE & PIXEL ART
+// PAPIER BULLE & PIXEL ART — INTERACTIONS POINTEUR / TACTILE
 let isSwipingBubble = false;
 function initPapierBulle() {
   const container = document.getElementById("bubble-wrap-container");
-  if(!container) return;
+  if (!container) return;
   container.innerHTML = "";
-  for (let i = 0; i < 40; i++) {
+  container.style.touchAction = "none";
+  for (let i=0;i<40;i++) {
     const bubble = document.createElement("div");
     bubble.className = "bubble-item";
+    bubble.setAttribute("role","button");
+    bubble.setAttribute("tabindex","0");
+    bubble.setAttribute("aria-label","Faire éclater une bulle "+(i+1));
     const pop = () => {
-      if (!bubble.classList.contains("popped")) {
-        bubble.classList.add("popped");
-        jouerEffetSonore("bubble");
-      }
+      if (bubble.classList.contains("popped")) return;
+      bubble.classList.add("popped");
+      jouerEffetSonore("bubble");
     };
-    bubble.onmouseover = () => { if (isSwipingBubble) pop(); };
-    bubble.onmousedown = pop;
-    bubble.ontouchmove = (e) => {
-      const touch = e.touches[0];
-      const elem = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (elem && elem.classList.contains("bubble-item")) {
-        elem.classList.add("popped");
-        jouerNote(300, 0.04, 0.1);
+    bubble.addEventListener("pointerdown",event => {
+      isSwipingBubble = true;
+      event.preventDefault();
+      pop();
+    });
+    bubble.addEventListener("pointerenter",() => { if (isSwipingBubble) pop(); });
+    bubble.addEventListener("keydown",event => {
+      if (event.key==="Enter" || event.key===" ") {
+        event.preventDefault();
+        pop();
       }
-    };
+    });
     container.appendChild(bubble);
   }
 }
 
 let currentColor = "#38bdf8";
 let isDrawingPixel = false;
-const colorsList = ["#38bdf8", "#ef4444", "#22c55e", "#eab308", "#a855f7", "#ec4899", "#ffffff", "#0f172a"];
+let dernierSonPixel = 0;
+const colorsList = ["#38bdf8","#ef4444","#22c55e","#eab308","#a855f7","#ec4899","#ffffff","#0f172a"];
+function jouerSonPixelArt() {
+  const now = performance.now();
+  if (now-dernierSonPixel<65) return;
+  dernierSonPixel=now;
+  jouerEffetSonore("paint");
+}
 function initPixelArtPro() {
   const palette = document.getElementById("palette-container");
-  if(!palette) return;
+  if (!palette) return;
   palette.innerHTML = "";
-  colorsList.forEach((c, idx) => {
-    const swatch = document.createElement("div");
-    swatch.className = "color-swatch" + (idx === 0 ? " active" : "");
-    swatch.style.background = c;
-    if(c === "#0f172a") swatch.style.border = "1px solid #334155";
-    swatch.onclick = () => {
-      document.querySelectorAll(".color-swatch").forEach(s => s.classList.remove("active"));
+  colorsList.forEach((color,index) => {
+    const swatch = document.createElement("button");
+    swatch.type = "button";
+    swatch.className = "color-swatch"+(index===0?" active":"");
+    swatch.style.background = color;
+    swatch.setAttribute("aria-label","Choisir la couleur "+color);
+    swatch.setAttribute("aria-pressed",String(index===0));
+    if (color==="#0f172a") swatch.style.border = "1px solid #64748b";
+    swatch.addEventListener("click",() => {
+      document.querySelectorAll(".color-swatch").forEach(node => {
+        node.classList.remove("active");
+        node.setAttribute("aria-pressed","false");
+      });
       swatch.classList.add("active");
-      currentColor = c;
-    };
+      swatch.setAttribute("aria-pressed","true");
+      currentColor=color;
+    });
     palette.appendChild(swatch);
   });
-
   const grid = document.getElementById("pixel-grid");
-  if(!grid) return;
+  if (!grid) return;
   grid.innerHTML = "";
-  for (let i = 0; i < 144; i++) {
-    const cell = document.createElement("div");
-    cell.style.width = "18px"; cell.style.height = "18px";
-    cell.style.background = "#1e293b"; cell.style.borderRadius = "2px";
-    cell.style.cursor = "pointer";
-    const paint = () => { cell.style.background = currentColor; };
-    cell.onmousedown = paint;
-    cell.onmouseenter = () => { if (isDrawingPixel) paint(); };
+  grid.style.touchAction = "none";
+  for (let index=0;index<144;index++) {
+    const cell=document.createElement("div");
+    cell.className="omni-pixel-cell";
+    cell.style.width="18px";
+    cell.style.height="18px";
+    cell.style.background="#1e293b";
+    cell.style.borderRadius="3px";
+    cell.setAttribute("role","button");
+    cell.setAttribute("tabindex","0");
+    cell.setAttribute("aria-label","Pixel "+(index+1));
+    const paint=() => {
+      if (cell.style.background===currentColor) return;
+      cell.style.background=currentColor;
+      cell.setAttribute("aria-label","Pixel "+(index+1)+" peint");
+      jouerSonPixelArt();
+    };
+    cell.addEventListener("pointerdown",event => {
+      isDrawingPixel=true;
+      event.preventDefault();
+      paint();
+    });
+    cell.addEventListener("pointerenter",() => { if (isDrawingPixel) paint(); });
+    cell.addEventListener("keydown",event => {
+      if (event.key==="Enter" || event.key===" ") {
+        event.preventDefault();
+        paint();
+      }
+    });
     grid.appendChild(cell);
   }
 }
+window.addEventListener("pointerup",() => { isSwipingBubble=false; isDrawingPixel=false; });
+window.addEventListener("pointercancel",() => { isSwipingBubble=false; isDrawingPixel=false; });
 
 // GRAFFITI & CHAT — CHAT DE DÉMONSTRATION LOCALE
 let gCanvas, gCtx, isDrawing = false;
 function initGraffiti() {
-  gCanvas = document.getElementById("graffiti-canvas");
+  gCanvas=document.getElementById("graffiti-canvas");
   if (!gCanvas) return;
-  gCtx = gCanvas.getContext("2d");
-  gCtx.strokeStyle = "#38bdf8";
-  gCtx.lineWidth = 3;
-  gCtx.lineCap = "round";
-
-  const startDraw = (e) => {
-    isDrawing = true;
-    const rect = gCanvas.getBoundingClientRect();
-    const point = e.touches ? e.touches[0] : e;
-    gCtx.beginPath();
-    gCtx.moveTo(point.clientX - rect.left, point.clientY - rect.top);
+  gCtx=gCanvas.getContext("2d");
+  if (!gCtx) return;
+  gCtx.strokeStyle="#38bdf8";
+  gCtx.lineWidth=4;
+  gCtx.lineCap="round";
+  gCtx.lineJoin="round";
+  gCtx.shadowColor="#38bdf8";
+  gCtx.shadowBlur=7;
+  gCanvas.style.touchAction="none";
+  const position=event => {
+    const rect=gCanvas.getBoundingClientRect();
+    return {x:(event.clientX-rect.left)*(gCanvas.width/rect.width),y:(event.clientY-rect.top)*(gCanvas.height/rect.height)};
   };
-  const stopDraw = () => { isDrawing = false; if (gCtx) gCtx.beginPath(); };
-  const draw = (e) => {
+  const startDraw=event => {
+    event.preventDefault();
+    isDrawing=true;
+    const point=position(event);
+    gCtx.beginPath();
+    gCtx.moveTo(point.x,point.y);
+    jouerEffetSonore("brush");
+    if (gCanvas.setPointerCapture) {
+      try { gCanvas.setPointerCapture(event.pointerId); } catch(error) {}
+    }
+  };
+  const stopDraw=event => {
+    isDrawing=false;
+    if (gCtx) gCtx.beginPath();
+    if (event && gCanvas.releasePointerCapture && gCanvas.hasPointerCapture?.(event.pointerId)) {
+      try { gCanvas.releasePointerCapture(event.pointerId); } catch(error) {}
+    }
+  };
+  const draw=event => {
     if (!isDrawing) return;
-    const rect = gCanvas.getBoundingClientRect();
-    const point = e.touches ? e.touches[0] : e;
-    const x = (point.clientX - rect.left) * (gCanvas.width / rect.width);
-    const y = (point.clientY - rect.top) * (gCanvas.height / rect.height);
-    gCtx.lineTo(x, y);
+    const point=position(event);
+    gCtx.lineTo(point.x,point.y);
     gCtx.stroke();
     gCtx.beginPath();
-    gCtx.moveTo(x, y);
+    gCtx.moveTo(point.x,point.y);
   };
-
-  gCanvas.onmousedown = startDraw;
-  gCanvas.onmouseup = stopDraw;
-  gCanvas.onmouseleave = stopDraw;
-  gCanvas.onmousemove = draw;
-  gCanvas.ontouchstart = startDraw;
-  gCanvas.ontouchend = stopDraw;
-  gCanvas.ontouchcancel = stopDraw;
-  gCanvas.ontouchmove = draw;
+  gCanvas.addEventListener("pointerdown",startDraw);
+  gCanvas.addEventListener("pointermove",draw);
+  gCanvas.addEventListener("pointerup",stopDraw);
+  gCanvas.addEventListener("pointercancel",stopDraw);
+  gCanvas.addEventListener("lostpointercapture",stopDraw);
 }
 function effacerGraffiti() {
+  if (!gCtx || !gCanvas) return;
   jouerEffetSonore("whoosh");
-  if (gCtx && gCanvas) gCtx.clearRect(0, 0, gCanvas.width, gCanvas.height);
+  gCtx.clearRect(0,0,gCanvas.width,gCanvas.height);
 }
 
 function envoyerChatCommunautaire() {
