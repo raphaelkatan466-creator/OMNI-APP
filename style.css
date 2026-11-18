@@ -6672,3 +6672,63 @@ body.rave-active #rave-background-layer {
 }
 
 /* FIN CREATIVE STUDIO & POLISH */
+
+
+/* AUDIO : boutons, curseurs et états de lecture bien visibles */
+.omni-radio-player button:focus-visible,
+.omni-radio-player select:focus-visible,
+.omni-radio-player input:focus-visible {
+  outline:2px solid #8de6ff;
+  outline-offset:3px;
+}
+.omni-radio-player input[type="range"] {
+  accent-color:#78dfff;
+}
+.omni-radio-player .omni-radio-play:active,
+.omni-radio-player .omni-radio-tool:active {
+  transform:scale(.96);
+}
+#radio-play-btn {
+  font-size:16px;
+  line-height:1;
+}
+#radio-status {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+}
+#radio-status::before {
+  content:"";
+  width:6px;
+  height:6px;
+  flex:0 0 6px;
+  border-radius:50%;
+  background:#64748b;
+}
+.omni-radio-player:has(.omni-radio-visualizer.is-playing) #radio-status::before {
+  background:#53e5bb;
+  box-shadow:0 0 10px #53e5bb;
+}
+.omni-radio-visualizer span:nth-child(2n) { opacity:.75; }
+.omni-radio-visualizer span:nth-child(5n) { opacity:.55; }
+
+/* Cartes de rareté : chaque rang possède un halo cohérent */
+.omni-collection-card.rarity-commune { --card-rarity:#9ab0ca; }
+.omni-collection-card.rarity-rare { --card-rarity:#54d8ff; }
+.omni-collection-card.rarity-epique { --card-rarity:#b98aff; }
+.omni-collection-card.rarity-legendaire { --card-rarity:#ffc86f; }
+.omni-collection-card.rarity-mythique { --card-rarity:#ff83d4; }
+
+/* Une mise en avant discrète quand une carte est nouvellement découverte */
+.omni-card-result-icon.rarity-legendaire,
+.omni-card-result-icon.rarity-mythique {
+  animation:omniRareCardGlow 2.6s ease-in-out infinite alternate;
+}
+@keyframes omniRareCardGlow {
+  from { transform:translateY(0) scale(1); }
+  to { transform:translateY(-3px) scale(1.035); }
+}
+@media(prefers-reduced-motion:reduce) {
+  .omni-card-result-icon.rarity-legendaire,
+  .omni-card-result-icon.rarity-mythique { animation:none!important; }
+}
