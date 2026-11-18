@@ -1001,6 +1001,22 @@ function tirerCarteCosmique() {
   return cardsList[0];
 }
 
+function tirerTroisCartesCosmiques() {
+  const pool = [...cardsList];
+  const selection = [];
+  while (selection.length < 3 && pool.length) {
+    const total = pool.reduce((sum,card)=>sum+card.weight,0);
+    let draw = Math.random()*total;
+    let index = 0;
+    for (;index<pool.length-1;index++) {
+      draw -= pool[index].weight;
+      if (draw < 0) break;
+    }
+    selection.push(pool.splice(index,1)[0]);
+  }
+  return selection;
+}
+
 function classeRareteCarte(rarete) {
   return "rarity-"+String(rarete||"commune").toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z]/g,"");
@@ -1051,7 +1067,7 @@ function ouvrirBooster() {
   const pack = booster?.querySelector(".booster-pack");
   if (!booster || !selection || !pack) return;
   ouvertureBoosterEnCours = true;
-  boosterEnCours = Array.from({length:3},tirerCarteCosmique);
+  boosterEnCours = tirerTroisCartesCosmiques();
   pack.classList.add("is-opening");
   jouerEffetSonore("booster");
 
