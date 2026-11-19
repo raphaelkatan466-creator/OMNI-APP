@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://raphaelkatan466-creator.github.io/OMNI-APP/sitemap.xml
